@@ -97,8 +97,6 @@ const Detail = {
 const UI = {
   refreshCash() {
     document.getElementById("cash").textContent = State.fmtCash();
-    const g = document.getElementById("garage-count");
-    if (g) g.textContent = State.garage.length ? `(${State.garage.length})` : "";
   },
   toast(msg) {
     const t = document.createElement("div");

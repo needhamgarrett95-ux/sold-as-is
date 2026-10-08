@@ -5,23 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Sold As-Is</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div id="app">
-  <header id="topbar">
-    <div class="brand">SOLD <span>AS-IS</span></div>
-    <div class="cash" id="cash">$1,500</div>
-  </header>
-  <div id="feed"></div>
-  <div id="detail" class="hidden"></div>
-  <nav id="tabbar">
-    <button class="tab active" data-tab="feed">Market</button>
-    <button class="tab" data-tab="garage">Garage <span id="garage-count"></span></button>
-    <button class="tab" data-tab="collection">Collection</button>
-  </nav>
+<div id="browser">
+  <div id="chrome">
+    <div class="traffic">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    </div>
+    <div class="tab"><span class="tab-icon">🏍</span> MotoMarket — Mopeds for sale</div>
+    <div class="urlbar">
+      <span class="lock">🔒</span><span class="url">motomarket.place/mopeds</span><span class="reload">↻</span>
+    </div>
+  </div>
+  <div id="site">
+    <header id="site-header">
+      <div class="logo">moto<span>market</span></div>
+      <div class="search"><input type="text" placeholder="Search mopeds, parts, brands..." disabled></div>
+      <div class="wallet" id="cash">$1,500</div>
+    </header>
+    <nav id="cats">
+      <a class="active">All mopeds</a><a>Under $500</a><a>Runs & drives</a><a>Projects</a><a>Parts</a>
+    </nav>
+    <div id="feed"></div>
+    <div id="detail" class="hidden"></div>
+    <footer id="site-footer">MotoMarket © 2026 · Sold as-is. No warranties, no take-backs. · <a>Terms</a> · <a>Privacy</a></footer>
+  </div>
 </div>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>

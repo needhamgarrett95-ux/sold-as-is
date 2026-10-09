@@ -1312,11 +1312,14 @@ const Views = {
           <div class="eby-name">${p.partLabel} — ${p.bikeBrand} ${p.bikeModel}</div>
           <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
           <div class="cond-bar"><div class="cond-fill" style="width:${pct}%;background:${barColor}"></div></div>
-          ${tooFarGone
-            ? `<div class="eby-meta" style="color:#f44336">Too far gone to repair</div>`
-            : canRepair
-              ? `<button class="eby-repair" data-repair="${i}">🔧 Repair — ${money(cost)}</button>`
-              : `<div class="eby-meta" style="color:#4caf50">Max condition reached</div>`}
+          ${(() => {
+            const attempts = p.repairAttempts || 0;
+            const left = 3 - attempts;
+            if (tooFarGone) return `<div class="eby-meta" style="color:#f44336">Too far gone to repair</div>`;
+            if (left <= 0) return `<div class="eby-meta" style="color:#999">No repairs left</div>`;
+            if (!canRepair) return `<div class="eby-meta" style="color:#4caf50">Max condition reached</div>`;
+            return `<button class="eby-repair" data-repair="${i}">🔧 Repair — ${money(cost)} (${left} left)</button>`;
+          })()}
           <button class="eby-sell" data-sell-part="${i}">💰 Sell This Part</button>
         </div>
       </div>`;
@@ -1327,6 +1330,11 @@ const Views = {
     const p = (State.parts || [])[i];
     if (!p) return;
     const pct = ensurePct(p);
+    const attempts = p.repairAttempts || 0;
+    if (attempts >= 3) {
+      UI.toast("No repair attempts left on this part");
+      return;
+    }
     if (pct < 25) {
       UI.toast("That part is too far gone to repair");
       return;
@@ -1341,19 +1349,34 @@ const Views = {
       return;
     }
     State.cash -= cost;
-    const result = attemptRepair(p);
-    const oldState = pctToState(pct);
-    p.conditionPct = result.newPct;
-    const newState = pctToState(result.newPct);
+    p.repairAttempts = attempts + 1;
+
+    // Very rare (5%): repair goes wrong, part gets worse
+    let newPct, improved, worsened = false;
+    if (Math.random() < 0.05) {
+      const damage = 5 + ((Math.random() * 10) | 0); // -5 to -15
+      newPct = Math.max(0, pct - damage);
+      worsened = true;
+      improved = false;
+    } else {
+      const result = attemptRepair(p);
+      newPct = result.newPct;
+      improved = result.improved;
+    }
+
+    p.conditionPct = newPct;
+    const newState = pctToState(newPct);
     p.state = newState;
     p.stateLabel = PART_STATE_LABEL[newState];
-    // Refresh the image if the condition tier changed
     p.img = partImg(p.bikeSprite, p.partKey, newState);
     UI.refreshCash();
-    if (result.improved) {
-      UI.toast(`Repaired to ${result.newPct}% (${p.stateLabel})!`);
-    } else if (result.reason === "no_change") {
-      UI.toast("Repair didn't take — no improvement");
+    const left = 3 - p.repairAttempts;
+    if (worsened) {
+      UI.toast(`Repair went wrong! Down to ${newPct}% (${p.stateLabel})`);
+    } else if (improved) {
+      UI.toast(`Repaired to ${newPct}% (${p.stateLabel})! ${left} attempt${left === 1 ? "" : "s"} left`);
+    } else {
+      UI.toast(`Repair didn't take — no improvement. ${left} attempt${left === 1 ? "" : "s"} left`);
     }
     this.renderGarage();
   },

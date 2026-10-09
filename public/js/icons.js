@@ -33,8 +33,8 @@ const Icon = (() => {
     // Gavel — auction
     gavel: S(`<path d="M9 4l7 7M7 6l7 7M4 20h7"/><path d="M14 9l-4.5 4.5M13 5l6 6"/>`),
 
-    // Bone — boneyard logo
-    bone: S(`<path d="M7 10a2.5 2.5 0 1 1-2.4-3.2A2.5 2.5 0 1 1 8 4.4l8 8a2.5 2.5 0 1 1 3.4 3.4 2.5 2.5 0 1 1 3.2 2.4A2.5 2.5 0 1 1 19.2 20l-8-8"/>`),
+    // Bone — boneyard logo (diagonal dog bone, filled knobs)
+    bone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9.5 14.5l5-5" stroke-width="4"/><circle cx="7" cy="7" r="2.4" fill="currentColor" stroke="none"/><circle cx="10.2" cy="4.8" r="2.4" fill="currentColor" stroke="none"/><circle cx="17" cy="17" r="2.4" fill="currentColor" stroke="none"/><circle cx="13.8" cy="19.2" r="2.4" fill="currentColor" stroke="none"/></svg>`,
 
     // Clipboard — list on marketplace
     clipboard: S(`<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4a2 2 0 0 1 6 0M9 11h6M9 15h6"/>`),

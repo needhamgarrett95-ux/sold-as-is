@@ -283,7 +283,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .eby-cancel svg { width: 14px; height: 14px; }
 button svg { vertical-align: -3px; }
 .lock svg { width: 14px; height: 14px; vertical-align: -2px; }
-#logo-boneyard svg { width: 22px; height: 22px; vertical-align: -4px; }
+#logo-boneyard { display: inline-flex; align-items: center; gap: 4px; }
+#logo-boneyard svg { width: 20px; height: 20px; flex-shrink: 0; }
+#logo-boneyard.hidden { display: none; }
 /* nav badges */
 .wtab { position: relative; }
 

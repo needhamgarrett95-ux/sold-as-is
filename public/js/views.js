@@ -936,11 +936,29 @@ const Views = {
       clearInterval(this.auctionTimer);
       this.auctionTimer = null;
     }
-    // Refresh part detail if open on an auction
+    // Update part detail in place if open on an auction (no scroll reset)
     if (this.partDetailIdx >= 0 && !document.getElementById("part-detail").classList.contains("hidden")) {
       const p = this.partsShop[this.partDetailIdx];
+      const pdEl = document.getElementById("part-detail");
       if (p && p.listingType === "auction" && !p.ended) {
-        this.renderPartDetail();
+        const mins = Math.floor(p.timeLeft / 60), secs = p.timeLeft % 60;
+        const timeEl = pdEl.querySelector(".pd-time");
+        if (timeEl) timeEl.textContent = `${mins}:${String(secs).padStart(2, "0")} left`;
+        // Update bid rows
+        const bidRows = pdEl.querySelectorAll(".pd-bid-row");
+        if (bidRows[0]) bidRows[0].innerHTML = `Current bid: <strong>${money(p.currentBid)}</strong>`;
+        if (bidRows[1]) bidRows[1].textContent = p.highBidder
+          ? (p.highBidder === "you" ? "You're winning!" : `High bidder: ${p.highBidder}`)
+          : "No bids yet";
+        // Update price at top
+        const priceEl = pdEl.querySelector(".pd-price");
+        if (priceEl) priceEl.textContent = money(p.currentBid);
+        // Update min bid hint and input
+        const minBid = p.currentBid + (p.bidIncrement || 1);
+        const hintEl = pdEl.querySelector(".pd-hint");
+        if (hintEl) hintEl.textContent = `Enter ${money(minBid)} or more`;
+        const inputEl = pdEl.querySelector("#pd-bid-amount");
+        if (inputEl && document.activeElement !== inputEl) inputEl.value = minBid;
       } else if (!p || p.ended) {
         this.closePartDetail();
       }

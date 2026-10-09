@@ -286,6 +286,15 @@ button svg { vertical-align: -3px; }
 #logo-boneyard { display: inline-flex; align-items: center; gap: 4px; }
 #logo-boneyard svg { width: 20px; height: 20px; flex-shrink: 0; }
 #logo-boneyard.hidden { display: none; }
+/* seller card star */
+.seller .meta svg { width: 14px !important; height: 14px !important; vertical-align: -2px; display: inline-block; }
+/* message seller header */
+.msg-seller-head svg { width: 18px; height: 18px; }
+.msg-seller-head { display: flex; align-items: center; gap: 6px; }
+/* photo count camera */
+.photo-count svg { width: 14px; height: 14px; vertical-align: -2px; }
+/* safety: never let an icon SVG blow up unconstrained */
+.msg-seller-card svg { max-width: 22px; max-height: 22px; }
 /* nav badges */
 .wtab { position: relative; }
 

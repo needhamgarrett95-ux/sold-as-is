@@ -29,10 +29,12 @@ const Views = {
     // Update refresh button for the active tab
     this.updateRefreshBtn();
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
-    document.getElementById("cats").style.display = name === "market" ? "" : "none";
+    document.getElementById("cats").style.display = name === "market" && this.marketTab === "browse" ? "" : "none";
+    document.getElementById("market-tabs").style.display = name === "market" ? "" : "none";
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
+    if (name === "market") { this.renderMarketTabs(); this.renderMarketFeed(); }
     if (name === "parts") this.renderParts();
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
@@ -45,8 +47,11 @@ const Views = {
   typeFilter: "all", // "all" | "bin" | "auction"
   auctionTimer: null,
   boneyardTab: "buy", // "buy" | "sell"
-  myPartListings: [], // player's own listings
+  myPartListings: [], // player's own part listings
+  myBikeListings: [], // player's own bike listings
+  marketTab: "browse", // "browse" | "mine"
   salesTimer: null,
+  bikeSalesTimer: null,
   // Boneyard refresh: 3 free, then 30s cooldown
   partsRefreshesLeft: 3,
   partsCooldownUntil: 0,
@@ -137,6 +142,119 @@ const Views = {
   startSalesTimer() {
     if (this.salesTimer) return;
     this.salesTimer = setInterval(() => this.tickSales(), 5000); // check every 5s
+  },
+
+  // --- marketplace: my bike listings ---
+  renderMarketTabs() {
+    const el = document.getElementById("market-tabs");
+    if (!el) return;
+    el.innerHTML = `
+      <div class="eby-typefilter market-tabs">
+        <button class="eby-type${this.marketTab === "browse" ? " active" : ""}" data-mtab="browse">Browse</button>
+        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${this.myBikeListings.length ? ` (${this.myBikeListings.length})` : ""}</button>
+      </div>`;
+    el.querySelectorAll("[data-mtab]").forEach(t =>
+      t.addEventListener("click", () => {
+        this.marketTab = t.dataset.mtab;
+        this.renderMarketTabs();
+        this.renderMarketFeed();
+      }));
+    const cats = document.getElementById("cats");
+    if (cats) cats.style.display = this.marketTab === "browse" ? "" : "none";
+  },
+
+  renderMarketFeed() {
+    if (this.marketTab === "mine") {
+      this.renderMyBikeListings();
+    } else {
+      Feed.render();
+    }
+  },
+
+  renderMyBikeListings() {
+    const feed = document.getElementById("feed");
+    if (!this.myBikeListings.length) {
+      feed.innerHTML = `<div class="empty"><strong>No listings yet</strong>List a bike from your garage to sell it here.</div>`;
+      return;
+    }
+    feed.innerHTML = `<div class="feed-grid">` +
+      this.myBikeListings.map((l, i) => {
+        const minsListed = Math.floor((Date.now() - l.listedAt) / 60000);
+        const timeStr = minsListed < 1 ? "just now" : `${minsListed}m ago`;
+        return `
+      <article class="card">
+        <div class="photo">
+          <div class="just-listed">Your Listing</div>
+          <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false"${Feed.spriteNudge.has(l.sprite) ? ' class="nudged"' : ""}>
+          <div class="card-cond">${l.condition}</div>
+        </div>
+        <div class="card-info">
+          <div class="card-price-name"><strong>${money(l.askPrice)}</strong> &middot; ${l.brand} ${l.model}</div>
+          <div class="card-loc">Listed ${timeStr} · awaiting buyers</div>
+          <button class="eby-delist" data-delist-bike="${i}" style="margin-top:6px;width:100%">Remove Listing</button>
+        </div>
+      </article>`;
+      }).join("") + `</div>`;
+    feed.querySelectorAll("[data-delist-bike]").forEach(b =>
+      b.addEventListener("click", (e) => {
+        e.preventDefault(); e.stopPropagation();
+        this.delistBike(+b.dataset.delistBike);
+      }));
+  },
+
+  listBikeForSale(garageIdx, price) {
+    const bike = State.garage[garageIdx];
+    if (!bike) return;
+    price = parseInt(String(price).replace(/[^0-9]/g, ""), 10);
+    if (!price || price <= 0) {
+      UI.toast("Enter a valid price");
+      return;
+    }
+    State.garage.splice(garageIdx, 1);
+    this.myBikeListings.push({ ...bike, askPrice: price, listedAt: Date.now() });
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    UI.toast(`${bike.brand} ${bike.model} listed for ${money(price)}`);
+    this.startBikeSalesTimer();
+    this.garageTab = "bikes";
+    this.garageDetailIdx = -1;
+    this.renderGarage();
+  },
+
+  delistBike(idx) {
+    const l = this.myBikeListings[idx];
+    if (!l) return;
+    this.myBikeListings.splice(idx, 1);
+    const { askPrice, listedAt, ...bike } = l;
+    bike.listed = false;
+    State.garage.push(bike);
+    UI.toast(`${l.brand} ${l.model} returned to garage`);
+    this.renderMarketFeed();
+    this.renderMarketTabs();
+  },
+
+  startBikeSalesTimer() {
+    if (this.bikeSalesTimer) return;
+    this.bikeSalesTimer = setInterval(() => this.tickBikeSales(), 8000);
+  },
+
+  tickBikeSales() {
+    if (!this.myBikeListings.length) return;
+    for (let i = this.myBikeListings.length - 1; i >= 0; i--) {
+      const l = this.myBikeListings[i];
+      const fairness = (l.fairValue || l.boughtFor || 500) / Math.max(1, l.askPrice);
+      const chance = Math.min(0.20, 0.05 * fairness);
+      if (Math.random() < chance) {
+        this.myBikeListings.splice(i, 1);
+        State.cash += l.askPrice;
+        State.sold.push({ ...l, soldFor: l.askPrice, soldAt: Date.now() });
+        UI.refreshCash();
+        UI.toast(`Sold your ${l.brand} ${l.model} for ${money(l.askPrice)}!`);
+        if (this.current === "market") {
+          this.renderMarketFeed();
+          this.renderMarketTabs();
+        }
+      }
+    }
   },
 
   tickSales() {
@@ -619,7 +737,7 @@ const Views = {
           </div>
         </div>
         <div class="g-detail-actions">
-          <button class="btn-list" data-gact="list">${b.listed ? "✓ Listed" : "📋 List on Marketplace"}</button>
+          <button class="btn-list" data-gact="list">📋 List on Marketplace</button>
           <button class="btn-keep" data-gact="keep">${b.kept ? "★ In Collection" : "🏆 Add to Collection"}</button>
           <button class="btn-strip" data-gact="partout">🔧 Part Out</button>
         </div>
@@ -828,11 +946,25 @@ const Views = {
     const bike = State.garage[this.garageDetailIdx];
     if (!bike) return;
     if (act === "list") {
-      bike.listed = !bike.listed;
-      UI.toast(bike.listed
-        ? `${bike.brand} ${bike.model} listed on the marketplace`
-        : `${bike.brand} ${bike.model} unlisted`);
-      this.renderGarage();
+      // Show inline price input for listing
+      const btn = document.querySelector('[data-gact="list"]');
+      if (btn) {
+        const suggest = bike.fairValue || bike.boughtFor || 500;
+        btn.outerHTML = `<div class="sell-price-row">
+          <input type="number" inputmode="numeric" id="bike-list-price" value="${suggest}" min="1">
+          <button class="eby-confirm" id="bike-list-confirm">List</button>
+          <button class="eby-cancel" id="bike-list-cancel">✕</button>
+        </div>`;
+        const input = document.getElementById("bike-list-price");
+        const confirm = document.getElementById("bike-list-confirm");
+        const cancel = document.getElementById("bike-list-cancel");
+        if (confirm) confirm.addEventListener("click", () => {
+          input.blur();
+          this.listBikeForSale(this.garageDetailIdx, input.value);
+        });
+        if (cancel) cancel.addEventListener("click", () => this.renderGarage());
+        if (input) input.focus();
+      }
     } else if (act === "keep") {
       bike.kept = !bike.kept;
       UI.toast(bike.kept

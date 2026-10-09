@@ -115,7 +115,25 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--blue);
   color: #fff; font-weight: 800; font-size: 1.2rem; display: flex;
   align-items: center; justify-content: center; }
-.haggle-resp { background: #eef4ff; border-left: 3px solid var(--blue);
+/* ---------- message seller (haggle) ---------- */
+.msg-thread { display: flex; flex-direction: column; gap: 8px; margin: 12px; }
+.msg { max-width: 80%; padding: 10px 14px; border-radius: 18px; font-size: .9rem; line-height: 1.4; }
+.msg.you { align-self: flex-end; background: var(--blue); color: #fff;
+  border-bottom-right-radius: 6px; font-weight: 700; }
+.msg.seller { align-self: flex-start; background: #f0f0f0; color: var(--ink);
+  border-bottom-left-radius: 6px; }
+.msg-seller-card { margin: 12px; padding: 16px; background: #fff;
+  border: 1px solid #e4e4e4; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.msg-seller-head { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+.msg-seller-row { display: flex; gap: 10px; }
+.msg-seller-row input { flex: 1; padding: 13px 18px; border: none; border-radius: 24px;
+  background: #f0f2f5; font-size: 1rem; color: var(--ink); outline: none; min-width: 0; }
+.msg-seller-row input:focus { background: #e8eaed; }
+.msg-seller-row input::placeholder { color: #8a8d91; }
+#offer-send { background: var(--blue); color: #fff; border: none; border-radius: 12px;
+  padding: 0 24px; font-size: 1rem; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+#offer-send:active { transform: scale(.96); }
   padding: 12px; border-radius: 0 8px 8px 0; margin: 12px 0; font-style: italic;
   font-size: .9rem; color: #2c3a4a; }
 .notice { background: #fbdcdc; color: var(--red); padding: 10px 12px;

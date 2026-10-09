@@ -8,6 +8,9 @@ const Detail = {
     if (!l) return;
     this.current = l;
     this.offer = null;
+    this.thread = [];
+    this.haggleResponse = null;
+    this.notice = null;
     this.render();
     document.getElementById("detail").classList.remove("hidden");
     document.getElementById("feed").style.display = "none";
@@ -19,24 +22,61 @@ const Detail = {
     this.current = null;
   },
 
-  // Haggle: offer a price, seller responds based on how reasonable it is
-  haggle(pct) {
+  // Haggle: player sends a numeric offer, seller responds intelligently
+  // Returns { response, accepted, price } — price is the buyable amount
+  sendOffer(rawInput) {
     const l = this.current;
-    const offerPrice = Math.round(l.price * pct / 10) * 10;
+    // Numerals only
+    const digits = String(rawInput).replace(/[^0-9]/g, "");
+    if (!digits) {
+      this.haggleResponse = { response: `"Send me a number and we'll talk."`, accepted: false, price: null };
+      this.render();
+      return;
+    }
+    const offerPrice = parseInt(digits, 10);
+    if (offerPrice <= 0) {
+      this.haggleResponse = { response: `"Very funny."`, accepted: false, price: null };
+      this.render();
+      return;
+    }
     this.offer = offerPrice;
     const ratio = offerPrice / l.price;
-    let response, accepted = false;
-    if (ratio >= 0.95)      { response = `"${money(offerPrice)}? Yeah, I can do that."`; accepted = true; }
-    else if (ratio >= 0.85) { response = `"Hmm... ${money(offerPrice)}. Alright, it's yours."`; accepted = true; }
-    else if (ratio >= 0.75) { response = `"${money(offerPrice)}? Meet me at ${money(Math.round(l.price * 0.9 / 10) * 10)} and we got a deal."`; }
-    else                    { response = `"${money(offerPrice)}?? No lowballs, bro."`; }
-    this.haggleResponse = { response, accepted, price: accepted ? offerPrice : null };
+    let response, accepted = false, price = null;
+
+    if (ratio >= 0.95) {
+      response = `"${money(offerPrice)}? Yeah, I can do that."`;
+      accepted = true; price = offerPrice;
+    } else if (ratio >= 0.85) {
+      response = `"Hmm... ${money(offerPrice)}. Alright, it's yours."`;
+      accepted = true; price = offerPrice;
+    } else if (ratio >= 0.70) {
+      // Counter: meet in the middle, rounded to nearest $10
+      const counter = Math.round(((offerPrice + l.price) / 2) / 10) * 10;
+      response = `"${money(offerPrice)}? I could do ${money(counter)}. Meet me there and it's yours."`;
+      price = counter; // buy button updates to counter
+    } else if (ratio >= 0.50) {
+      // Firm counter at 90%
+      const counter = Math.round(l.price * 0.9 / 10) * 10;
+      response = `"${money(offerPrice)}? Come on. ${money(counter)} and we got a deal."`;
+      price = counter;
+    } else {
+      response = `"${money(offerPrice)}?? No lowballs, bro."`;
+    }
+    // Track the thread
+    this.thread = this.thread || [];
+    this.thread.push({ from: "you", text: money(offerPrice) });
+    this.thread.push({ from: "seller", text: response });
+    this.haggleResponse = { response, accepted, price };
     this.render();
+    // Keep input focused for quick follow-up offers
+    const inp = document.getElementById("offer-input");
+    if (inp) inp.focus();
   },
 
   buyNow() {
     const l = this.current;
-    const price = (this.haggleResponse && this.haggleResponse.accepted)
+    // Buyable price: accepted offer, seller counter, or asking price
+    const price = (this.haggleResponse && this.haggleResponse.price)
       ? this.haggleResponse.price : l.price;
     if (!State.canAfford(price)) {
       this.notice = "Not enough cash for this one.";
@@ -86,24 +126,36 @@ const Detail = {
             }).join("")}
           </div>
         </div>
-        ${hr ? `<div class="haggle-resp">${hr.response}</div>` : ""}
+        ${this.thread && this.thread.length ? `<div class="msg-thread">` +
+          this.thread.map(m => `<div class="msg ${m.from}">${m.text}</div>`).join("") + `</div>` : ""}
         ${this.notice ? `<div class="notice">${this.notice}</div>` : ""}
-        <div class="haggle-row">
-          <span>Make an offer:</span>
-          <button data-haggle="0.9">90%</button>
-          <button data-haggle="0.8">80%</button>
-          <button data-haggle="0.7">70%</button>
+        <div class="msg-seller-card">
+          <div class="msg-seller-head">💬 Message seller</div>
+          <div class="msg-seller-row">
+            <input id="offer-input" type="text" inputmode="numeric" pattern="[0-9]*"
+              placeholder="Make an offer... ($)" autocomplete="off">
+            <button id="offer-send">Send</button>
+          </div>
         </div>
         <button class="buy-btn" id="d-buy">
-          ${(hr && hr.accepted) ? `Buy for ${money(hr.price)}` : `Buy now — ${money(l.price)}`}
+          ${(hr && hr.price) ? `Buy for ${money(hr.price)}` : `Buy now — ${money(l.price)}`}
         </button>
         <div class="as-is">Sold as-is. No warranties, no take-backs.</div>
       </div>
     </div>`;
     document.getElementById("d-back").onclick = () => this.close();
     document.getElementById("d-buy").onclick = () => this.buyNow();
-    el.querySelectorAll("[data-haggle]").forEach(b =>
-      b.onclick = () => this.haggle(+b.dataset.haggle));
+    const offerInput = document.getElementById("offer-input");
+    const sendBtn = document.getElementById("offer-send");
+    const sendOffer = () => this.sendOffer(offerInput.value);
+    // Numerals only as they type
+    offerInput.addEventListener("input", () => {
+      offerInput.value = offerInput.value.replace(/[^0-9]/g, "");
+    });
+    sendBtn.onclick = sendOffer;
+    offerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendOffer();
+    });
   },
 };
 

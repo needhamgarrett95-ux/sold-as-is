@@ -40,6 +40,88 @@ const Views = {
 
   partsFilter: "all",
   partsSearch: "",
+  typeFilter: "all", // "all" | "bin" | "auction"
+  auctionTimer: null,
+
+  // --- auction engine ---
+  startAuctionTimer() {
+    if (this.auctionTimer) return;
+    this.auctionTimer = setInterval(() => this.tickAuctions(), 1000);
+  },
+
+  tickAuctions() {
+    let changed = false;
+    for (const p of this.partsShop) {
+      if (p.listingType !== "auction" || p.ended) continue;
+      p.timeLeft--;
+      changed = true;
+      if (p.timeLeft <= 0) {
+        this.endAuction(p);
+      } else {
+        this.autoBid(p);
+      }
+    }
+    // Only re-render if we're looking at parts and something changed
+    if (changed && this.current === "parts" && !document.getElementById("parts-view").classList.contains("hidden")) {
+      this.renderParts(true); // preserve scroll/focus
+    }
+    // Stop timer if no active auctions
+    if (!this.partsShop.some(p => p.listingType === "auction" && !p.ended)) {
+      clearInterval(this.auctionTimer);
+      this.auctionTimer = null;
+    }
+  },
+
+  autoBid(p) {
+    // Each bidder acts with some probability; more aggressive near the end
+    const urgency = p.timeLeft <= 5 ? 0.55 : p.timeLeft <= 15 ? 0.3 : 0.15;
+    for (const b of p.bidders) {
+      if (p.highBidder === b.name) continue; // already winning
+      const nextBid = p.currentBid + p.bidIncrement;
+      if (nextBid > b.max) continue; // over budget — drops out (realistic)
+      if (Math.random() < urgency) {
+        p.currentBid = nextBid;
+        p.highBidder = b.name;
+        break; // one bid per tick max
+      }
+    }
+  },
+
+  playerBid(idx) {
+    const p = this.partsShop[idx];
+    if (!p || p.ended || p.timeLeft <= 0) return;
+    const nextBid = p.currentBid + p.bidIncrement;
+    if (State.cash < nextBid) {
+      UI.toast("Not enough cash to cover that bid");
+      return;
+    }
+    p.currentBid = nextBid;
+    p.highBidder = "you";
+    UI.toast(`Bid placed: ${money(nextBid)}`);
+    this.renderParts(true);
+  },
+
+  endAuction(p) {
+    p.ended = true;
+    p.timeLeft = 0;
+    if (p.highBidder === "you") {
+      if (State.cash >= p.currentBid) {
+        State.cash -= p.currentBid;
+        State.parts = State.parts || [];
+        State.parts.push(p);
+        // Remove from shop
+        const i = this.partsShop.indexOf(p);
+        if (i >= 0) this.partsShop.splice(i, 1);
+        UI.refreshCash();
+        UI.toast(`Won the ${p.partLabel} for ${money(p.currentBid)}!`);
+      }
+    }
+    // If someone else won, it just disappears from the shop
+    else {
+      const i = this.partsShop.indexOf(p);
+      if (i >= 0) this.partsShop.splice(i, 1);
+    }
+  },
 
   initPartsFilter() {
     const sel = document.getElementById("parts-bike-filter");
@@ -51,12 +133,16 @@ const Views = {
     });
   },
 
-  renderParts() {
+  renderParts(preserve) {
     if (!this.partsShop.length) this.partsShop = genPartsShop(16);
+    this.startAuctionTimer();
     const el = document.getElementById("parts-view");
+    // Preserve scroll position during auction ticks
+    const scrollY = preserve ? el.scrollTop : 0;
     const shown = this.partsShop
       .map((p, i) => ({ ...p, idx: i }))
       .filter(p => {
+        if (this.typeFilter !== "all" && p.listingType !== this.typeFilter) return false;
         if (this.partsFilter !== "all" && p.bikeSprite !== this.partsFilter) return false;
         if (this.partsSearch) {
           const q = this.partsSearch.toLowerCase();
@@ -69,9 +155,37 @@ const Views = {
       <div class="eby-head">
         <div class="eby-title">🛵 Find parts that fit</div>
       </div>
+      <div class="eby-typefilter">
+        <button class="eby-type${this.typeFilter === "all" ? " active" : ""}" data-type="all">All</button>
+        <button class="eby-type${this.typeFilter === "bin" ? " active" : ""}" data-type="bin">Buy It Now</button>
+        <button class="eby-type${this.typeFilter === "auction" ? " active" : ""}" data-type="auction">Auctions</button>
+      </div>
       <div class="eby-search"><input type="text" id="parts-search" placeholder="Search parts..." value="${this.partsSearch.replace(/"/g, "&quot;")}" autocomplete="off"></div>
       <div class="eby-list">` +
-      (shown.length ? shown.map(p => `
+      (shown.length ? shown.map(p => {
+        if (p.listingType === "auction") {
+          const isWinning = p.highBidder === "you";
+          const mins = Math.floor(p.timeLeft / 60), secs = p.timeLeft % 60;
+          return `
+      <div class="eby-item eby-auction">
+        <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy">
+          <div class="eby-auc-badge">⏱ ${mins}:${String(secs).padStart(2, "0")}</div>
+        </div>
+        <div class="eby-info">
+          <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
+          <div class="eby-cond">${p.stateLabel} · Auction</div>
+          <div class="eby-price-row">
+            <span class="eby-price">${money(p.currentBid)}</span>
+            <span class="eby-bids">${p.highBidder ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`) : "No bids yet"}</span>
+          </div>
+          <div class="eby-meta">${p.watchers} watchers</div>
+          <button class="eby-bid${isWinning ? " winning" : ""}" data-bid="${p.idx}">
+            ${isWinning ? `Winning — Bid ${money(p.currentBid + p.bidIncrement)}` : `Place Bid — ${money(p.currentBid + p.bidIncrement)}`}
+          </button>
+        </div>
+      </div>`;
+        }
+        return `
       <div class="eby-item">
         <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy"></div>
         <div class="eby-info">
@@ -86,9 +200,11 @@ const Views = {
           <div class="eby-meta">${p.watchers} watchers</div>
           <button class="eby-buy" data-buy-part="${p.idx}">Buy It Now</button>
         </div>
-      </div>`).join("")
-      : `<div class="empty"><strong>No parts for this bike</strong>Try a different model.</div>`) +
+      </div>`;
+      }).join("")
+      : `<div class="empty"><strong>No parts match</strong>Try different filters.</div>`) +
       `</div>`;
+    if (preserve) el.scrollTop = scrollY;
     el.querySelectorAll("[data-buy-part]").forEach(btn => {
       const buy = (e) => { e.preventDefault(); e.stopPropagation(); this.buyPart(+btn.dataset.buyPart); };
       btn.addEventListener("click", buy);
@@ -104,7 +220,7 @@ const Views = {
     });
     // Parts search (preserve focus while typing)
     const psInput = document.getElementById("parts-search");
-    if (psInput) {
+    if (psInput && !preserve) {
       psInput.addEventListener("input", (e) => {
         this.partsSearch = e.target.value;
         const pos = e.target.selectionStart;
@@ -113,6 +229,26 @@ const Views = {
         if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
       });
     }
+    // Listing type filter
+    el.querySelectorAll("[data-type]").forEach(t =>
+      t.addEventListener("click", () => {
+        this.typeFilter = t.dataset.type;
+        this.renderParts();
+      }));
+    // Auction bid buttons
+    el.querySelectorAll("[data-bid]").forEach(btn => {
+      const bid = (e) => { e.preventDefault(); e.stopPropagation(); this.playerBid(+btn.dataset.bid); };
+      btn.addEventListener("click", bid);
+      let ty = 0, tx = 0;
+      btn.addEventListener("touchstart", (e) => {
+        ty = e.touches[0].clientY; tx = e.touches[0].clientX;
+      }, { passive: true });
+      btn.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - ty);
+        const dx = Math.abs(e.changedTouches[0].clientX - tx);
+        if (dy < 10 && dx < 10) bid(e);
+      }, { passive: false });
+    });
   },
 
   buyPart(i) {

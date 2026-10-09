@@ -136,7 +136,11 @@ const PART_BASE_PRICE = {
 };
 const PART_COND_MULT = { pristine: 1.0, used_good: 0.55, used_bad: 0.28, totaled: 0.1 };
 
-function genPartsShop(n = 12) {
+const BIDDER_NAMES = ["moped_mike", "rusty_rider", "carb_king", "two_stroke_tom",
+  "barnfind_betty", "puch_pete", "vespa_vince", "throttle_jockey", "grease_monkey",
+  "scoot_scoot", "wrench_wendy", "piston_paul"];
+
+function genPartsShop(n = 16) {
   const out = [];
   for (let i = 0; i < n; i++) {
     const bike = BIKES[(Math.random() * BIKES.length) | 0];
@@ -148,12 +152,37 @@ function genPartsShop(n = 12) {
     // eBay flavor: watchers + strikethrough "was" price
     const watchers = 1 + ((Math.random() * 14) | 0);
     const wasPrice = Math.random() < 0.4 ? Math.round(price * (1.1 + Math.random() * 0.25)) : null;
-    out.push({
+    const item = {
       id: i, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
       partKey: part.key, partLabel: part.label, state,
       stateLabel: PART_STATE_LABEL[state],
       price, wasPrice, watchers, img: partImg(bike.sprite, part.key, state),
-    });
+      listingType: "bin", // "bin" or "auction"
+    };
+    // ~35% are auctions
+    if (Math.random() < 0.35) {
+      const startBid = Math.max(1, Math.round(price * (0.55 + Math.random() * 0.15)));
+      const numBidders = 2 + ((Math.random() * 3) | 0); // 2-4 bidders
+      const bidders = [];
+      const usedNames = new Set();
+      for (let b = 0; b < numBidders; b++) {
+        let nm;
+        do { nm = BIDDER_NAMES[(Math.random() * BIDDER_NAMES.length) | 0]; }
+        while (usedNames.has(nm));
+        usedNames.add(nm);
+        // Each bidder has a secret max (80-115% of BIN price) — realistic budgets
+        bidders.push({ name: nm, max: Math.round(price * (0.8 + Math.random() * 0.35)) });
+      }
+      item.listingType = "auction";
+      item.startBid = startBid;
+      item.currentBid = startBid;
+      item.highBidder = null; // null = no bids yet
+      item.bidders = bidders;
+      item.timeLeft = 30; // seconds
+      item.ended = false;
+      item.bidIncrement = price < 30 ? 1 : price < 75 ? 2 : 5;
+    }
+    out.push(item);
   }
   return out;
 }

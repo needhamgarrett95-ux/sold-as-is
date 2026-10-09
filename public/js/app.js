@@ -2,9 +2,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   Feed.init();
   UI.refreshCash();
-  document.getElementById("refresh-btn").addEventListener("click", () => Feed.refresh());
-  // Fake browser reload button actually reloads the current view
-  document.querySelector(".urlbar .reload").addEventListener("click", () => {
+  // URL bar refresh button: market uses cooldown refresh, others reload their view
+  document.getElementById("refresh-btn").addEventListener("click", () => {
     if (Views.current === "market") Feed.refresh();
     else if (Views.current === "parts") { Views.partsShop = genPartsShop(12); Views.renderParts(); }
     else Views.show(Views.current);

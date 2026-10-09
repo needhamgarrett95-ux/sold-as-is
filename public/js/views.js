@@ -44,6 +44,9 @@ const Views = {
   partsSearch: "",
   typeFilter: "all", // "all" | "bin" | "auction"
   auctionTimer: null,
+  boneyardTab: "buy", // "buy" | "sell"
+  myPartListings: [], // player's own listings
+  salesTimer: null,
   // Boneyard refresh: 3 free, then 30s cooldown
   partsRefreshesLeft: 3,
   partsCooldownUntil: 0,
@@ -130,6 +133,111 @@ const Views = {
   },
 
   // --- auction engine ---
+  // --- simulated buyers for player listings ---
+  startSalesTimer() {
+    if (this.salesTimer) return;
+    this.salesTimer = setInterval(() => this.tickSales(), 5000); // check every 5s
+  },
+
+  tickSales() {
+    if (!this.myPartListings.length) return;
+    // Each listing has a chance to sell every tick
+    // Better prices (closer to market value) sell faster
+    for (let i = this.myPartListings.length - 1; i >= 0; i--) {
+      const l = this.myPartListings[i];
+      l.ticksListed = (l.ticksListed || 0) + 1;
+      // Base 8% chance per 5s tick, adjusted by price fairness
+      const marketPrice = Math.round(PART_BASE_PRICE[l.partKey] * PART_COND_MULT[l.state] || 20);
+      const fairness = marketPrice / Math.max(1, l.askPrice); // >1 = good deal, <1 = overpriced
+      const chance = Math.min(0.30, 0.08 * fairness);
+      if (Math.random() < chance) {
+        // Sold!
+        this.myPartListings.splice(i, 1);
+        State.cash += l.askPrice;
+        UI.refreshCash();
+        UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
+        if (this.current === "parts" && this.boneyardTab === "sell") {
+          this.renderParts();
+        }
+      }
+    }
+  },
+
+  // List a part from inventory for sale
+  listPartForSale(invIdx, price) {
+    const parts = State.parts || [];
+    const p = parts[invIdx];
+    if (!p) return;
+    price = parseInt(String(price).replace(/[^0-9]/g, ""), 10);
+    if (!price || price <= 0) {
+      UI.toast("Enter a valid price");
+      return;
+    }
+    // Remove from inventory, add to listings
+    parts.splice(invIdx, 1);
+    this.myPartListings.push({
+      ...p,
+      askPrice: price,
+      listedAt: Date.now(),
+      ticksListed: 0,
+    });
+    UI.toast(`${p.partLabel} listed for ${money(price)}`);
+    // Switch to sell tab to show it
+    this.boneyardTab = "sell";
+    this.garageTab = "bikes"; // refresh garage if visible
+    this.renderParts();
+  },
+
+  delistPart(idx) {
+    const l = this.myPartListings[idx];
+    if (!l) return;
+    this.myPartListings.splice(idx, 1);
+    State.parts = State.parts || [];
+    // Return to inventory (strip listing metadata)
+    const { askPrice, listedAt, ticksListed, ...part } = l;
+    State.parts.push(part);
+    UI.toast(`${l.partLabel} returned to inventory`);
+    this.renderParts();
+  },
+
+  myListingsHTML() {
+    if (!this.myPartListings.length) {
+      return `<div class="eby-list"><div class="empty">
+        <strong>No listings yet</strong>
+        List parts from your inventory to sell them here.</div></div>`;
+    }
+    return `<div class="eby-list">` +
+      this.myPartListings.map((l, i) => {
+        const pct = ensurePct(l);
+        const state = pctToState(pct);
+        const img = partImg(l.bikeSprite, l.partKey, state);
+        const minsListed = Math.floor((Date.now() - l.listedAt) / 60000);
+        const timeStr = minsListed < 1 ? "just now" : `${minsListed}m ago`;
+        return `
+      <div class="eby-item">
+        <div class="eby-thumb"><img src="${img}" alt="${l.partLabel}" loading="lazy"></div>
+        <div class="eby-info">
+          <div class="eby-name">${l.partLabel} for ${l.bikeBrand} ${l.bikeModel}</div>
+          <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
+          <div class="eby-price-row">
+            <span class="eby-price">${money(l.askPrice)}</span>
+          </div>
+          <div class="eby-meta">Listed ${timeStr} · waiting for buyers...</div>
+          <button class="eby-delist" data-delist="${i}">Remove Listing</button>
+        </div>
+      </div>`;
+      }).join("") + `</div>`;
+  },
+
+  bindMyListings(el) {
+    el.querySelectorAll("[data-btab]").forEach(t =>
+      t.addEventListener("click", () => {
+        this.boneyardTab = t.dataset.btab;
+        this.renderParts();
+      }));
+    el.querySelectorAll("[data-delist]").forEach(b =>
+      b.addEventListener("click", () => this.delistPart(+b.dataset.delist)));
+  },
   startAuctionTimer() {
     if (this.auctionTimer) return;
     this.auctionTimer = setInterval(() => this.tickAuctions(), 1000);
@@ -257,6 +365,7 @@ const Views = {
   renderParts(preserve) {
     if (!this.partsShop.length) this.partsShop = genPartsShop(16);
     this.startAuctionTimer();
+    this.startSalesTimer();
     const el = document.getElementById("parts-view");
     // Preserve scroll position during auction ticks
     const scrollY = preserve ? el.scrollTop : 0;
@@ -272,10 +381,25 @@ const Views = {
         }
         return true;
       });
+    // Buy/Sell tabs
+    const btabHtml = `
+      <div class="eby-typefilter">
+        <button class="eby-type${this.boneyardTab === "buy" ? " active" : ""}" data-btab="buy">Buy Parts</button>
+        <button class="eby-type${this.boneyardTab === "sell" ? " active" : ""}" data-btab="sell">My Listings${this.myPartListings.length ? ` (${this.myPartListings.length})` : ""}</button>
+      </div>`;
+    if (this.boneyardTab === "sell") {
+      el.innerHTML = `
+      <div class="eby-head">
+        <div class="eby-title">🛵 Find parts that fit</div>
+      </div>` + btabHtml + this.myListingsHTML();
+      if (preserve) el.scrollTop = scrollY;
+      this.bindMyListings(el);
+      return;
+    }
     el.innerHTML = `
       <div class="eby-head">
         <div class="eby-title">🛵 Find parts that fit</div>
-      </div>
+      </div>` + btabHtml + `
       <div class="eby-typefilter">
         <button class="eby-type${this.typeFilter === "all" ? " active" : ""}" data-type="all">All</button>
         <button class="eby-type${this.typeFilter === "bin" ? " active" : ""}" data-type="bin">Buy It Now</button>
@@ -350,6 +474,12 @@ const Views = {
         if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
       });
     }
+    // Buy/Sell tabs
+    el.querySelectorAll("[data-btab]").forEach(t =>
+      t.addEventListener("click", () => {
+        this.boneyardTab = t.dataset.btab;
+        this.renderParts();
+      }));
     // Listing type filter
     el.querySelectorAll("[data-type]").forEach(t =>
       t.addEventListener("click", () => {
@@ -524,6 +654,7 @@ const Views = {
             : canRepair
               ? `<button class="eby-repair" data-repair="${i}">🔧 Repair — ${money(cost)}</button>`
               : `<div class="eby-meta" style="color:#4caf50">Max condition reached</div>`}
+          <button class="eby-sell" data-sell-part="${i}">💰 Sell This Part</button>
         </div>
       </div>`;
       }).join("") + `</div>`;
@@ -657,6 +788,34 @@ const Views = {
         const dx = Math.abs(e.changedTouches[0].clientX - tx);
         if (dy < 10 && dx < 10) rep(e);
       }, { passive: false });
+    });
+    // Sell buttons → inline price input
+    el.querySelectorAll("[data-sell-part]").forEach(b => {
+      const idx = +b.dataset.sellPart;
+      const sell = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        // Replace button with price input
+        const p = (State.parts || [])[idx];
+        if (!p) return;
+        const pct = ensurePct(p);
+        const state = pctToState(pct);
+        const marketPrice = Math.round((PART_BASE_PRICE[p.partKey] || 20) * (PART_COND_MULT[state] || 0.3));
+        b.outerHTML = `<div class="sell-price-row">
+          <input type="number" inputmode="numeric" id="sell-price-${idx}" value="${marketPrice}" min="1">
+          <button class="eby-confirm" data-confirm-sell="${idx}">List</button>
+          <button class="eby-cancel" data-cancel-sell>✕</button>
+        </div>`;
+        // Bind the new buttons
+        const confirmBtn = el.querySelector(`[data-confirm-sell="${idx}"]`);
+        const cancelBtn = el.querySelector(`[data-cancel-sell]`);
+        const input = el.querySelector(`#sell-price-${idx}`);
+        if (confirmBtn) confirmBtn.addEventListener("click", () => {
+          this.listPartForSale(idx, input.value);
+        });
+        if (cancelBtn) cancelBtn.addEventListener("click", () => this.renderGarage());
+        if (input) input.focus();
+      };
+      b.addEventListener("click", sell);
     });
   },
 

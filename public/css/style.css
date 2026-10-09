@@ -247,6 +247,20 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   border: 1.5px solid #b5651d; padding: 8px 14px; border-radius: 8px;
   font-size: .82rem; font-weight: 700; cursor: pointer; width: 100%; }
 .eby-repair:active { transform: scale(.98); background: #fef6ec; }
+.eby-sell { margin-top: 6px; background: #e04536; color: #fff;
+  border: none; padding: 8px 14px; border-radius: 8px;
+  font-size: .82rem; font-weight: 700; cursor: pointer; width: 100%; }
+.eby-sell:active { transform: scale(.98); opacity: .9; }
+.sell-price-row { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+.sell-price-row input { flex: 1; padding: 8px; border: 1.5px solid #ccc;
+  border-radius: 8px; font-size: .9rem; }
+.eby-confirm { background: #4caf50; color: #fff; border: none;
+  padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.eby-cancel { background: #999; color: #fff; border: none;
+  padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.eby-delist { margin-top: 6px; background: #fff; color: #666;
+  border: 1px solid #ccc; padding: 6px 12px; border-radius: 6px;
+  font-size: .8rem; cursor: pointer; }
 
 /* ---------- garage / collection views ---------- */
 .pane { flex: 1; overflow-y: auto; padding: 14px 12px; -webkit-overflow-scrolling: touch; }

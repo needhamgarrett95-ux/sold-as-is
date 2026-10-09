@@ -2,31 +2,15 @@
 const Feed = {
   listings: [],
   nextId: 0,
-  batchSize: 8,
+  batchSize: 10, // 5 rows x 2 cols, locked
 
   init() {
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     this.render();
-    const feed = document.getElementById("feed");
-    feed.addEventListener("scroll", () => {
-      if (feed.scrollTop + feed.clientHeight > feed.scrollHeight - 600) this.more();
-    });
+    // No infinite scroll — feed is locked to 5 rows, refresh for new batch
     // Fresh listings drop periodically
     setInterval(() => this.dropFresh(), 45000);
-  },
-
-  more() {
-    if (this._loading) return;
-    this._loading = true;
-    setTimeout(() => {
-      const lastBike = this.listings.length ? this.listings[this.listings.length - 1].bikeId : null;
-      const batch = genListings(this.batchSize, this.nextId, lastBike);
-      this.nextId += this.batchSize;
-      this.listings.push(...batch);
-      this.render();
-      this._loading = false;
-    }, 300);
   },
 
   dropFresh() {

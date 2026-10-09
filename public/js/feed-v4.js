@@ -95,12 +95,19 @@ const Feed = {
     return "cond-" + cond.toLowerCase().replace(/[^a-z]/g, "");
   },
 
+  // Per-sprite vertical nudge (px, negative = up) for sprites that sit low
+  spriteNudge: {
+    "yamaha_qt50": -10,
+    "honda_dio": -10,
+    "yamaha_zuma-prebug": -10,
+  },
+
   card(l) {
     return `
     <article class="card" data-id="${l.id}" style="position:relative;background:#fff;border:1px solid #e0d8c8;border-radius:10px;overflow:hidden;">
       ${l.fresh ? '<div class="fresh-tag">NEW</div>' : ""}
       <div class="photo photo-real">
-        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false">
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="${Feed.spriteNudge[l.sprite] ? `margin-top:${6 + Feed.spriteNudge[l.sprite]}px;` : ""}">
         <div style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-weight:800;font-size:1rem;padding:4px 10px;border-radius:6px;">${money(l.price)}</div>
         <div style="position:absolute;right:8px;bottom:8px;background:rgba(255,255,255,.92);color:#333;font-weight:700;font-size:.66rem;padding:4px 8px;border-radius:20px;">${l.condition}</div>
       </div>

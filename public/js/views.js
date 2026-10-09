@@ -61,14 +61,48 @@ const Views = {
         this.autoBid(p);
       }
     }
-    // Only re-render if we're looking at parts and something changed
+    // Update auction UI in place (no full re-render = no image flashing)
     if (changed && this.current === "parts" && !document.getElementById("parts-view").classList.contains("hidden")) {
-      this.renderParts(true); // preserve scroll/focus
+      this.updateAuctionUI();
     }
     // Stop timer if no active auctions
     if (!this.partsShop.some(p => p.listingType === "auction" && !p.ended)) {
       clearInterval(this.auctionTimer);
       this.auctionTimer = null;
+    }
+  },
+
+  updateAuctionUI() {
+    const el = document.getElementById("parts-view");
+    for (const p of this.partsShop) {
+      if (p.listingType !== "auction" || p.ended) continue;
+      const idx = this.partsShop.indexOf(p);
+      // Timer badge
+      const badge = el.querySelector(`[data-auc-timer="${idx}"]`);
+      if (badge) {
+        const mins = Math.floor(p.timeLeft / 60), secs = p.timeLeft % 60;
+        badge.textContent = `⏱ ${mins}:${String(secs).padStart(2, "0")}`;
+      }
+      // Current bid price
+      const priceEl = el.querySelector(`[data-auc-price="${idx}"]`);
+      if (priceEl) priceEl.textContent = money(p.currentBid);
+      // Bidder status
+      const bidsEl = el.querySelector(`[data-auc-bids="${idx}"]`);
+      if (bidsEl) {
+        const isWinning = p.highBidder === "you";
+        bidsEl.textContent = p.highBidder
+          ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`)
+          : "No bids yet";
+      }
+      // Bid button
+      const btn = el.querySelector(`[data-bid="${idx}"]`);
+      if (btn) {
+        const isWinning = p.highBidder === "you";
+        btn.classList.toggle("winning", isWinning);
+        btn.textContent = isWinning
+          ? `Winning — Bid ${money(p.currentBid + p.bidIncrement)}`
+          : `Place Bid — ${money(p.currentBid + p.bidIncrement)}`;
+      }
     }
   },
 
@@ -98,29 +132,30 @@ const Views = {
     p.currentBid = nextBid;
     p.highBidder = "you";
     UI.toast(`Bid placed: ${money(nextBid)}`);
-    this.renderParts(true);
+    this.updateAuctionUI();
   },
 
   endAuction(p) {
     p.ended = true;
     p.timeLeft = 0;
+    const i = this.partsShop.indexOf(p);
     if (p.highBidder === "you") {
       if (State.cash >= p.currentBid) {
         State.cash -= p.currentBid;
         State.parts = State.parts || [];
         State.parts.push(p);
-        // Remove from shop
-        const i = this.partsShop.indexOf(p);
         if (i >= 0) this.partsShop.splice(i, 1);
         UI.refreshCash();
         UI.toast(`Won the ${p.partLabel} for ${money(p.currentBid)}!`);
+      } else if (i >= 0) {
+        this.partsShop.splice(i, 1);
       }
     }
-    // If someone else won, it just disappears from the shop
-    else {
-      const i = this.partsShop.indexOf(p);
-      if (i >= 0) this.partsShop.splice(i, 1);
+    else if (i >= 0) {
+      this.partsShop.splice(i, 1);
     }
+    // Full re-render on auction end (item removed)
+    if (this.current === "parts") this.renderParts(true);
   },
 
   initPartsFilter() {
@@ -169,14 +204,14 @@ const Views = {
           return `
       <div class="eby-item eby-auction">
         <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy">
-          <div class="eby-auc-badge">⏱ ${mins}:${String(secs).padStart(2, "0")}</div>
+          <div class="eby-auc-badge" data-auc-timer="${p.idx}">⏱ ${mins}:${String(secs).padStart(2, "0")}</div>
         </div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
           <div class="eby-cond">${p.stateLabel} · Auction</div>
           <div class="eby-price-row">
-            <span class="eby-price">${money(p.currentBid)}</span>
-            <span class="eby-bids">${p.highBidder ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`) : "No bids yet"}</span>
+            <span class="eby-price" data-auc-price="${p.idx}">${money(p.currentBid)}</span>
+            <span class="eby-bids" data-auc-bids="${p.idx}">${p.highBidder ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`) : "No bids yet"}</span>
           </div>
           <div class="eby-meta">${p.watchers} watchers</div>
           <button class="eby-bid${isWinning ? " winning" : ""}" data-bid="${p.idx}">

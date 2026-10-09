@@ -2,7 +2,7 @@
 const Feed = {
   listings: [],
   nextId: 0,
-  batchSize: 10,
+  batchSize: 8,
 
   init() {
     this.listings = genListings(this.batchSize, this.nextId);
@@ -102,13 +102,13 @@ const Feed = {
       <div class="photo photo-real">
         <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false">
       </div>
-      <div class="card-body">
-        <div class="price-row">
-          <span class="price">${money(l.price)}</span>
-          <span class="cond ${Feed.condClass(l.condition)}">${l.condition}</span>
+      <div class="card-body" style="display:block;padding:8px 10px 10px;background:#ffffff;min-height:66px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+          <span style="font-size:1.02rem;font-weight:800;color:#1a1a1a;">${money(l.price)}</span>
+          <span class="cond ${Feed.condClass(l.condition)}" style="font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:20px;">${l.condition}</span>
         </div>
-        <div class="title">${l.brand} ${l.model}</div>
-        <div class="meta">${l.location}</div>
+        <div style="font-size:.82rem;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${l.brand} ${l.model}</div>
+        <div style="font-size:.72rem;color:#888888;margin-top:2px;">${l.location}</div>
       </div>
     </article>`;
   },

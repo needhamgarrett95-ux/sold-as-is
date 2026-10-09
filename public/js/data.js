@@ -121,6 +121,32 @@ function partImg(sprite, partKey, state) {
   return `assets/parts/${sprite}/${partKey}${suffix}.png`;
 }
 
+// ---------- parts shop ----------
+const PART_BASE_PRICE = {
+  engine: 220, exhaust: 90, wheel_front: 70, wheel_rear: 70,
+  fuel_tank: 80, headlight: 45, handlebars: 35, turn_signals: 25,
+};
+const PART_COND_MULT = { pristine: 1.0, used_good: 0.55, used_bad: 0.28, totaled: 0.1 };
+
+function genPartsShop(n = 12) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const bike = BIKES[(Math.random() * BIKES.length) | 0];
+    const part = PARTS[(Math.random() * PARTS.length) | 0];
+    // Weighted toward used conditions for a parts store vibe
+    const roll = Math.random();
+    const state = roll < 0.15 ? "pristine" : roll < 0.5 ? "used_good" : roll < 0.85 ? "used_bad" : "totaled";
+    const price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
+    out.push({
+      id: i, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
+      partKey: part.key, partLabel: part.label, state,
+      stateLabel: PART_STATE_LABEL[state],
+      price, img: partImg(bike.sprite, part.key, state),
+    });
+  }
+  return out;
+}
+
 function pickWeighted(items, wkey) {
   const total = items.reduce((s, i) => s + i[wkey], 0);
   let r = Math.random() * total;

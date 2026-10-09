@@ -1,20 +1,63 @@
 // Sold As-Is — garage & collection views
 const Views = {
   current: "market",
+  partsShop: [],
 
   show(name) {
     this.current = name;
     Detail.close();
-    document.querySelectorAll(".mnav").forEach(b =>
+    document.querySelectorAll("#tabbar .tab").forEach(b =>
       b.classList.toggle("active", b.dataset.view === name));
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
     document.getElementById("cats").style.display = name === "market" ? "" : "none";
+    document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
+    if (name === "parts") this.renderParts();
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
     const n = document.getElementById("nav-garage-n");
-    if (n) n.textContent = State.garage.length ? `(${State.garage.length})` : "";
+    if (n) n.textContent = State.garage.length ? `${State.garage.length}` : "";
+  },
+
+  renderParts() {
+    if (!this.partsShop.length) this.partsShop = genPartsShop(12);
+    const el = document.getElementById("parts-view");
+    el.innerHTML = `<h2>Parts Store</h2>
+      <div class="sub">OEM & used parts for your projects · tap to buy</div>
+      <div class="parts-shop-grid">` +
+      this.partsShop.map((p, i) => `
+      <div class="shop-part state-${p.state}">
+        <img src="${p.img}" alt="${p.partLabel}" loading="lazy">
+        <div class="shop-part-name">${p.partLabel}</div>
+        <div class="shop-part-fit">${p.bikeBrand} ${p.bikeModel}</div>
+        <div class="shop-part-state">${p.stateLabel}</div>
+        <div class="shop-part-buy">
+          <span class="shop-part-price">${money(p.price)}</span>
+          <button data-buy-part="${i}">Buy</button>
+        </div>
+      </div>`).join("") + `</div>`;
+    el.querySelectorAll("[data-buy-part]").forEach(btn =>
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.buyPart(+btn.dataset.buyPart);
+      }));
+  },
+
+  buyPart(i) {
+    const p = this.partsShop[i];
+    if (!p) return;
+    if (State.cash < p.price) {
+      UI.toast("Not enough cash for that part");
+      return;
+    }
+    State.cash -= p.price;
+    State.parts = State.parts || [];
+    State.parts.push(p);
+    this.partsShop.splice(i, 1);
+    UI.refreshCash();
+    UI.toast(`${p.partLabel} (${p.bikeBrand} ${p.bikeModel}) bought`);
+    this.renderParts();
   },
 
   renderGarage() {

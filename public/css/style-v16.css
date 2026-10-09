@@ -138,6 +138,24 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   display: flex; align-items: center; justify-content: center; padding: 0 4px; }
 #tabbar .tab-badge:empty { display: none; }
 
+/* ---------- parts store ---------- */
+.parts-shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shop-part { background: var(--card); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 10px 8px; text-align: center; }
+.shop-part img { width: 100%; height: 64px; object-fit: contain; }
+.shop-part-name { font-size: .78rem; font-weight: 700; color: var(--ink); margin-top: 6px; }
+.shop-part-fit { font-size: .68rem; color: var(--dim); }
+.shop-part-state { font-size: .66rem; font-weight: 700; margin-top: 3px; }
+.state-pristine .shop-part-state { color: var(--green); }
+.state-used_good .shop-part-state { color: var(--blue); }
+.state-used_bad .shop-part-state { color: var(--amber); }
+.state-totaled .shop-part-state { color: var(--red); }
+.shop-part-buy { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.shop-part-price { font-size: .9rem; font-weight: 800; color: var(--ink); }
+.shop-part-buy button { background: var(--blue); color: #fff; border: none;
+  padding: 7px 14px; border-radius: 7px; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.shop-part-buy button:active { transform: scale(.95); }
+
 /* ---------- garage / collection views ---------- */
 .pane { flex: 1; overflow-y: auto; padding: 14px 12px; -webkit-overflow-scrolling: touch; }
 .pane.hidden { display: none; }

@@ -21,6 +21,13 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .tab { background: var(--tab); color: #dfe3e8; font-size: .8rem; padding: 8px 14px;
   border-radius: 8px 8px 0 0; display: inline-flex; gap: 8px; align-items: center; max-width: 92%; }
 .tab-icon { font-size: .9rem; }
+/* ---------- web tab strip (nav) ---------- */
+#tabstrip { display: flex; gap: 4px; padding: 0 2px; overflow-x: auto; }
+.wtab { background: #262b32; color: #aeb4bc; font-size: .76rem; padding: 8px 12px;
+  border: none; border-radius: 8px 8px 0 0; display: inline-flex; gap: 7px;
+  align-items: center; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+.wtab .tab-icon { font-size: .85rem; }
+.wtab.active { background: var(--tab); color: #fff; font-weight: 600; }
 .urlbar { background: #1b1e23; border-radius: 8px; margin: 0 0 10px; padding: 9px 14px;
   display: flex; gap: 10px; align-items: center; color: #cfd4da; font-size: .85rem; }
 .urlbar .lock { font-size: .75rem; }
@@ -122,39 +129,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .buy-btn:hover { background: var(--bluedk); }
 .buy-btn:active { transform: scale(.98); }
 .as-is { text-align: center; color: var(--dim); font-size: .76rem; margin-top: 12px; font-style: italic; }
-
-/* ---------- bottom tab bar ---------- */
-#tabbar { display: flex; background: var(--card); border-top: 1px solid var(--line);
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); flex-shrink: 0; }
-#tabbar .tab { flex: 1; background: none; border: none; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 6px 0 4px; color: var(--dim); position: relative; }
-#tabbar .tab-icon { font-size: 1.35rem; line-height: 1; }
-#tabbar .tab-label { font-size: .66rem; font-weight: 600; }
-#tabbar .tab.active { color: var(--blue); }
-#tabbar .tab-badge { position: absolute; top: 2px; right: calc(50% - 22px);
-  background: var(--red); color: #fff; font-size: .6rem; font-weight: 800;
-  min-width: 16px; height: 16px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; padding: 0 4px; }
-#tabbar .tab-badge:empty { display: none; }
-
-/* ---------- parts store ---------- */
-.parts-shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.shop-part { background: var(--card); border: 1.5px solid var(--line); border-radius: 10px;
-  padding: 10px 8px; text-align: center; }
-.shop-part img { width: 100%; height: 64px; object-fit: contain; }
-.shop-part-name { font-size: .78rem; font-weight: 700; color: var(--ink); margin-top: 6px; }
-.shop-part-fit { font-size: .68rem; color: var(--dim); }
-.shop-part-state { font-size: .66rem; font-weight: 700; margin-top: 3px; }
-.state-pristine .shop-part-state { color: var(--green); }
-.state-used_good .shop-part-state { color: var(--blue); }
-.state-used_bad .shop-part-state { color: var(--amber); }
-.state-totaled .shop-part-state { color: var(--red); }
-.shop-part-buy { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-.shop-part-price { font-size: .9rem; font-weight: 800; color: var(--ink); }
-.shop-part-buy button { background: var(--blue); color: #fff; border: none;
-  padding: 7px 14px; border-radius: 7px; font-size: .78rem; font-weight: 700; cursor: pointer; }
-.shop-part-buy button:active { transform: scale(.95); }
 
 /* ---------- garage / collection views ---------- */
 .pane { flex: 1; overflow-y: auto; padding: 14px 12px; -webkit-overflow-scrolling: touch; }

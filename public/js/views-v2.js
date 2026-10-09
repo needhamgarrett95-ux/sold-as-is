@@ -13,12 +13,10 @@ const Views = {
   show(name) {
     this.current = name;
     Detail.close();
-    document.querySelectorAll("#tabbar .tab").forEach(b =>
+    document.querySelectorAll("#tabstrip .wtab").forEach(b =>
       b.classList.toggle("active", b.dataset.view === name));
-    // Update the fake browser chrome to match the "site" we're on
+    // Update the URL bar to match the "site" we're on
     const site = SITES[name];
-    const tabEl = document.querySelector("#chrome .tab");
-    if (tabEl) tabEl.innerHTML = `<span class="tab-icon">${site.icon}</span> ${site.tab}`;
     const urlEl = document.querySelector(".urlbar .url");
     if (urlEl) urlEl.textContent = site.url;
     document.getElementById("feed").style.display = name === "market" ? "" : "none";

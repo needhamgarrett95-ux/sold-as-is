@@ -182,10 +182,14 @@ const Views = {
       ticksListed: 0,
     });
     UI.toast(`${p.partLabel} listed for ${money(price)}`);
-    // Switch to sell tab to show it
-    this.boneyardTab = "sell";
-    this.garageTab = "bikes"; // refresh garage if visible
-    this.renderParts();
+    // Dismiss keyboard
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+    // Stay on garage inventory (where the user is) — part is now gone from here
+    this.garageTab = "parts";
+    this.garageDetailIdx = -1;
+    this.renderGarage();
   },
 
   delistPart(idx) {
@@ -810,6 +814,7 @@ const Views = {
         const cancelBtn = el.querySelector(`[data-cancel-sell]`);
         const input = el.querySelector(`#sell-price-${idx}`);
         if (confirmBtn) confirmBtn.addEventListener("click", () => {
+          input.blur();
           this.listPartForSale(idx, input.value);
         });
         if (cancelBtn) cancelBtn.addEventListener("click", () => this.renderGarage());

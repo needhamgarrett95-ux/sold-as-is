@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const doRefresh = (e) => {
     if (e) e.preventDefault();
     if (Views.current === "market") Feed.refresh();
-    else if (Views.current === "parts") { Views.partsShop = genPartsShop(12); Views.renderParts(); }
+    else if (Views.current === "parts") Views.refreshParts();
     else Views.show(Views.current);
   };
   refreshBtn.addEventListener("click", doRefresh);

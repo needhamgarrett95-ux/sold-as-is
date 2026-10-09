@@ -26,6 +26,8 @@ const Views = {
     // Swap search bar for bike filter on Boneyard
     document.getElementById("site-search").classList.toggle("hidden", isBoneyard);
     document.getElementById("parts-bike-filter").classList.toggle("hidden", !isBoneyard);
+    // Update refresh button for the active tab
+    this.updateRefreshBtn();
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
     document.getElementById("cats").style.display = name === "market" ? "" : "none";
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
@@ -42,6 +44,90 @@ const Views = {
   partsSearch: "",
   typeFilter: "all", // "all" | "bin" | "auction"
   auctionTimer: null,
+  // Boneyard refresh: 3 free, then 30s cooldown
+  partsRefreshesLeft: 3,
+  partsCooldownUntil: 0,
+  partsCooldownTimer: null,
+
+  refreshParts() {
+    const now = Date.now();
+    if (now < this.partsCooldownUntil) {
+      const remain = Math.ceil((this.partsCooldownUntil - now) / 1000);
+      UI.toast(`Boneyard refresh in ${remain}s`);
+      return;
+    }
+    if (this.partsRefreshesLeft <= 0) {
+      // Start 30s cooldown, reset free refreshes after
+      this.partsCooldownUntil = now + 30 * 1000;
+      this.tickPartsCooldown();
+      return;
+    }
+    this.partsRefreshesLeft--;
+    this.partsShop = genPartsShop(16);
+    // Reset filters on fresh stock
+    this.renderParts();
+    UI.toast(`New parts listings (${this.partsRefreshesLeft} free refreshes left)`);
+    if (this.partsRefreshesLeft <= 0) {
+      this.partsCooldownUntil = Date.now() + 30 * 1000;
+      this.tickPartsCooldown();
+    } else {
+      this.updateRefreshBtn();
+    }
+  },
+
+  tickPartsCooldown() {
+    const btn = document.getElementById("refresh-btn");
+    clearInterval(this.partsCooldownTimer);
+    const update = () => {
+      const remain = Math.ceil((this.partsCooldownUntil - Date.now()) / 1000);
+      if (remain <= 0) {
+        clearInterval(this.partsCooldownTimer);
+        this.partsRefreshesLeft = 3; // reset free refreshes
+        this.updateRefreshBtn();
+        return;
+      }
+      btn.disabled = true;
+      btn.classList.add("cooling");
+      btn.textContent = `${remain}s`;
+      btn.title = `Boneyard refresh in ${remain}s`;
+    };
+    update();
+    this.partsCooldownTimer = setInterval(update, 1000);
+  },
+
+  updateRefreshBtn() {
+    // Called when switching tabs or after cooldown ends
+    const btn = document.getElementById("refresh-btn");
+    if (!btn) return;
+    if (this.current === "parts") {
+      const now = Date.now();
+      if (now < this.partsCooldownUntil) {
+        // Parts cooldown active — ensure display timer is running
+        if (!this.partsCooldownTimer) this.tickPartsCooldown();
+        return;
+      }
+      // Clear any market cooldown display
+      clearInterval(Feed.cooldownTimer);
+      btn.disabled = false;
+      btn.classList.remove("cooling");
+      btn.innerHTML = "↻";
+      btn.title = `Refresh Boneyard (${this.partsRefreshesLeft} free left)`;
+    } else if (this.current === "market") {
+      // Clear parts cooldown display, restore market state
+      clearInterval(this.partsCooldownTimer);
+      this.partsCooldownTimer = null;
+      const now = Date.now();
+      if (now < Feed.cooldownUntil) {
+        Feed.tickCooldown(); // resume market countdown display
+      } else {
+        btn.disabled = false;
+        btn.classList.remove("cooling");
+        btn.innerHTML = "↻";
+        btn.title = "Refresh listings";
+      }
+    }
+    // Garage/collection: leave button as-is
+  },
 
   // --- auction engine ---
   startAuctionTimer() {

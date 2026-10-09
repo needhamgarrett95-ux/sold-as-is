@@ -1123,8 +1123,7 @@ const Views = {
             <span class="eby-price">${money(p.price)}</span>
             ${p.wasPrice ? `<span class="eby-was">${money(p.wasPrice)}</span>` : ""}
           </div>
-          <div class="eby-meta">Buy It Now</div>
-          <div class="eby-meta">Free delivery</div>
+          <div class="eby-meta">Buy It Now - Free delivery</div>
           <div class="eby-meta">${p.watchers} watchers</div>
           <button class="eby-buy" data-buy-part="${p.idx}">Buy It Now</button>
         </div>

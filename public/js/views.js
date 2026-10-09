@@ -4,13 +4,13 @@ const Views = {
 
   show(name) {
     this.current = name;
+    Detail.close();
     document.querySelectorAll(".mnav").forEach(b =>
       b.classList.toggle("active", b.dataset.view === name));
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
     document.getElementById("cats").style.display = name === "market" ? "" : "none";
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
-    if (name !== "market") Detail.close();
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
     const n = document.getElementById("nav-garage-n");

@@ -1,9 +1,9 @@
 // Sold As-Is — garage & collection views
 const SITES = {
-  market:     { tab: "MotoMarket — Mopeds for sale", url: "motomarket.place/mopeds",     icon: "🏍" },
+  market:     { tab: "Sold As-Is — Mopeds for sale", url: "soldasis.place/mopeds",     icon: "🏍" },
   parts:      { tab: "Boneyard — Moped parts",       url: "boneyard.place",              icon: "⚙️" },
-  garage:     { tab: "MotoMarket — My Garage",       url: "motomarket.place/garage",     icon: "🔧" },
-  collection: { tab: "MotoMarket — My Collection",   url: "motomarket.place/collection", icon: "🏆" },
+  garage:     { tab: "Sold As-Is — My Garage",       url: "soldasis.place/garage",     icon: "🔧" },
+  collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "🏆" },
 };
 
 const Views = {

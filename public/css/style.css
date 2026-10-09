@@ -3,7 +3,7 @@
 :root {
   --bg: #20242a; --chrome: #2e333b; --tab: #3a4048;
   --paper: #f4f2ec; --card: #ffffff; --line: #ddd8cc;
-  --ink: #1c1e21; --dim: #6b6f76; --blue: #0b5ed7; --bluedk: #084298;
+  --ink: #1c1e21; --dim: #6b6f76; --blue: #e04536; --bluedk: #b93226;
   --green: #1e7e34; --amber: #b7790e; --red: #c0392b;
 }
 html, body { height: 100%; overflow: hidden; background: var(--bg);
@@ -86,7 +86,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cond { font-size: .7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: .4px; }
 .cond-mint { background: #dcf2e3; color: var(--green); }
-.cond-clean { background: #dbeafe; color: var(--blue); }
+.cond-clean { background: #dbeafe; color: #0b5ed7; }
 .cond-good { background: #eceff1; color: #45505a; }
 .cond-fair { background: #fdf0d5; color: var(--amber); }
 .cond-rough { background: #fde8d5; color: #c26a1b; }
@@ -175,7 +175,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .part-label { font-size: .66rem; color: var(--ink); font-weight: 600; margin-top: 4px; }
 .part-state { font-size: .64rem; font-weight: 700; margin-top: 2px; }
 .state-pristine .part-state { color: var(--green); }
-.state-used_good .part-state { color: var(--blue); }
+.state-used_good .part-state { color: #0b5ed7; }
 .state-used_bad .part-state { color: var(--amber); }
 .state-totaled { border-color: var(--red); }
 .state-totaled .part-state { color: var(--red); }

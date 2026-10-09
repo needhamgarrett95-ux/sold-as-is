@@ -2,7 +2,7 @@
 
 const BRANDS = {
   Yamaha:   { models: [
-    { name: "Zuma Prebug",  base: 1400, rarity: 4, sprite: "yamaha_zuma_prebug", desc: "The bug-eyed legend. Pre-2002." },
+    { name: "Zuma Prebug",  base: 1400, rarity: 4, sprite: "yamaha_zuma-prebug", desc: "The bug-eyed legend. Pre-2002." },
     { name: "QT50 Yamahopper", base: 650, rarity: 2, sprite: "yamaha_qt50", desc: "Shaft-drive oddball. Charming." },
     { name: "RD50", base: 900, rarity: 3, sprite: "yamaha_rd50", desc: "Two-stroke screamer in a tiny package." },
     { name: "DT50", base: 750, rarity: 2, sprite: "yamaha_dt50", desc: "Enduro-styled 50. Trail-ready." },

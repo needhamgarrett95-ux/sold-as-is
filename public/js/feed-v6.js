@@ -104,16 +104,15 @@ const Feed = {
 
   card(l) {
     return `
-    <article class="card" data-id="${l.id}" style="position:relative;background:#fff;border:1px solid #e0d8c8;border-radius:10px;overflow:hidden;">
-      ${l.fresh ? '<div class="fresh-tag">NEW</div>' : ""}
-      <div class="photo photo-real">
+    <article class="card" data-id="${l.id}" style="position:relative;background:transparent;border:none;overflow:visible;">
+      <div class="photo photo-real" style="border-radius:8px;">
+        ${l.fresh ? '<div class="fresh-tag" style="position:absolute;top:8px;left:8px;z-index:2;background:rgba(255,255,255,.95);color:#1a1a1a;font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:6px;">Just listed</div>' : ""}
         <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="${Feed.spriteNudge[l.sprite] ? `margin-top:${6 + Feed.spriteNudge[l.sprite]}px;` : ""}">
-        <div style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-weight:800;font-size:1rem;padding:4px 10px;border-radius:6px;">${money(l.price)}</div>
-        <div style="position:absolute;right:8px;bottom:8px;background:rgba(255,255,255,.92);color:#333;font-weight:700;font-size:.66rem;padding:4px 8px;border-radius:20px;">${l.condition}</div>
+        <div style="position:absolute;right:8px;bottom:8px;background:rgba(255,255,255,.92);color:#333;font-weight:700;font-size:.64rem;padding:3px 8px;border-radius:20px;">${l.condition}</div>
       </div>
-      <div style="display:block;padding:7px 10px 9px;background:#ffffff;">
-        <div style="font-size:.82rem;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${l.brand} ${l.model}</div>
-        <div style="font-size:.7rem;color:#888;margin-top:1px;">${l.location}</div>
+      <div style="display:block;padding:6px 2px 0;background:transparent;">
+        <div style="font-size:.92rem;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><strong>${money(l.price)}</strong> &middot; ${l.brand} ${l.model}</div>
+        <div style="font-size:.74rem;color:#777;margin-top:1px;">${l.location}</div>
       </div>
     </article>`;
   },

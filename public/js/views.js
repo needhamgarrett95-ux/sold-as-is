@@ -172,38 +172,17 @@ const Views = {
       }));
     const cats = document.getElementById("cats");
     if (cats) cats.style.display = this.marketTab === "browse" ? "" : "none";
-    this.updateNavBadges();
   },
 
-  // Update notification badges on nav and tabs
-  updateNavBadges() {
-    // Count pending bike offers
-    const bikeOffers = this.myBikeListings.filter(l => l.offer).length;
-    // Market nav badge
-    const marketBadge = document.getElementById("nav-badge-market");
-    if (marketBadge) {
-      marketBadge.textContent = bikeOffers;
-      marketBadge.classList.toggle("hidden", bikeOffers === 0);
-    }
-    // My Listings tab dot — update via re-render of tabs
-    // Boneyard nav badge (unseen part sales)
-    const partsBadge = document.getElementById("nav-badge-parts");
-    if (partsBadge) {
-      partsBadge.textContent = this.unseenPartSales;
-      partsBadge.classList.toggle("hidden", this.unseenPartSales === 0);
-    }
-  },
+  // Tab dots render inline in renderMarketTabs — no separate update needed
+  updateNavBadges() {},
 
   clearMarketBadges() {
-    // Called when user views My Listings — offers still show on cards,
-    // but nav badge clears since they've seen them
-    const marketBadge = document.getElementById("nav-badge-market");
-    if (marketBadge) marketBadge.classList.add("hidden");
+    // No-op: tab dot clears on re-render
   },
 
   clearPartsBadges() {
     this.unseenPartSales = 0;
-    this.updateNavBadges();
   },
 
   renderMarketFeed() {

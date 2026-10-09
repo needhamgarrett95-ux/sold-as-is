@@ -268,6 +268,7 @@ const Views = {
     this.startBikeSalesTimer();
     this.garageTab = "bikes";
     this.garageDetailIdx = -1;
+    Save.save();
     this.renderGarage();
   },
 
@@ -279,6 +280,7 @@ const Views = {
     bike.listed = false;
     State.garage.push(bike);
     UI.toast(`${l.brand} ${l.model} returned to garage`);
+    Save.save();
     this.renderMarketFeed();
     this.renderMarketTabs();
   },
@@ -410,6 +412,7 @@ const Views = {
     // Complete the sale
     State.cash += amount;
     UI.refreshCash();
+    Save.save();
     // Mark as sold (keep visible)
     l.sold = true; l.soldFor = amount; l.soldAt = Date.now();
     if (offer.type === "bike") {
@@ -576,6 +579,7 @@ const Views = {
         State.cash += l.askPrice;
         State.sold.push({ ...l, soldFor: l.askPrice, soldAt: Date.now() });
         UI.refreshCash();
+        Save.save();
         if (!(this.current === "market" && this.marketTab === "mine")) {
           UI.toast(`Sold your ${l.brand} ${l.model} for ${money(l.askPrice)}!`);
         }
@@ -606,6 +610,7 @@ const Views = {
         this.updateNavBadges();
         State.cash += l.askPrice;
         UI.refreshCash();
+        Save.save();
         if (!(this.current === "parts" && this.boneyardTab === "sell")) {
           UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
         }
@@ -675,6 +680,7 @@ const Views = {
     // Stay on garage inventory (where the user is) — part is now gone from here
     this.garageTab = "parts";
     this.garageDetailIdx = -1;
+    Save.save();
     this.renderGarage();
   },
 
@@ -718,6 +724,7 @@ const Views = {
     this.startPlayerAuctionTimer();
     this.garageTab = "parts";
     this.garageDetailIdx = -1;
+    Save.save();
     this.renderGarage();
   },
 
@@ -754,6 +761,7 @@ const Views = {
           this.unseenPartSales++;
           this.updateNavBadges();
           UI.refreshCash();
+          Save.save();
           if (!(this.current === "parts" && this.boneyardTab === "sell")) {
             UI.toast(`Auction sold! ${l.partLabel} went for ${money(l.currentBid)} to ${l.highBidder}`);
           }
@@ -819,6 +827,7 @@ const Views = {
     const { askPrice, listedAt, ticksListed, ...part } = l;
     State.parts.push(part);
     UI.toast(`${l.partLabel} returned to inventory`);
+    Save.save();
     this.renderParts();
   },
 
@@ -1177,6 +1186,7 @@ const Views = {
     State.parts.push(p);
     this.partsShop.splice(i, 1);
     UI.refreshCash();
+    Save.save();
     UI.toast(`${p.partLabel} (${p.bikeBrand} ${p.bikeModel}) bought`);
     this.renderParts();
   },
@@ -1370,6 +1380,7 @@ const Views = {
     p.stateLabel = PART_STATE_LABEL[newState];
     p.img = partImg(p.bikeSprite, p.partKey, newState);
     UI.refreshCash();
+    Save.save();
     const left = 3 - p.repairAttempts;
     if (worsened) {
       UI.toast(`Repair went wrong! Down to ${newPct}% (${p.stateLabel})`);
@@ -1556,6 +1567,7 @@ const Views = {
     this.garageDetailIdx = -1;
     this.garageTab = "parts";
     UI.toast(`${bike.brand} ${bike.model} stripped — ${avail.length} parts in inventory`);
+    Save.save();
     this.renderGarage();
   },
 

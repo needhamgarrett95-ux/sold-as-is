@@ -1,8 +1,18 @@
 // Sold As-Is — app entry point
 document.addEventListener("DOMContentLoaded", () => {
+  // Load saved progress (after Views is defined)
+  const hadSave = Save.load();
   Feed.init();
   UI.refreshCash();
   Views.initPartsFilter();
+  if (hadSave) {
+    UI.toast("Welcome back! Progress restored.");
+  }
+  // Auto-save every 30s and when app goes to background
+  setInterval(() => Save.save(), 30000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") Save.save();
+  });
   // URL bar refresh button: market uses cooldown refresh, others reload their view
   const refreshBtn = document.getElementById("refresh-btn");
   const doRefresh = (e) => {

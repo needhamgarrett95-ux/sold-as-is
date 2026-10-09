@@ -104,10 +104,18 @@ const PART_DIST = {
 const PART_STATES = ["pristine", "used_good", "used_bad", "totaled"];
 const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot" };
 
-function rollPartStates(condition) {
+// V4: only show parts that actually exist for each bike
+function availableParts(sprite) {
+  const avail = (typeof PARTS_MANIFEST !== "undefined" && PARTS_MANIFEST[sprite]) || null;
+  if (!avail) return PARTS; // fallback if manifest not loaded
+  return PARTS.filter(p => avail.includes(p.key));
+}
+
+function rollPartStates(condition, sprite) {
   const dist = PART_DIST[condition] || PART_DIST["Good"];
   const states = {};
-  for (const p of PARTS) {
+  const parts = sprite ? availableParts(sprite) : PARTS;
+  for (const p of parts) {
     const r = Math.random();
     let acc = 0, state = "pristine";
     for (let i = 0; i < 4; i++) { acc += dist[i]; if (r <= acc) { state = PART_STATES[i]; break; } }
@@ -132,10 +140,10 @@ function genPartsShop(n = 12) {
   const out = [];
   for (let i = 0; i < n; i++) {
     const bike = BIKES[(Math.random() * BIKES.length) | 0];
-    const part = PARTS[(Math.random() * PARTS.length) | 0];
-    // Weighted toward used conditions for a parts store vibe
-    const roll = Math.random();
-    const state = roll < 0.15 ? "pristine" : roll < 0.5 ? "used_good" : roll < 0.85 ? "used_bad" : "totaled";
+    const avail = availableParts(bike.sprite);
+    const part = avail[(Math.random() * avail.length) | 0];
+    // V4: pristine only for now (variants coming)
+    const state = "pristine";
     const price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
     out.push({
       id: i, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
@@ -171,7 +179,7 @@ function makeListing(id) {
     sprite: bike.sprite,
     baseValue: bike.base, rarity: bike.rarity,
     condition: cond.name, price,
-    partStates: rollPartStates(cond.name),
+    partStates: rollPartStates(cond.name, bike.sprite),
     // fair value estimate (what inspection would reveal)
     fairValue: Math.round(bike.base * cond.mult / 10) * 10,
     title,

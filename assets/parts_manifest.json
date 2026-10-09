@@ -1,0 +1,265 @@
+{
+  "derbi_ds50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "derbi_laguna": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "derbi_variant": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "honda_cub_c70": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "honda_dio": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "honda_express": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "honda_mb5": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "motobecane_50v": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "motobecane_av88": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "motobecane_moby_x": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars"
+  ],
+  "puch_cobra": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "puch_magnum": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "puch_maxi": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "puch_newport": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "suzuki_fa50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "suzuki_jr50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "handlebars"
+  ],
+  "suzuki_or50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "tomos_colt": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "tomos_sprint": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars"
+  ],
+  "tomos_st": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "tomos_targa_lx": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "vespa_bravo": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "vespa_ciao": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars"
+  ],
+  "vespa_grande": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "vespa_si": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "yamaha_dt50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "yamaha_qt50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "yamaha_rd50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "yamaha_zuma-prebug": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ]
+}

@@ -76,7 +76,7 @@ const Detail = {
         <div class="cond-report">
           <h3>Condition Report</h3>
           <div class="parts-grid">
-            ${PARTS.map(p => {
+            ${availableParts(l.sprite).map(p => {
               const st = (l.partStates && l.partStates[p.key]) || "pristine";
               return `<div class="part-cell state-${st}">
                 <img src="${partImg(l.sprite, p.key, st)}" alt="${p.label}" loading="lazy">

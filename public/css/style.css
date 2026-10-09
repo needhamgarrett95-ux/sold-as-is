@@ -138,9 +138,11 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   gap: 10px; padding: 14px 12px 10px; background: var(--card);
   border-bottom: 1px solid var(--line); }
 .eby-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); }
-.eby-filter { font-size: .85rem; font-weight: 600; padding: 8px 10px;
+.eby-filter { font-size: .85rem; font-weight: 600; padding: 9px 10px;
   border: 1.5px solid var(--line); border-radius: 8px; background: var(--paper);
-  color: var(--ink); max-width: 45%; }
+  color: var(--ink); flex: 1; min-width: 0; }
+.eby-filter.hidden { display: none; }
+#site-search.hidden { display: none; }
 .eby-list { display: flex; flex-direction: column; }
 .eby-item { display: flex; gap: 12px; padding: 14px 12px;
   border-bottom: 1px solid var(--line); background: #fff; }

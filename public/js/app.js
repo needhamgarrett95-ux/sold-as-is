@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   Feed.init();
   UI.refreshCash();
+  Views.initPartsFilter();
   // URL bar refresh button: market uses cooldown refresh, others reload their view
   const refreshBtn = document.getElementById("refresh-btn");
   const doRefresh = (e) => {

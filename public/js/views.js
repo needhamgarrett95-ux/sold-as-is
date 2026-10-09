@@ -23,6 +23,9 @@ const Views = {
     const isBoneyard = name === "parts";
     document.getElementById("logo-main").classList.toggle("hidden", isBoneyard);
     document.getElementById("logo-boneyard").classList.toggle("hidden", !isBoneyard);
+    // Swap search bar for bike filter on Boneyard
+    document.getElementById("site-search").classList.toggle("hidden", isBoneyard);
+    document.getElementById("parts-bike-filter").classList.toggle("hidden", !isBoneyard);
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
     document.getElementById("cats").style.display = name === "market" ? "" : "none";
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
@@ -37,20 +40,25 @@ const Views = {
 
   partsFilter: "all",
 
+  initPartsFilter() {
+    const sel = document.getElementById("parts-bike-filter");
+    sel.innerHTML = `<option value="all">All bikes</option>` +
+      BIKES.map(b => `<option value="${b.sprite}">${b.brand} ${b.name}</option>`).join("");
+    sel.addEventListener("change", (e) => {
+      this.partsFilter = e.target.value;
+      this.renderParts();
+    });
+  },
+
   renderParts() {
     if (!this.partsShop.length) this.partsShop = genPartsShop(16);
     const el = document.getElementById("parts-view");
-    // Bike filter options
-    const bikeOpts = [`<option value="all">All bikes</option>`].concat(
-      BIKES.map(b => `<option value="${b.sprite}"${this.partsFilter === b.sprite ? " selected" : ""}>${b.brand} ${b.name}</option>`)
-    ).join("");
     const shown = this.partsShop
       .map((p, i) => ({ ...p, idx: i }))
       .filter(p => this.partsFilter === "all" || p.bikeSprite === this.partsFilter);
     el.innerHTML = `
       <div class="eby-head">
         <div class="eby-title">🛵 Find parts that fit</div>
-        <select id="parts-bike-filter" class="eby-filter">${bikeOpts}</select>
       </div>
       <div class="eby-list">` +
       (shown.length ? shown.map(p => `
@@ -71,10 +79,6 @@ const Views = {
       </div>`).join("")
       : `<div class="empty"><strong>No parts for this bike</strong>Try a different model.</div>`) +
       `</div>`;
-    document.getElementById("parts-bike-filter").addEventListener("change", (e) => {
-      this.partsFilter = e.target.value;
-      this.renderParts();
-    });
     el.querySelectorAll("[data-buy-part]").forEach(btn => {
       const buy = (e) => { e.preventDefault(); e.stopPropagation(); this.buyPart(+btn.dataset.buyPart); };
       btn.addEventListener("click", buy);

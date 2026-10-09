@@ -90,7 +90,7 @@ const Feed = {
     const nudge = Feed.spriteNudge[l.sprite] || 0;
     return `
     <article class="card" data-id="${l.id}">
-      <div class="photo" style="background-image:url(${BG.urlFor(l)})">
+      <div class="photo">
         ${l.fresh ? '<div class="just-listed">Just listed</div>' : ""}
         <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="margin-top:${8 + nudge}px">
         <div class="card-cond">${l.condition}</div>

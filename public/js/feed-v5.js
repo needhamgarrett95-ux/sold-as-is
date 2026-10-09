@@ -97,9 +97,9 @@ const Feed = {
 
   // Per-sprite vertical nudge (px, negative = up) for sprites that sit low
   spriteNudge: {
-    "yamaha_qt50": -10,
-    "honda_dio": -10,
-    "yamaha_zuma-prebug": -10,
+    "yamaha_qt50": -4,
+    "honda_dio": -4,
+    "yamaha_zuma-prebug": -4,
   },
 
   card(l) {

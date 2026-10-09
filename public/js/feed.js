@@ -79,20 +79,16 @@ const Feed = {
     return "cond-" + cond.toLowerCase().replace(/[^a-z]/g, "");
   },
 
-  // Per-sprite vertical nudge (px, negative = up) for sprites that sit low
-  spriteNudge: {
-    "yamaha_qt50": -6,
-    "honda_dio": -6,
-    "yamaha_zuma-prebug": -6,
-  },
+  // Sprites that sit low in their frame and need a nudge up
+  spriteNudge: new Set(["yamaha_qt50", "honda_dio", "yamaha_zuma-prebug"]),
 
   card(l) {
-    const nudge = Feed.spriteNudge[l.sprite] || 0;
+    const nudgeClass = Feed.spriteNudge.has(l.sprite) ? ' class="nudged"' : '';
     return `
     <article class="card" data-id="${l.id}">
       <div class="photo">
         ${l.fresh ? '<div class="just-listed">Just listed</div>' : ""}
-        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="margin-top:${13 + nudge}px">
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false"${nudgeClass}>
         <div class="card-cond">${l.condition}</div>
       </div>
       <div class="card-info">

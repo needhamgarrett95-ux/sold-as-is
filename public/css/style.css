@@ -70,6 +70,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   position: relative; text-align: center; }
 .card .photo img { max-width: 140px; max-height: 125px; width: auto; height: auto;
   margin-top: 13px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
+.card .photo img.nudged { margin-top: 7px; }
 .just-listed { position: absolute; top: 8px; left: 8px; z-index: 2;
   background: rgba(255,255,255,.95); color: #1a1a1a;
   font-size: .68rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
@@ -89,9 +90,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .cond-fair { background: #fdf0d5; color: var(--amber); }
 .cond-rough { background: #fde8d5; color: #c26a1b; }
 .cond-nonrunner, .cond-partsbike { background: #fbdcdc; color: var(--red); }
-.title { font-size: .93rem; color: var(--blue); margin-bottom: 3px; }
 .title:hover { text-decoration: underline; }
-.meta { font-size: .76rem; color: var(--dim); }
 
 /* ---------- detail (listing page) ---------- */
 #detail { position: absolute; inset: 0; background: var(--paper); z-index: 10; }

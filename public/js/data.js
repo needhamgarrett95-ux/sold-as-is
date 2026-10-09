@@ -164,6 +164,18 @@ function makeListing(id) {
   };
 }
 
-function genListings(n, startId = 0) {
-  return Array.from({ length: n }, (_, i) => makeListing(startId + i));
+function genListings(n, startId = 0, prevBikeId = null) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    let l = makeListing(startId + i);
+    // Never put the same bike twice in a row (re-roll up to 5x)
+    let tries = 0;
+    while (l.bikeId === prevBikeId && tries < 5) {
+      l = makeListing(startId + i);
+      tries++;
+    }
+    prevBikeId = l.bikeId;
+    out.push(l);
+  }
+  return out;
 }

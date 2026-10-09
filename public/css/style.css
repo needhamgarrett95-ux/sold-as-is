@@ -62,10 +62,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .fresh-tag { position: absolute; top: 8px; left: 8px; z-index: 2; background: var(--red);
   color: #fff; font-size: .62rem; font-weight: 800; padding: 3px 7px;
   border-radius: 4px; letter-spacing: 1px; }
-.photo { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
-  background: linear-gradient(135deg, #e8e4d8, #d5d0c0); }
-.photo img { width: 100%; height: 100%; object-fit: contain; display: block;
-  padding: 8px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
+.photo { height: 160px; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; background: linear-gradient(135deg, #e8e4d8, #d5d0c0); position: relative; }
+.photo img { max-width: 88%; max-height: 144px; width: auto; height: auto; display: block;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
 .card-body { padding: 8px 10px 10px; }
 .card .price { font-size: 1.02rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
 .card .title { font-size: .82rem; color: var(--ink); font-weight: 600;
@@ -92,10 +92,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .back-btn { margin: 12px; background: var(--card); color: var(--blue); border: 1.5px solid var(--line);
   padding: 8px 16px; border-radius: 8px; font-size: .88rem; font-weight: 600; cursor: pointer; }
 .back-btn:hover { border-color: var(--blue); }
-.d-photo { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden;
-  background: linear-gradient(135deg, #e8e4d8, #d5d0c0); }
-.d-photo img { width: 100%; height: 100%; object-fit: contain; display: block;
-  padding: 10px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
+.d-photo { height: 220px; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; background: linear-gradient(135deg, #e8e4d8, #d5d0c0); position: relative; }
+.d-photo img { max-width: 92%; max-height: 200px; width: auto; height: auto; display: block;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
 .d-body { padding: 14px 16px; background: var(--card); margin: 12px; border: 1px solid var(--line);
   border-radius: 10px; box-shadow: 0 1px 3px rgba(30,25,15,.08); }
 .d-body h2 { font-size: 1.12rem; margin: 6px 0 4px; color: var(--ink); }

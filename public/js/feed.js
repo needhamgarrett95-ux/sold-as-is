@@ -20,7 +20,8 @@ const Feed = {
     if (this._loading) return;
     this._loading = true;
     setTimeout(() => {
-      const batch = genListings(this.batchSize, this.nextId);
+      const lastBike = this.listings.length ? this.listings[this.listings.length - 1].bikeId : null;
+      const batch = genListings(this.batchSize, this.nextId, lastBike);
       this.nextId += this.batchSize;
       this.listings.push(...batch);
       this.render();

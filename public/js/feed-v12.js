@@ -92,7 +92,7 @@ const Feed = {
     <article class="card" data-id="${l.id}">
       <div class="photo">
         ${l.fresh ? '<div class="just-listed">Just listed</div>' : ""}
-        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="margin-top:${8 + nudge}px">
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="margin-top:${13 + nudge}px">
         <div class="card-cond">${l.condition}</div>
       </div>
       <div class="card-info">

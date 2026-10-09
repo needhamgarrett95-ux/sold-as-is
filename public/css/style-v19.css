@@ -69,7 +69,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   background: linear-gradient(135deg, #e8e4d8, #d5d0c0);
   position: relative; text-align: center; }
 .card .photo img { max-width: 140px; max-height: 125px; width: auto; height: auto;
-  margin-top: 8px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
+  margin-top: 13px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
 .just-listed { position: absolute; top: 8px; left: 8px; z-index: 2;
   background: rgba(255,255,255,.95); color: #1a1a1a;
   font-size: .68rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; }

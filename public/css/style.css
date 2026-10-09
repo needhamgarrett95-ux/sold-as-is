@@ -51,32 +51,29 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   cursor: pointer; border-bottom: 2.5px solid transparent; }
 #cats a.active { color: var(--blue); font-weight: 700; border-bottom-color: var(--blue); }
 
-/* ---------- listings ---------- */
-#feed { flex: 1; overflow-y: auto; padding: 12px; display: flex;
-  flex-direction: column; gap: 10px; -webkit-overflow-scrolling: touch; }
+/* ---------- listings: 2-col FB-style grid ---------- */
+#feed { flex: 1; overflow-y: auto; padding: 10px; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 10px; align-content: start;
+  -webkit-overflow-scrolling: touch; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
   overflow: hidden; cursor: pointer; position: relative;
-  box-shadow: 0 1px 3px rgba(30,25,15,.08); transition: box-shadow .15s; }
-.card:hover { box-shadow: 0 3px 10px rgba(30,25,15,.16); }
-.card:active { transform: scale(.99); }
-.fresh-tag { position: absolute; top: 10px; left: 10px; z-index: 2; background: var(--red);
-  color: #fff; font-size: .66rem; font-weight: 800; padding: 3px 8px;
+  box-shadow: 0 1px 3px rgba(30,25,15,.08); }
+.card:active { transform: scale(.98); }
+.fresh-tag { position: absolute; top: 8px; left: 8px; z-index: 2; background: var(--red);
+  color: #fff; font-size: .62rem; font-weight: 800; padding: 3px 7px;
   border-radius: 4px; letter-spacing: 1px; }
-.photo { height: 168px; display: flex; align-items: center; justify-content: center; position: relative; }
-.photo-real { background: linear-gradient(135deg, #e8e4d8, #d5d0c0); }
-.photo-real img { max-height: 150px; max-width: 92%; object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,.25)); }
-.photo-real.big img { max-height: 210px; }
-.photo-bike { text-align: center; color: #fff; font-size: .95rem; letter-spacing: 1px;
-  text-shadow: 0 2px 8px rgba(0,0,0,.55); opacity: .94; }
-.photo-bike strong { font-size: 1.3rem; letter-spacing: 0; display: block; }
-.photo-bike.big strong { font-size: 1.7rem; }
-.photo-count { position: absolute; bottom: 8px; right: 10px; font-size: .72rem; color: #fff;
+.photo { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
+  background: linear-gradient(135deg, #e8e4d8, #d5d0c0); }
+.photo img { width: 100%; height: 100%; object-fit: contain; display: block;
+  padding: 8px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
+.card-body { padding: 8px 10px 10px; }
+.card .price { font-size: 1.02rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.card .title { font-size: .82rem; color: var(--ink); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .meta { font-size: .72rem; color: var(--dim); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.photo-count { position: absolute; bottom: 8px; right: 8px; font-size: .7rem; color: #fff;
   background: rgba(0,0,0,.55); padding: 3px 8px; border-radius: 10px; }
-.card-body { padding: 10px 14px 12px; }
-.price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.price { font-size: 1.32rem; font-weight: 800; color: var(--ink); }
-.price.big { font-size: 1.65rem; }
 .cond { font-size: .7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: .4px; }
 .cond-mint { background: #dcf2e3; color: var(--green); }
 .cond-clean { background: #dbeafe; color: var(--blue); }
@@ -95,7 +92,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .back-btn { margin: 12px; background: var(--card); color: var(--blue); border: 1.5px solid var(--line);
   padding: 8px 16px; border-radius: 8px; font-size: .88rem; font-weight: 600; cursor: pointer; }
 .back-btn:hover { border-color: var(--blue); }
-.d-photo { height: 230px; display: flex; align-items: center; justify-content: center; position: relative; }
+.d-photo { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden;
+  background: linear-gradient(135deg, #e8e4d8, #d5d0c0); }
+.d-photo img { width: 100%; height: 100%; object-fit: contain; display: block;
+  padding: 10px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.25)); }
 .d-body { padding: 14px 16px; background: var(--card); margin: 12px; border: 1px solid var(--line);
   border-radius: 10px; box-shadow: 0 1px 3px rgba(30,25,15,.08); }
 .d-body h2 { font-size: 1.12rem; margin: 6px 0 4px; color: var(--ink); }

@@ -57,8 +57,8 @@ const Detail = {
     el.innerHTML = `
     <div class="detail-scroll">
       <button class="back-btn" id="d-back">← Back</button>
-      <div class="d-photo photo-real big">
-        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}">
+      <div class="d-photo">
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" draggable="false">
         <div class="photo-count">📷 ${l.photos}</div>
       </div>
       <div class="d-body">

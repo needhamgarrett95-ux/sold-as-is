@@ -99,16 +99,12 @@ const Feed = {
     <article class="card" data-id="${l.id}">
       ${l.fresh ? '<div class="fresh-tag">NEW</div>' : ""}
       <div class="photo photo-real">
-        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy">
-        <div class="photo-count">📷 ${l.photos}</div>
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false">
       </div>
       <div class="card-body">
-        <div class="price-row">
-          <span class="price">${money(l.price)}</span>
-          <span class="cond ${this.condClass(l.condition)}">${l.condition}</span>
-        </div>
-        <div class="title">${l.title}</div>
-        <div class="meta">${l.location} · ${l.miles} · ${l.postedAgo}</div>
+        <div class="price">${money(l.price)}</div>
+        <div class="title">${l.brand} ${l.model}</div>
+        <div class="meta">${l.location}</div>
       </div>
     </article>`;
   },

@@ -67,7 +67,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .photo img { max-width: 88%; max-height: 144px; width: auto; height: auto; display: block;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
 .card-body { padding: 8px 10px 10px; }
-.card .price { font-size: 1.02rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.card .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.card .price { font-size: 1.02rem; font-weight: 800; color: var(--ink); }
+.card .cond { font-size: .62rem; padding: 3px 8px; }
 .card .title { font-size: .82rem; color: var(--ink); font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card .meta { font-size: .72rem; color: var(--dim); margin-top: 2px;

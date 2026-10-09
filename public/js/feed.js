@@ -2,7 +2,7 @@
 const Feed = {
   listings: [],
   nextId: 0,
-  batchSize: 12,
+  batchSize: 10,
 
   init() {
     this.listings = genListings(this.batchSize, this.nextId);
@@ -103,7 +103,10 @@ const Feed = {
         <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false">
       </div>
       <div class="card-body">
-        <div class="price">${money(l.price)}</div>
+        <div class="price-row">
+          <span class="price">${money(l.price)}</span>
+          <span class="cond ${Feed.condClass(l.condition)}">${l.condition}</span>
+        </div>
         <div class="title">${l.brand} ${l.model}</div>
         <div class="meta">${l.location}</div>
       </div>

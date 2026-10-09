@@ -398,3 +398,37 @@ button svg { vertical-align: -3px; }
   font-size: .88rem; opacity: 0; transition: all .3s; z-index: 100; max-width: 90vw;
   text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,.3); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* part detail modal */
+#part-detail { position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,.5); display: flex; align-items: flex-end;
+  justify-content: center; }
+#part-detail.hidden { display: none; }
+.pd-modal { background: #fff; width: 100%; max-width: 500px;
+  max-height: 88vh; border-radius: 16px 16px 0 0; overflow-y: auto;
+  display: flex; flex-direction: column; }
+.pd-head { padding: 12px 16px; border-bottom: 1px solid #eee; position: relative; }
+.pd-title { font-weight: 800; font-size: 1.05rem; padding-right: 30px; }
+.pd-sub { font-size: .85rem; color: #666; margin-top: 2px; }
+.pd-photo { height: 200px; display: flex; align-items: center; justify-content: center;
+  background: #f5f2ea; padding: 12px; }
+.pd-photo img { max-height: 180px; max-width: 90%; object-fit: contain; }
+.pd-info { padding: 12px 16px; border-bottom: 1px solid #eee; }
+.pd-cond { font-weight: 700; color: #b5651d; }
+.pd-was { text-decoration: line-through; color: #999; font-size: .85rem; }
+.pd-meta { font-size: .82rem; color: #666; margin-top: 4px; }
+.pd-actions { padding: 16px; }
+.pd-buy { width: 100%; font-size: 1rem; padding: 14px; margin-bottom: 12px; }
+.pd-offer-section { border-top: 1px solid #eee; padding-top: 12px; }
+.pd-offer-head { font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.pd-offer-head svg { width: 18px; height: 18px; }
+.pd-offer-row { display: flex; gap: 8px; }
+.pd-offer-row input { flex: 1; min-width: 0; padding: 10px; border: 1.5px solid #ccc; border-radius: 10px; }
+.eby-offer { background: #fff; border: 1.5px solid #e04536; color: #e04536;
+  padding: 10px 18px; border-radius: 10px; font-weight: 700; white-space: nowrap; }
+.pd-auction-info { background: #f5f2ea; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+.pd-time { font-weight: 800; font-size: 1.1rem; color: #e04536; }
+.pd-bid-row { margin-top: 6px; font-size: .9rem; }
+.pd-bid-input { display: flex; gap: 8px; margin-bottom: 8px; }
+.pd-bid-input input { flex: 1; min-width: 0; padding: 12px; border: 1.5px solid #ccc; border-radius: 10px; font-size: 1rem; }
+.pd-hint { font-size: .8rem; color: #666; }
+.eby-item { cursor: pointer; }

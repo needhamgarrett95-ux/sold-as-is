@@ -57,6 +57,8 @@ const Views = {
   myBikeListings: [], // player's own bike listings
   playerAuctionTimer: null,
   unseenPartSales: 0, // unviewed boneyard sales
+  partDetailIdx: -1,
+  partDetailOffer: null,
   bikeListingFilter: "active", // "active" | "sold"
   partListingFilter: "active", // "active" | "sold"
   marketTab: "browse", // "browse" | "mine"
@@ -933,6 +935,15 @@ const Views = {
       clearInterval(this.auctionTimer);
       this.auctionTimer = null;
     }
+    // Refresh part detail if open on an auction
+    if (this.partDetailIdx >= 0 && !document.getElementById("part-detail").classList.contains("hidden")) {
+      const p = this.partsShop[this.partDetailIdx];
+      if (p && p.listingType === "auction" && !p.ended) {
+        this.renderPartDetail();
+      } else if (!p || p.ended) {
+        this.closePartDetail();
+      }
+    }
   },
 
   updateAuctionUI() {
@@ -1082,7 +1093,7 @@ const Views = {
           const isWinning = p.highBidder === "you";
           const mins = Math.floor(p.timeLeft / 60), secs = p.timeLeft % 60;
           return `
-      <div class="eby-item eby-auction">
+      <div class="eby-item eby-auction" data-part-detail="${p.idx}">
         <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy">
           <div class="eby-auc-badge" data-auc-timer="${p.idx}">⏱ ${mins}:${String(secs).padStart(2, "0")}</div>
         </div>
@@ -1101,7 +1112,7 @@ const Views = {
       </div>`;
         }
         return `
-      <div class="eby-item">
+      <div class="eby-item" data-part-detail="${p.idx}">
         <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy"></div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
@@ -1120,6 +1131,24 @@ const Views = {
       : `<div class="empty"><strong>No parts match</strong>Try different filters.</div>`) +
       `</div>`;
     if (preserve) el.scrollTop = scrollY;
+    // Click listing → detail page (but not on buttons)
+    el.querySelectorAll("[data-part-detail]").forEach(item => {
+      const open = (e) => {
+        if (e.target.closest("button")) return; // let buttons work
+        e.preventDefault();
+        this.openPartDetail(+item.dataset.partDetail);
+      };
+      item.addEventListener("click", open);
+      let ty = 0, tx = 0;
+      item.addEventListener("touchstart", (e) => {
+        ty = e.touches[0].clientY; tx = e.touches[0].clientX;
+      }, { passive: true });
+      item.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - ty);
+        const dx = Math.abs(e.changedTouches[0].clientX - tx);
+        if (dy < 10 && dx < 10) open(e);
+      }, { passive: false });
+    });
     el.querySelectorAll("[data-buy-part]").forEach(btn => {
       const buy = (e) => { e.preventDefault(); e.stopPropagation(); this.buyPart(+btn.dataset.buyPart); };
       btn.addEventListener("click", buy);
@@ -1171,6 +1200,183 @@ const Views = {
         if (dy < 10 && dx < 10) bid(e);
       }, { passive: false });
     });
+  },
+
+  // --- part detail view ---
+  openPartDetail(idx) {
+    const p = this.partsShop[idx];
+    if (!p) return;
+    this.partDetailIdx = idx;
+    this.partDetailOffer = null;
+    this.renderPartDetail();
+    document.getElementById("part-detail").classList.remove("hidden");
+  },
+
+  closePartDetail() {
+    document.getElementById("part-detail").classList.add("hidden");
+    this.partDetailIdx = -1;
+    this.partDetailOffer = null;
+  },
+
+  renderPartDetail() {
+    const p = this.partsShop[this.partDetailIdx];
+    if (!p) return;
+    const el = document.getElementById("part-detail");
+    const isAuction = p.listingType === "auction";
+
+    let actionHtml = "";
+    if (isAuction) {
+      const mins = Math.floor(p.timeLeft / 60), secs = p.timeLeft % 60;
+      const minBid = p.currentBid + (p.bidIncrement || 1);
+      const isWinning = p.highBidder === "you";
+      actionHtml = `
+        <div class="pd-auction-info">
+          <div class="pd-time">⏱ ${mins}:${String(secs).padStart(2, "0")} left</div>
+          <div class="pd-bid-row">Current bid: <strong>${money(p.currentBid)}</strong></div>
+          <div class="pd-bid-row">${p.highBidder ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`) : "No bids yet"}</div>
+        </div>
+        <div class="pd-bid-input">
+          <input type="number" inputmode="numeric" id="pd-bid-amount" value="${minBid}" min="${minBid}">
+          <button class="eby-bid" id="pd-place-bid">Place Bid</button>
+        </div>
+        <div class="pd-hint">Minimum bid: ${money(minBid)}</div>`;
+    } else {
+      actionHtml = `
+        <button class="eby-buy pd-buy" id="pd-buy-now">Buy It Now — ${money(p.price)}</button>
+        <div class="pd-offer-section">
+          <div class="pd-offer-head">${Icon.get('chat')} Make an Offer</div>
+          ${this.partDetailOffer ? `
+            <div class="msg-thread">
+              ${this.partDetailOffer.thread.map(m => `<div class="msg ${m.from}">${m.text}</div>`).join("")}
+            </div>
+            ${this.partDetailOffer.accepted ? `
+              <button class="eby-buy pd-buy" id="pd-accept-offer">Buy for ${money(this.partDetailOffer.price)}</button>
+            ` : ""}
+          ` : `
+            <div class="pd-offer-row">
+              <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Your offer ($)">
+              <button class="eby-offer" id="pd-send-offer">Send Offer</button>
+            </div>
+          `}
+        </div>`;
+    }
+
+    el.innerHTML = `
+      <div class="pd-modal">
+        <div class="pd-head">
+          <button class="haggle-close" id="pd-close">${Icon.get('close')}</button>
+          <div class="pd-title">${p.partLabel}</div>
+          <div class="pd-sub">for ${p.bikeBrand} ${p.bikeModel}</div>
+        </div>
+        <div class="pd-photo"><img src="${p.img}" alt="${p.partLabel}"></div>
+        <div class="pd-info">
+          <div class="pd-cond">${p.stateLabel} · ${p.conditionPct || ""}%</div>
+          ${p.wasPrice ? `<div class="pd-was">Was ${money(p.wasPrice)}</div>` : ""}
+          <div class="pd-meta">${p.watchers || 0} watchers · Free delivery</div>
+        </div>
+        <div class="pd-actions">${actionHtml}</div>
+      </div>`;
+
+    document.getElementById("pd-close").addEventListener("click", () => this.closePartDetail());
+    if (isAuction) {
+      document.getElementById("pd-place-bid").addEventListener("click", () => {
+        const input = document.getElementById("pd-bid-amount");
+        const val = parseInt(input.value.replace(/[^0-9]/g, ""), 10);
+        const minBid = p.currentBid + (p.bidIncrement || 1);
+        if (val < minBid) {
+          UI.toast(`Bid must be at least ${money(minBid)}`);
+          input.value = minBid;
+          return;
+        }
+        input.blur();
+        this.placePartBid(this.partDetailIdx, val);
+        this.renderPartDetail(); // refresh
+      });
+    } else {
+      const buyBtn = document.getElementById("pd-buy-now");
+      if (buyBtn) buyBtn.addEventListener("click", () => {
+        this.closePartDetail();
+        this.buyPart(this.partDetailIdx);
+      });
+      const offerBtn = document.getElementById("pd-send-offer");
+      if (offerBtn) offerBtn.addEventListener("click", () => {
+        const input = document.getElementById("pd-offer-amount");
+        const val = parseInt(input.value.replace(/[^0-9]/g, ""), 10);
+        if (val > 0) {
+          input.blur();
+          this.sendPartOffer(val);
+        }
+      });
+      const acceptBtn = document.getElementById("pd-accept-offer");
+      if (acceptBtn) acceptBtn.addEventListener("click", () => {
+        const price = this.partDetailOffer.price;
+        this.closePartDetail();
+        // Buy at the agreed price
+        const idx = this.partDetailIdx;
+        const part = this.partsShop[idx];
+        if (part && State.canAfford(price)) {
+          State.cash -= price;
+          part.paidPrice = price;
+          State.parts = State.parts || [];
+          State.parts.push(part);
+          this.partsShop.splice(idx, 1);
+          UI.refreshCash();
+          Save.save();
+          UI.toast(`${part.partLabel} bought for ${money(price)}!`);
+          this.renderParts();
+        }
+      });
+    }
+  },
+
+  // Player makes an offer on a BIN part — seller responds
+  sendPartOffer(offerAmount) {
+    const p = this.partsShop[this.partDetailIdx];
+    if (!p) return;
+    const ratio = offerAmount / p.price;
+    let response, accepted = false, price = null;
+
+    if (ratio >= 0.95) {
+      response = `"${money(offerAmount)}? Yeah, I can do that."`;
+      accepted = true; price = offerAmount;
+    } else if (ratio >= 0.85) {
+      response = `"Hmm... ${money(offerAmount)}. Alright, it's yours."`;
+      accepted = true; price = offerAmount;
+    } else if (ratio >= 0.70) {
+      const counter = Math.round(((offerAmount + p.price) / 2) / 5) * 5;
+      response = `"Can't do ${money(offerAmount)}. How about ${money(counter)}?"`;
+      price = counter;
+    } else if (ratio >= 0.50) {
+      const counter = Math.round((p.price * 0.9) / 5) * 5;
+      response = `"${money(offerAmount)}? That's insulting. ${money(counter)} and not a penny less."`;
+      price = counter;
+    } else {
+      response = `"${money(offerAmount)}?? Get outta here with that lowball."`;
+    }
+
+    this.partDetailOffer = {
+      thread: [
+        { from: "you", text: money(offerAmount) },
+        { from: "seller", text: response },
+      ],
+      accepted, price,
+    };
+    this.renderPartDetail();
+  },
+
+  // Place a custom bid amount on auction
+  placePartBid(idx, amount) {
+    const p = this.partsShop[idx];
+    if (!p || p.listingType !== "auction") return;
+    if (!State.canAfford(amount)) {
+      UI.toast("Not enough cash for that bid");
+      return;
+    }
+    p.currentBid = amount;
+    p.highBidder = "you";
+    // Bidders will respond via the auction timer
+    UI.toast(`Bid placed: ${money(amount)}`);
+    this.updateAuctionUI();
   },
 
   buyPart(i) {

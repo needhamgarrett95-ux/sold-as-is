@@ -4,6 +4,7 @@ const Feed = {
   nextId: 0,
   batchSize: 16, // 8 rows x 2 cols, locked
   filter: "all",
+  search: "",
 
   init() {
     this.listings = genListings(this.batchSize, this.nextId);
@@ -15,16 +16,30 @@ const Feed = {
 
   // Filter predicates for the category tabs
   matchesFilter(l) {
+    // Category filter
+    let ok = true;
     switch (this.filter) {
-      case "under500": return l.price < 500;
-      case "runners": return ["Mint", "Clean", "Good", "Fair"].includes(l.condition);
-      case "projects": return ["Rough", "Non-runner", "Parts bike"].includes(l.condition);
-      default: return true;
+      case "under500": ok = l.price < 500; break;
+      case "runners": ok = ["Mint", "Clean", "Good", "Fair"].includes(l.condition); break;
+      case "projects": ok = ["Rough", "Non-runner", "Parts bike"].includes(l.condition); break;
     }
+    if (!ok) return false;
+    // Text search
+    if (this.search) {
+      const q = this.search.toLowerCase();
+      const hay = `${l.brand} ${l.model} ${l.condition} ${l.location} ${l.title || ""}`.toLowerCase();
+      return hay.includes(q);
+    }
+    return true;
   },
 
   setFilter(f) {
     this.filter = f;
+    this.render();
+  },
+
+  setSearch(q) {
+    this.search = q.trim();
     this.render();
   },
 

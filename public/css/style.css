@@ -141,6 +141,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .eby-filter { font-size: .85rem; font-weight: 600; padding: 9px 10px;
   border: 1.5px solid var(--line); border-radius: 8px; background: var(--paper);
   color: var(--ink); flex: 1; min-width: 0; }
+.eby-search { padding: 10px 12px; background: var(--card); border-bottom: 1px solid var(--line); }
+.eby-search input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--line);
+  border-radius: 8px; font-size: .88rem; background: var(--paper); color: var(--ink); }
+.eby-search input:focus { outline: none; border-color: var(--blue); }
 .eby-filter.hidden { display: none; }
 #site-search.hidden { display: none; }
 .eby-list { display: flex; flex-direction: column; }

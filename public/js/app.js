@@ -42,5 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
       c.classList.add("active");
       Feed.setFilter(c.dataset.filter);
     }));
+  // Market search
+  document.getElementById("market-search").addEventListener("input", (e) => {
+    Feed.setSearch(e.target.value);
+  });
   console.log("Sold As-Is: marketplace feed live.");
 });

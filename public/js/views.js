@@ -39,6 +39,7 @@ const Views = {
   },
 
   partsFilter: "all",
+  partsSearch: "",
 
   initPartsFilter() {
     const sel = document.getElementById("parts-bike-filter");
@@ -55,11 +56,20 @@ const Views = {
     const el = document.getElementById("parts-view");
     const shown = this.partsShop
       .map((p, i) => ({ ...p, idx: i }))
-      .filter(p => this.partsFilter === "all" || p.bikeSprite === this.partsFilter);
+      .filter(p => {
+        if (this.partsFilter !== "all" && p.bikeSprite !== this.partsFilter) return false;
+        if (this.partsSearch) {
+          const q = this.partsSearch.toLowerCase();
+          const hay = `${p.partLabel} ${p.bikeBrand} ${p.bikeModel}`.toLowerCase();
+          return hay.includes(q);
+        }
+        return true;
+      });
     el.innerHTML = `
       <div class="eby-head">
         <div class="eby-title">🛵 Find parts that fit</div>
       </div>
+      <div class="eby-search"><input type="text" id="parts-search" placeholder="Search parts..." value="${this.partsSearch.replace(/"/g, "&quot;")}" autocomplete="off"></div>
       <div class="eby-list">` +
       (shown.length ? shown.map(p => `
       <div class="eby-item">
@@ -92,6 +102,17 @@ const Views = {
         if (dy < 10 && dx < 10) buy(e);
       }, { passive: false });
     });
+    // Parts search (preserve focus while typing)
+    const psInput = document.getElementById("parts-search");
+    if (psInput) {
+      psInput.addEventListener("input", (e) => {
+        this.partsSearch = e.target.value;
+        const pos = e.target.selectionStart;
+        this.renderParts();
+        const ni = document.getElementById("parts-search");
+        if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
+      });
+    }
   },
 
   buyPart(i) {

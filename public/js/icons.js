@@ -62,6 +62,9 @@ const Icon = (() => {
 
     // Timer/clock — auction countdown
     timer: S(`<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>`),
+
+    // Cart
+    cart: S(`<circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M3 4h2l2.4 11h10.4l2-8H7"/>`),
   };
 
   return {

@@ -432,3 +432,53 @@ button svg { vertical-align: -3px; }
 .pd-bid-input input { flex: 1; min-width: 0; padding: 12px; border: 1.5px solid #ccc; border-radius: 10px; font-size: 1rem; }
 .pd-hint { font-size: .8rem; color: #666; }
 .eby-item { cursor: pointer; }
+/* eBay-style part detail */
+.pd-body { padding: 16px; }
+.pd-price-row { display: flex; align-items: baseline; gap: 8px; margin: 8px 0; }
+.pd-price { font-size: 1.6rem; font-weight: 800; }
+.pd-bo { color: #666; font-size: .95rem; }
+.pd-ship { font-size: .9rem; margin: 2px 0; }
+.pd-cond-row { margin: 10px 0; font-size: .92rem; color: #666; }
+.pd-cond-row strong { color: var(--ink); }
+.pd-btn-primary { width: 100%; background: #e04536; color: #fff; border: none;
+  padding: 15px; border-radius: 24px; font-size: 1.02rem; font-weight: 700;
+  cursor: pointer; margin-bottom: 10px; }
+.pd-btn-primary:active { transform: scale(.99); opacity: .92; }
+.pd-btn-outline { width: 100%; background: #fff; color: #e04536;
+  border: 1.5px solid #e04536; padding: 14px; border-radius: 24px;
+  font-size: 1rem; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+.pd-btn-outline:active { background: #fef0ee; }
+.pd-about { margin-top: 16px; border-top: 1px solid #eee; padding-top: 12px; }
+.pd-about-head { font-size: 1.15rem; font-weight: 800; margin-bottom: 10px; }
+.pd-spec { display: flex; justify-content: space-between; padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5; font-size: .9rem; }
+.pd-spec span:first-child { color: #666; }
+/* cart */
+.cart-btn { position: relative; background: none; border: none; cursor: pointer;
+  padding: 6px; color: var(--ink); }
+.cart-btn svg { width: 24px; height: 24px; }
+.cart-badge { position: absolute; top: 0; right: 0; background: #e04536; color: #fff;
+  font-size: .65rem; font-weight: 800; min-width: 18px; height: 18px;
+  border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+.cart-badge.hidden { display: none; }
+#cart-view { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.5);
+  display: flex; align-items: flex-end; justify-content: center; }
+#cart-view.hidden { display: none; }
+.cart-modal { background: #fff; width: 100%; max-width: 500px; max-height: 85vh;
+  border-radius: 16px 16px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+.cart-head { padding: 14px 16px; border-bottom: 1px solid #eee; position: relative; }
+.cart-title { font-weight: 800; font-size: 1.05rem; }
+.cart-list { flex: 1; overflow-y: auto; }
+.cart-item { display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #f0f0f0;
+  align-items: center; }
+.cart-thumb { width: 64px; height: 64px; flex-shrink: 0; background: #f5f2ea;
+  border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.cart-thumb img { max-width: 56px; max-height: 56px; object-fit: contain; }
+.cart-info { flex: 1; min-width: 0; }
+.cart-name { font-weight: 600; font-size: .88rem; }
+.cart-cond { font-size: .8rem; color: #666; }
+.cart-price { font-weight: 700; color: #e04536; margin-top: 2px; }
+.cart-remove { background: none; border: none; cursor: pointer; padding: 8px; color: #999; }
+.cart-remove svg { width: 16px; height: 16px; }
+.cart-foot { padding: 16px; border-top: 1px solid #eee; }
+.cart-total { font-size: 1.05rem; margin-bottom: 12px; text-align: right; }

@@ -35,6 +35,7 @@ const Save = {
         rep: State.rep,
         myBikeListings: Views.myBikeListings || [],
         myPartListings: Views.myPartListings || [],
+        cart: Views.cart || [],
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -61,6 +62,7 @@ const Save = {
         // Keep all bike listings (active or sold)
         return true;
       });
+      Views.cart = (data.cart || []).filter(idx => typeof idx === "number");
       Views.myPartListings = (data.myPartListings || []).map(l => {
         // Resolve auctions that ended while away
         if (l.listingType === "auction" && !l.sold && l.listedAt) {

@@ -59,6 +59,7 @@ const Views = {
   unseenPartSales: 0, // unviewed boneyard sales
   partDetailIdx: -1,
   partDetailOffer: null,
+  cart: [], // shopping cart for parts
   bikeListingFilter: "active", // "active" | "sold"
   partListingFilter: "active", // "active" | "sold"
   marketTab: "browse", // "browse" | "mine"
@@ -1080,6 +1081,7 @@ const Views = {
     el.innerHTML = `
       <div class="eby-head">
         <div class="eby-title">${Icon.get('scooter')} Find parts that fit</div>
+        <button class="cart-btn" id="open-cart">${Icon.get('cart')}<span class="cart-badge hidden" id="cart-badge"></span></button>
       </div>` + btabHtml + `
       <div class="eby-typefilter">
         <button class="eby-type${this.typeFilter === "all" ? " active" : ""}" data-type="all">All</button>
@@ -1131,6 +1133,9 @@ const Views = {
       : `<div class="empty"><strong>No parts match</strong>Try different filters.</div>`) +
       `</div>`;
     if (preserve) el.scrollTop = scrollY;
+    const cartBtn = el.querySelector("#open-cart");
+    if (cartBtn) cartBtn.addEventListener("click", () => this.openCart());
+    this.updateCartBadge();
     // Click listing → detail page (but not on buttons)
     el.querySelectorAll("[data-part-detail]").forEach(item => {
       const open = (e) => {
@@ -1231,19 +1236,21 @@ const Views = {
       const isWinning = p.highBidder === "you";
       actionHtml = `
         <div class="pd-auction-info">
-          <div class="pd-time">⏱ ${mins}:${String(secs).padStart(2, "0")} left</div>
+          <div class="pd-time">${mins}:${String(secs).padStart(2, "0")} left</div>
           <div class="pd-bid-row">Current bid: <strong>${money(p.currentBid)}</strong></div>
           <div class="pd-bid-row">${p.highBidder ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`) : "No bids yet"}</div>
         </div>
         <div class="pd-bid-input">
           <input type="number" inputmode="numeric" id="pd-bid-amount" value="${minBid}" min="${minBid}">
-          <button class="eby-bid" id="pd-place-bid">Place Bid</button>
         </div>
-        <div class="pd-hint">Minimum bid: ${money(minBid)}</div>`;
+        <button class="pd-btn-primary" id="pd-place-bid">Place bid</button>
+        <div class="pd-hint">Enter ${money(minBid)} or more</div>`;
     } else {
       actionHtml = `
-        <button class="eby-buy pd-buy" id="pd-buy-now">Buy It Now — ${money(p.price)}</button>
-        <div class="pd-offer-section">
+        <button class="pd-btn-primary" id="pd-buy-now">Buy It Now</button>
+        <button class="pd-btn-outline" id="pd-add-cart">Add to cart</button>
+        <button class="pd-btn-outline" id="pd-make-offer-btn">Make offer</button>
+        <div class="pd-offer-section hidden" id="pd-offer-section">
           <div class="pd-offer-head">${Icon.get('chat')} Make an Offer</div>
           ${this.partDetailOffer ? `
             <div class="msg-thread">
@@ -1265,16 +1272,25 @@ const Views = {
       <div class="pd-modal">
         <div class="pd-head">
           <button class="haggle-close" id="pd-close">${Icon.get('close')}</button>
-          <div class="pd-title">${p.partLabel}</div>
-          <div class="pd-sub">for ${p.bikeBrand} ${p.bikeModel}</div>
         </div>
         <div class="pd-photo"><img src="${p.img}" alt="${p.partLabel}"></div>
-        <div class="pd-info">
-          <div class="pd-cond">${p.stateLabel} · ${p.conditionPct || ""}%</div>
-          ${p.wasPrice ? `<div class="pd-was">Was ${money(p.wasPrice)}</div>` : ""}
-          <div class="pd-meta">${p.watchers || 0} watchers · Free delivery</div>
+        <div class="pd-body">
+          <div class="pd-title">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
+          <div class="pd-price-row">
+            <span class="pd-price">${isAuction ? money(p.currentBid) : money(p.price)}</span>
+            ${!isAuction ? `<span class="pd-bo">or Best Offer</span>` : `<span class="pd-bo">current bid</span>`}
+          </div>
+          <div class="pd-ship">Free shipping</div>
+          <div class="pd-ship">Free delivery</div>
+          <div class="pd-cond-row">Condition <strong>${p.stateLabel}</strong></div>
+          <div class="pd-actions">${actionHtml}</div>
+          <div class="pd-about">
+            <div class="pd-about-head">About this item</div>
+            <div class="pd-spec"><span>Condition</span><span>${p.stateLabel}</span></div>
+            <div class="pd-spec"><span>Fits</span><span>${p.bikeBrand} ${p.bikeModel}</span></div>
+            <div class="pd-spec"><span>Part</span><span>${p.partLabel}</span></div>
+          </div>
         </div>
-        <div class="pd-actions">${actionHtml}</div>
       </div>`;
 
     document.getElementById("pd-close").addEventListener("click", () => this.closePartDetail());
@@ -1297,6 +1313,14 @@ const Views = {
       if (buyBtn) buyBtn.addEventListener("click", () => {
         this.closePartDetail();
         this.buyPart(this.partDetailIdx);
+      });
+      const makeOfferBtn = document.getElementById("pd-make-offer-btn");
+      if (makeOfferBtn) makeOfferBtn.addEventListener("click", () => {
+        document.getElementById("pd-offer-section").classList.toggle("hidden");
+      });
+      const cartBtn = document.getElementById("pd-add-cart");
+      if (cartBtn) cartBtn.addEventListener("click", () => {
+        this.addToCart(this.partDetailIdx);
       });
       const offerBtn = document.getElementById("pd-send-offer");
       if (offerBtn) offerBtn.addEventListener("click", () => {
@@ -1377,6 +1401,135 @@ const Views = {
     // Bidders will respond via the auction timer
     UI.toast(`Bid placed: ${money(amount)}`);
     this.updateAuctionUI();
+  },
+
+  // --- shopping cart ---
+  addToCart(idx) {
+    const p = this.partsShop[idx];
+    if (!p) return;
+    if (p.listingType === "auction") {
+      UI.toast("Can't add auctions to cart");
+      return;
+    }
+    // Don't add duplicates
+    if (this.cart.includes(idx)) {
+      UI.toast("Already in cart");
+      return;
+    }
+    this.cart.push(idx);
+    Save.save();
+    UI.toast(`${p.partLabel} added to cart`);
+    this.updateCartBadge();
+  },
+
+  removeFromCart(idx) {
+    const i = this.cart.indexOf(idx);
+    if (i >= 0) this.cart.splice(i, 1);
+    Save.save();
+    this.updateCartBadge();
+    this.renderCart();
+  },
+
+  cartTotal() {
+    return this.cart.reduce((sum, idx) => {
+      const p = this.partsShop[idx];
+      return sum + (p ? p.price : 0);
+    }, 0);
+  },
+
+  updateCartBadge() {
+    const badge = document.getElementById("cart-badge");
+    if (badge) {
+      badge.textContent = this.cart.length;
+      badge.classList.toggle("hidden", this.cart.length === 0);
+    }
+  },
+
+  openCart() {
+    this.renderCart();
+    document.getElementById("cart-view").classList.remove("hidden");
+  },
+
+  closeCart() {
+    document.getElementById("cart-view").classList.add("hidden");
+  },
+
+  renderCart() {
+    const el = document.getElementById("cart-view");
+    if (!this.cart.length) {
+      el.innerHTML = `
+        <div class="cart-modal">
+          <div class="cart-head">
+            <button class="haggle-close" id="cart-close">${Icon.get('close')}</button>
+            <div class="cart-title">Your Cart</div>
+          </div>
+          <div class="empty"><strong>Cart is empty</strong>Add parts from the Boneyard.</div>
+        </div>`;
+    } else {
+      const total = this.cartTotal();
+      el.innerHTML = `
+        <div class="cart-modal">
+          <div class="cart-head">
+            <button class="haggle-close" id="cart-close">${Icon.get('close')}</button>
+            <div class="cart-title">Your Cart (${this.cart.length})</div>
+          </div>
+          <div class="cart-list">` +
+            this.cart.map(idx => {
+              const p = this.partsShop[idx];
+              if (!p) return "";
+              return `
+            <div class="cart-item">
+              <div class="cart-thumb"><img src="${p.img}" alt="${p.partLabel}"></div>
+              <div class="cart-info">
+                <div class="cart-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
+                <div class="cart-cond">${p.stateLabel}</div>
+                <div class="cart-price">${money(p.price)}</div>
+              </div>
+              <button class="cart-remove" data-cart-remove="${idx}">${Icon.get('close')}</button>
+            </div>`;
+            }).join("") +
+          `</div>
+          <div class="cart-foot">
+            <div class="cart-total">Total: <strong>${money(total)}</strong></div>
+            <button class="pd-btn-primary" id="cart-checkout">Checkout — ${money(total)}</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById("cart-close").addEventListener("click", () => this.closeCart());
+    el.querySelectorAll("[data-cart-remove]").forEach(b =>
+      b.addEventListener("click", () => this.removeFromCart(+b.dataset.cartRemove)));
+    const checkout = document.getElementById("cart-checkout");
+    if (checkout) checkout.addEventListener("click", () => this.checkoutCart());
+  },
+
+  checkoutCart() {
+    const total = this.cartTotal();
+    if (!this.cart.length) return;
+    if (!State.canAfford(total)) {
+      UI.toast(`Not enough cash — need ${money(total)}`);
+      return;
+    }
+    State.cash -= total;
+    // Move cart items to inventory (in reverse to preserve indices)
+    const sorted = [...this.cart].sort((a, b) => b - a);
+    const bought = [];
+    for (const idx of sorted) {
+      const p = this.partsShop[idx];
+      if (p) {
+        p.paidPrice = p.price;
+        State.parts = State.parts || [];
+        State.parts.push(p);
+        bought.push(p.partLabel);
+        this.partsShop.splice(idx, 1);
+      }
+    }
+    this.cart = [];
+    UI.refreshCash();
+    Save.save();
+    this.updateCartBadge();
+    this.closeCart();
+    UI.toast(`Bought ${bought.length} part${bought.length === 1 ? "" : "s"} for ${money(total)}!`);
+    this.renderParts();
   },
 
   buyPart(i) {

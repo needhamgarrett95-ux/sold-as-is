@@ -19,6 +19,10 @@ const Views = {
     const site = SITES[name];
     const urlEl = document.querySelector(".urlbar .url");
     if (urlEl) urlEl.textContent = site.url;
+    // Swap header logo for Boneyard (feels like a different site)
+    const isBoneyard = name === "parts";
+    document.getElementById("logo-main").classList.toggle("hidden", isBoneyard);
+    document.getElementById("logo-boneyard").classList.toggle("hidden", !isBoneyard);
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
     document.getElementById("cats").style.display = name === "market" ? "" : "none";
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");

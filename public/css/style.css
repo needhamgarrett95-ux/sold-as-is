@@ -42,6 +42,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
 .logo { font-weight: 800; font-size: 1.25rem; color: var(--ink); letter-spacing: -.5px; white-space: nowrap; }
 .logo span { color: var(--blue); }
+.logo-boneyard span { color: #b5651d; }
+.logo.hidden { display: none; }
 .search { flex: 1; }
 .search input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--line);
   border-radius: 8px; font-size: .85rem; background: var(--paper); color: var(--dim); }

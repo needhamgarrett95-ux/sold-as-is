@@ -440,6 +440,29 @@ const Views = {
     this.bindGarageActions(el);
   },
 
+  garageGridHTML() {
+    if (!State.garage.length) {
+      return `<div class="pane-head"><h2>Pending Listings</h2>
+        <div class="sub">Bikes you own, waiting to be listed.</div></div>
+        <div class="empty"><strong>Empty garage</strong>Hit the market and buy your first flip.</div>`;
+    }
+    return `<div class="pane-head"><h2>Pending Listings</h2>
+      <div class="sub">${State.garage.length} bike(s) · tap to manage</div></div>
+      <div class="feed-grid">` +
+      State.garage.map((b, i) => `
+      <article class="card" data-gbike="${i}">
+        <div class="photo">
+          ${b.listed ? '<div class="just-listed">Listed</div>' : ""}
+          <img src="assets/bikes/${b.sprite}.png" alt="${b.brand} ${b.model}" loading="lazy" draggable="false"${Feed.spriteNudge.has(b.sprite) ? ' class="nudged"' : ""}>
+          <div class="card-cond">${b.condition}</div>
+        </div>
+        <div class="card-info">
+          <div class="card-price-name"><strong>${money(b.boughtFor)}</strong> &middot; ${b.brand} ${b.model}</div>
+          <div class="card-loc">${b.kept ? "★ In collection" : "Pending"}</div>
+        </div>
+      </article>`).join("") + `</div>`;
+  },
+
   garageDetailHTML() {
     const b = State.garage[this.garageDetailIdx];
     if (!b) return `<div class="empty">Bike not found.</div>`;

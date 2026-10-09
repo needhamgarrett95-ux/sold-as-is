@@ -64,7 +64,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   border-radius: 4px; letter-spacing: 1px; }
 .photo { height: 150px; overflow: hidden; background: linear-gradient(135deg, #e8e4d8, #d5d0c0);
   position: relative; text-align: center; }
-.photo img { max-width: 150px; max-height: 134px; width: auto; height: auto;
+.photo img { max-width: 140px; max-height: 125px; width: auto; height: auto;
   vertical-align: top; display: inline-block; margin-top: 6px;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
 .card-body { padding: 8px 10px 10px; background: #fff; min-height: 64px; }

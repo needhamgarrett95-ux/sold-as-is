@@ -80,22 +80,23 @@ const Feed = {
 
   // Per-sprite vertical nudge (px, negative = up) for sprites that sit low
   spriteNudge: {
-    "yamaha_qt50": -4,
-    "honda_dio": -4,
-    "yamaha_zuma-prebug": -4,
+    "yamaha_qt50": -6,
+    "honda_dio": -6,
+    "yamaha_zuma-prebug": -6,
   },
 
   card(l) {
+    const nudge = Feed.spriteNudge[l.sprite] || 0;
     return `
-    <article class="card" data-id="${l.id}" style="position:relative;background:transparent;border:none;overflow:visible;">
-      <div class="photo photo-real" style="border-radius:8px;">
-        ${l.fresh ? '<div class="fresh-tag" style="position:absolute;top:8px;left:8px;z-index:2;background:rgba(255,255,255,.95);color:#1a1a1a;font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:6px;">Just listed</div>' : ""}
-        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="${Feed.spriteNudge[l.sprite] ? `margin-top:${6 + Feed.spriteNudge[l.sprite]}px;` : ""}">
-        <div style="position:absolute;right:8px;bottom:8px;background:rgba(255,255,255,.92);color:#333;font-weight:700;font-size:.64rem;padding:3px 8px;border-radius:20px;">${l.condition}</div>
+    <article class="card" data-id="${l.id}">
+      <div class="photo">
+        ${l.fresh ? '<div class="just-listed">Just listed</div>' : ""}
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="margin-top:${8 + nudge}px">
+        <div class="card-cond">${l.condition}</div>
       </div>
-      <div style="display:block;padding:6px 2px 0;background:transparent;">
-        <div style="font-size:.92rem;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><strong>${money(l.price)}</strong> &middot; ${l.brand} ${l.model}</div>
-        <div style="font-size:.74rem;color:#777;margin-top:1px;">${l.location}</div>
+      <div class="card-info">
+        <div class="card-price-name"><strong>${money(l.price)}</strong> &middot; ${l.brand} ${l.model}</div>
+        <div class="card-loc">${l.location}</div>
       </div>
     </article>`;
   },

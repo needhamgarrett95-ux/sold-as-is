@@ -53,30 +53,27 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 
 /* ---------- listings: 2-col FB-style grid ---------- */
 #feed { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px; display: grid;
-  grid-template-columns: 1fr 1fr; gap: 10px 8px; align-content: start;
-  -webkit-overflow-scrolling: touch; background: #fff; max-width: 100vw; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-  overflow: hidden; cursor: pointer; position: relative;
-  box-shadow: 0 1px 3px rgba(30,25,15,.08); }
+  grid-template-columns: 1fr 1fr; gap: 12px 8px; align-content: start;
+  -webkit-overflow-scrolling: touch; background: #fff; }
+.card { position: relative; background: transparent; border: none; cursor: pointer; min-width: 0; }
 .card:active { transform: scale(.98); }
-.fresh-tag { position: absolute; top: 8px; left: 8px; z-index: 2; background: var(--red);
-  color: #fff; font-size: .62rem; font-weight: 800; padding: 3px 7px;
-  border-radius: 4px; letter-spacing: 1px; }
-.photo { height: 150px; min-height: 150px; overflow: hidden; background: linear-gradient(135deg, #e8e4d8, #d5d0c0);
-  position: relative; text-align: center; flex-shrink: 0; }
-.photo img { max-width: 140px; max-height: 125px; width: auto; height: auto;
-  vertical-align: top; display: inline-block; margin-top: 6px;
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
-.card-body { padding: 8px 10px 10px; background: #fff; min-height: 64px; }
-.card .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
-.card .price { font-size: 1.02rem; font-weight: 800; color: var(--ink); }
-.card .cond { font-size: .62rem; padding: 3px 8px; }
-.card .title { font-size: .82rem; color: var(--ink); font-weight: 600;
+.card .photo { height: 150px; border-radius: 8px; overflow: hidden;
+  background: linear-gradient(135deg, #e8e4d8, #d5d0c0);
+  position: relative; text-align: center; }
+.card .photo img { max-width: 140px; max-height: 125px; width: auto; height: auto;
+  margin-top: 8px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
+.just-listed { position: absolute; top: 8px; left: 8px; z-index: 2;
+  background: rgba(255,255,255,.95); color: #1a1a1a;
+  font-size: .68rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+.card-cond { position: absolute; right: 8px; bottom: 8px;
+  background: rgba(255,255,255,.92); color: #333;
+  font-weight: 700; font-size: .64rem; padding: 3px 8px; border-radius: 20px; }
+.card-info { padding: 6px 2px 0; }
+.card-price-name { font-size: .92rem; color: #1a1a1a;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card .meta { font-size: .72rem; color: var(--dim); margin-top: 2px;
+.card-price-name strong { font-weight: 800; }
+.card-loc { font-size: .74rem; color: #777; margin-top: 1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.photo-count { position: absolute; bottom: 8px; right: 8px; font-size: .7rem; color: #fff;
-  background: rgba(0,0,0,.55); padding: 3px 8px; border-radius: 10px; }
 .cond { font-size: .7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: .4px; }
 .cond-mint { background: #dcf2e3; color: var(--green); }
 .cond-clean { background: #dbeafe; color: var(--blue); }

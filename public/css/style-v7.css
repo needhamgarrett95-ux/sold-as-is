@@ -63,9 +63,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   color: #fff; font-size: .62rem; font-weight: 800; padding: 3px 7px;
   border-radius: 4px; letter-spacing: 1px; }
 .photo { height: 150px; overflow: hidden; background: linear-gradient(135deg, #e8e4d8, #d5d0c0);
-  position: relative; text-align: center; line-height: 148px; }
+  position: relative; text-align: center; }
 .photo img { max-width: 150px; max-height: 134px; width: auto; height: auto;
-  vertical-align: middle; display: inline-block;
+  vertical-align: top; display: inline-block; margin-top: 6px;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
 .card-body { padding: 8px 10px 10px; background: #fff; min-height: 64px; }
 .card .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }

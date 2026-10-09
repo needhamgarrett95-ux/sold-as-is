@@ -73,6 +73,19 @@ const Detail = {
           <div class="avatar">${l.seller[0].toUpperCase()}</div>
           <div><strong>${l.seller}</strong><div class="meta">★ ${l.sellerRating} seller rating</div></div>
         </div>
+        <div class="cond-report">
+          <h3>Condition Report</h3>
+          <div class="parts-grid">
+            ${PARTS.map(p => {
+              const st = (l.partStates && l.partStates[p.key]) || "pristine";
+              return `<div class="part-cell state-${st}">
+                <img src="${partImg(l.sprite, p.key, st)}" alt="${p.label}" loading="lazy">
+                <div class="part-label">${p.label}</div>
+                <div class="part-state">${PART_STATE_LABEL[st]}</div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>
         ${hr ? `<div class="haggle-resp">${hr.response}</div>` : ""}
         ${this.notice ? `<div class="notice">${this.notice}</div>` : ""}
         <div class="haggle-row">

@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   Feed.init();
   UI.refreshCash();
+  document.getElementById("refresh-btn").addEventListener("click", () => Feed.refresh());
   document.querySelectorAll(".mnav").forEach(b =>
     b.addEventListener("click", () => Views.show(b.dataset.view)));
   document.querySelectorAll("#cats a").forEach(c =>

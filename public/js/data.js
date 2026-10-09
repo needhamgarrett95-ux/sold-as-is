@@ -80,6 +80,47 @@ const SELLERS = ["mike_rides", "2stroke_dan", "barnfind_betty", "moped_mike", "s
 const LOCATIONS = ["Portland, OR", "Austin, TX", "Chicago, IL", "Denver, CO", "Seattle, WA",
   "Nashville, TN", "Phoenix, AZ", "Columbus, OH", "Minneapolis, MN", "Sacramento, CA"];
 
+const PARTS = [
+  { key: "engine",      label: "Engine" },
+  { key: "exhaust",     label: "Exhaust" },
+  { key: "wheel_front", label: "Front Wheel" },
+  { key: "wheel_rear",  label: "Rear Wheel" },
+  { key: "fuel_tank",   label: "Fuel Tank" },
+  { key: "headlight",   label: "Headlight" },
+  { key: "handlebars",  label: "Handlebars" },
+  { key: "turn_signals",label: "Turn Signals" },
+];
+
+// Probability of each part state given the bike's overall condition
+const PART_DIST = {
+  "Mint":       [0.90, 0.10, 0.00, 0.00],
+  "Clean":      [0.70, 0.25, 0.05, 0.00],
+  "Good":       [0.45, 0.40, 0.15, 0.00],
+  "Fair":       [0.20, 0.45, 0.30, 0.05],
+  "Rough":      [0.05, 0.25, 0.50, 0.20],
+  "Non-runner": [0.00, 0.15, 0.55, 0.30],
+  "Parts bike": [0.00, 0.05, 0.35, 0.60],
+};
+const PART_STATES = ["pristine", "used_good", "used_bad", "totaled"];
+const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot" };
+
+function rollPartStates(condition) {
+  const dist = PART_DIST[condition] || PART_DIST["Good"];
+  const states = {};
+  for (const p of PARTS) {
+    const r = Math.random();
+    let acc = 0, state = "pristine";
+    for (let i = 0; i < 4; i++) { acc += dist[i]; if (r <= acc) { state = PART_STATES[i]; break; } }
+    states[p.key] = state;
+  }
+  return states;
+}
+
+function partImg(sprite, partKey, state) {
+  const suffix = state === "pristine" ? "" : "_" + state;
+  return `assets/parts/${sprite}/${partKey}${suffix}.png`;
+}
+
 function pickWeighted(items, wkey) {
   const total = items.reduce((s, i) => s + i[wkey], 0);
   let r = Math.random() * total;
@@ -104,6 +145,7 @@ function makeListing(id) {
     sprite: bike.sprite,
     baseValue: bike.base, rarity: bike.rarity,
     condition: cond.name, price,
+    partStates: rollPartStates(cond.name),
     // fair value estimate (what inspection would reveal)
     fairValue: Math.round(bike.base * cond.mult / 10) * 10,
     title,

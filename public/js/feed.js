@@ -36,6 +36,48 @@ const Feed = {
     this.render();
   },
 
+  // Manual refresh — new batch, 3:30 cooldown
+  COOLDOWN_S: 210,
+  cooldownUntil: 0,
+  cooldownTimer: null,
+
+  refresh() {
+    const now = Date.now();
+    if (now < this.cooldownUntil) return;
+    // Fresh random batch replaces current feed
+    this.listings = genListings(this.batchSize, this.nextId);
+    this.nextId += this.batchSize;
+    this.listings.forEach(l => l.fresh = true);
+    this.render();
+    document.getElementById("feed").scrollTop = 0;
+    this.cooldownUntil = now + this.COOLDOWN_S * 1000;
+    this.tickCooldown();
+    UI.toast("Marketplace refreshed — new listings");
+  },
+
+  tickCooldown() {
+    const btn = document.getElementById("refresh-btn");
+    clearInterval(this.cooldownTimer);
+    const update = () => {
+      const remain = Math.ceil((this.cooldownUntil - Date.now()) / 1000);
+      if (remain <= 0) {
+        clearInterval(this.cooldownTimer);
+        btn.disabled = false;
+        btn.classList.remove("cooling");
+        btn.innerHTML = "↻";
+        btn.title = "Refresh listings";
+        return;
+      }
+      btn.disabled = true;
+      btn.classList.add("cooling");
+      const m = Math.floor(remain / 60), s = remain % 60;
+      btn.textContent = `${m}:${String(s).padStart(2, "0")}`;
+      btn.title = `Refresh available in ${m}:${String(s).padStart(2, "0")}`;
+    };
+    update();
+    this.cooldownTimer = setInterval(update, 1000);
+  },
+
   remove(id) {
     this.listings = this.listings.filter(l => l.id !== id);
     this.render();

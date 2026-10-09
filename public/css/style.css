@@ -39,6 +39,12 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   border-radius: 8px; font-size: .85rem; background: var(--paper); color: var(--dim); }
 .wallet { background: #e8f5e9; color: var(--green); font-weight: 800; font-size: .95rem;
   padding: 8px 12px; border-radius: 8px; border: 1.5px solid #bfe3c6; white-space: nowrap; }
+.refresh-btn { background: var(--card); border: 1.5px solid var(--line); border-radius: 8px;
+  width: 38px; height: 38px; font-size: 1.2rem; color: var(--blue); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.refresh-btn:hover:not(:disabled) { border-color: var(--blue); }
+.refresh-btn:disabled { opacity: .45; cursor: default; color: var(--dim); }
+.refresh-btn.cooling { font-size: .68rem; font-weight: 700; width: auto; padding: 0 8px; }
 #cats { display: flex; gap: 4px; padding: 10px 12px 0; background: var(--card);
   border-bottom: 1px solid var(--line); overflow-x: auto; }
 #cats a { padding: 8px 12px; font-size: .82rem; color: var(--dim); white-space: nowrap;
@@ -159,6 +165,21 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 #site-footer { background: var(--card); border-top: 1px solid var(--line); padding: 10px;
   text-align: center; font-size: .72rem; color: var(--dim); }
 #site-footer a { color: var(--blue); cursor: pointer; }
+
+/* ---------- condition report ---------- */
+.cond-report { margin: 14px 0; }
+.cond-report h3 { font-size: .95rem; color: var(--ink); margin-bottom: 10px; }
+.parts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.part-cell { background: var(--paper); border: 1.5px solid var(--line); border-radius: 8px;
+  padding: 8px 4px; text-align: center; }
+.part-cell img { width: 100%; height: 52px; object-fit: contain; }
+.part-label { font-size: .66rem; color: var(--ink); font-weight: 600; margin-top: 4px; }
+.part-state { font-size: .64rem; font-weight: 700; margin-top: 2px; }
+.state-pristine .part-state { color: var(--green); }
+.state-used_good .part-state { color: var(--blue); }
+.state-used_bad .part-state { color: var(--amber); }
+.state-totaled { border-color: var(--red); }
+.state-totaled .part-state { color: var(--red); }
 .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
   background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 10px;
   font-size: .88rem; opacity: 0; transition: all .3s; z-index: 100; max-width: 90vw;

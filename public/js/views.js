@@ -57,8 +57,8 @@ const Views = {
   myBikeListings: [], // player's own bike listings
   playerAuctionTimer: null,
   unseenPartSales: 0, // unviewed boneyard sales
-  bikeListingFilter: "all", // "all" | "active" | "sold"
-  partListingFilter: "all", // "all" | "active" | "sold"
+  bikeListingFilter: "active", // "active" | "sold"
+  partListingFilter: "active", // "active" | "sold"
   marketTab: "browse", // "browse" | "mine"
   salesTimer: null,
   bikeSalesTimer: null,
@@ -222,14 +222,12 @@ const Views = {
     }
     const filterHtml = `
       <div class="eby-typefilter">
-        <button class="eby-type${this.bikeListingFilter === "all" ? " active" : ""}" data-bf="all">All</button>
         <button class="eby-type${this.bikeListingFilter === "active" ? " active" : ""}" data-bf="active">Active</button>
         <button class="eby-type${this.bikeListingFilter === "sold" ? " active" : ""}" data-bf="sold">Sold</button>
       </div>`;
     const shown = this.myBikeListings
       .map((l, i) => ({ ...l, idx: i }))
-      .filter(l => this.bikeListingFilter === "all" ? true
-        : this.bikeListingFilter === "active" ? !l.sold : l.sold);
+      .filter(l => this.bikeListingFilter === "active" ? !l.sold : l.sold);
     if (!shown.length) {
       feed.innerHTML = filterHtml + `<div class="empty"><strong>Nothing here</strong>No ${this.bikeListingFilter} listings.</div>`;
       feed.querySelectorAll("[data-bf]").forEach(b =>
@@ -599,7 +597,9 @@ const Views = {
         State.cash += l.askPrice;
         State.sold.push({ ...l, soldFor: l.askPrice, soldAt: Date.now() });
         UI.refreshCash();
-        UI.toast(`Sold your ${l.brand} ${l.model} for ${money(l.askPrice)}!`);
+        if (!(this.current === "market" && this.marketTab === "mine")) {
+          UI.toast(`Sold your ${l.brand} ${l.model} for ${money(l.askPrice)}!`);
+        }
         if (this.current === "market") {
           this.renderMarketFeed();
           this.renderMarketTabs();
@@ -627,7 +627,9 @@ const Views = {
         this.updateNavBadges();
         State.cash += l.askPrice;
         UI.refreshCash();
-        UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
+        if (!(this.current === "parts" && this.boneyardTab === "sell")) {
+          UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
+        }
         if (this.current === "parts" && this.boneyardTab === "sell") {
           this.renderParts();
         }
@@ -769,7 +771,9 @@ const Views = {
           this.unseenPartSales++;
           this.updateNavBadges();
           UI.refreshCash();
-          UI.toast(`Auction sold! ${l.partLabel} went for ${money(l.currentBid)} to ${l.highBidder}`);
+          if (!(this.current === "parts" && this.boneyardTab === "sell")) {
+            UI.toast(`Auction sold! ${l.partLabel} went for ${money(l.currentBid)} to ${l.highBidder}`);
+          }
         } else {
           const { listingType, startPrice, currentBid, highBidder, timeLeft, bidders, listedAt, ...part } = l;
           State.parts = State.parts || [];
@@ -843,14 +847,12 @@ const Views = {
     }
     const filterHtml = `
       <div class="eby-typefilter">
-        <button class="eby-type${this.partListingFilter === "all" ? " active" : ""}" data-pf="all">All</button>
         <button class="eby-type${this.partListingFilter === "active" ? " active" : ""}" data-pf="active">Active</button>
         <button class="eby-type${this.partListingFilter === "sold" ? " active" : ""}" data-pf="sold">Sold</button>
       </div>`;
     const shown = this.myPartListings
       .map((l, i) => ({ ...l, idx: i }))
-      .filter(l => this.partListingFilter === "all" ? true
-        : this.partListingFilter === "active" ? !l.sold : l.sold);
+      .filter(l => this.partListingFilter === "active" ? !l.sold : l.sold);
     if (!shown.length) {
       return filterHtml + `<div class="eby-list"><div class="empty"><strong>Nothing here</strong>No ${this.partListingFilter} listings.</div></div>`;
     }

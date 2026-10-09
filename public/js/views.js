@@ -182,9 +182,10 @@ const Views = {
         const minsListed = Math.floor((Date.now() - l.listedAt) / 60000);
         const timeStr = minsListed < 1 ? "just now" : `${minsListed}m ago`;
         return `
-      <article class="card">
+      <article class="card" data-bike-offer="${i}">
         <div class="photo">
           <div class="just-listed">Your Listing</div>
+          ${l.offer ? `<div class="offer-badge">1</div>` : ""}
           <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false"${Feed.spriteNudge.has(l.sprite) ? ' class="nudged"' : ""}>
           <div class="card-cond">${l.condition}</div>
         </div>
@@ -200,6 +201,17 @@ const Views = {
         e.preventDefault(); e.stopPropagation();
         this.delistBike(+b.dataset.delistBike);
       }));
+    // Tap listing with offer → open haggle
+    feed.querySelectorAll("[data-bike-offer]").forEach(c => {
+      const idx = +c.dataset.bikeOffer;
+      if (!this.myBikeListings[idx].offer) return;
+      c.addEventListener("click", (e) => {
+        // Don't open if tapping the delist button
+        if (e.target.closest("[data-delist-bike]")) return;
+        this.openSellerHaggle(this.myBikeListings, idx);
+      });
+      c.style.cursor = "pointer";
+    });
   },
 
   listBikeForSale(garageIdx, price) {
@@ -237,7 +249,249 @@ const Views = {
     this.bikeSalesTimer = setInterval(() => this.tickBikeSales(), 8000);
   },
 
+  // --- seller-side haggling: buyers make offers on player listings ---
+  buyerNames: ["Mike R.", "Sarah K.", "Dave", "Jen T.", "Tommy", "Alex P.", "Chris", "Sam", "Jordan", "Pat"],
+
+  // Generate a buyer offer for a listing (called periodically)
+  maybeMakeOffer() {
+    // Check bike listings
+    for (const l of this.myBikeListings) {
+      if (!l.offer && Math.random() < 0.15) {
+        this.makeBuyerOffer(l, "bike");
+      }
+    }
+    // Check part listings
+    for (const l of this.myPartListings) {
+      if (!l.offer && Math.random() < 0.12) {
+        this.makeBuyerOffer(l, "part");
+      }
+    }
+  },
+
+  makeBuyerOffer(listing, type) {
+    const askPrice = listing.askPrice;
+    // Buyer offers 65-88% of asking
+    const offerPct = 0.65 + Math.random() * 0.23;
+    const offerAmount = Math.round((askPrice * offerPct) / 5) * 5;
+    const buyerName = this.buyerNames[(Math.random() * this.buyerNames.length) | 0];
+    // Buyer's secret max (what they'll go up to)
+    const maxPct = 0.88 + Math.random() * 0.17; // 88-105% of asking
+    listing.offer = {
+      amount: offerAmount,
+      buyerName,
+      maxAmount: Math.round((askPrice * maxPct) / 5) * 5,
+      type,
+      thread: [
+        { from: "buyer", text: `Hi! Interested in your ${type === "bike" ? "bike" : "part"}. Would you take ${money(offerAmount)}?` }
+      ],
+    };
+    UI.toast(`${buyerName} made an offer!`);
+    // Refresh the relevant view
+    if (this.current === "market" && this.marketTab === "mine") {
+      this.renderMarketFeed(); this.renderMarketTabs();
+    }
+    if (this.current === "parts" && this.boneyardTab === "sell") {
+      this.renderParts();
+    }
+  },
+
+  // Open the haggle chat for a listing
+  openSellerHaggle(listingsArray, idx) {
+    const l = listingsArray[idx];
+    if (!l || !l.offer) return;
+    this.haggleListing = l;
+    this.haggleListingsArray = listingsArray;
+    this.haggleIdx = idx;
+    this.renderSellerHaggle();
+    document.getElementById("seller-haggle").classList.remove("hidden");
+  },
+
+  closeSellerHaggle() {
+    document.getElementById("seller-haggle").classList.add("hidden");
+    this.haggleListing = null;
+  },
+
+  renderSellerHaggle() {
+    const l = this.haggleListing;
+    if (!l) return;
+    const el = document.getElementById("seller-haggle");
+    const offer = l.offer;
+    const isBike = offer.type === "bike";
+    const title = isBike ? `${l.brand} ${l.model}` : `${l.partLabel} — ${l.bikeBrand} ${l.bikeModel}`;
+    const img = isBike ? `assets/bikes/${l.sprite}.png`
+      : partImg(l.bikeSprite, l.partKey, pctToState(ensurePct(l)));
+
+    el.innerHTML = `
+      <div class="haggle-modal">
+        <div class="haggle-head">
+          <button class="haggle-close" id="haggle-close">✕</button>
+          <div class="haggle-title">${title}</div>
+          <div class="haggle-sub">Asking ${money(l.askPrice)} · Offer ${money(offer.amount)}</div>
+        </div>
+        <div class="haggle-photo"><img src="${img}" alt="${title}"></div>
+        <div class="msg-thread" id="haggle-thread">` +
+          offer.thread.map(m => `<div class="msg ${m.from === "you" ? "you" : "seller"}"><span class="msg-name">${m.from === "you" ? "You" : offer.buyerName}</span>${m.text}</div>`).join("") +
+        `</div>
+        <div class="haggle-actions">
+          <button class="haggle-accept" id="haggle-accept">Accept ${money(offer.amount)}</button>
+          <div class="haggle-counter-row">
+            <input type="number" inputmode="numeric" id="haggle-counter" placeholder="Counter offer">
+            <button class="haggle-counter" id="haggle-send-counter">Counter</button>
+          </div>
+          <button class="haggle-decline" id="haggle-decline">Decline</button>
+        </div>
+      </div>`;
+
+    document.getElementById("haggle-close").addEventListener("click", () => this.closeSellerHaggle());
+    document.getElementById("haggle-accept").addEventListener("click", () => this.acceptBuyerOffer());
+    document.getElementById("haggle-decline").addEventListener("click", () => this.declineBuyerOffer());
+    document.getElementById("haggle-send-counter").addEventListener("click", () => {
+      const input = document.getElementById("haggle-counter");
+      const val = parseInt(input.value.replace(/[^0-9]/g, ""), 10);
+      if (val > 0) {
+        input.blur();
+        this.counterBuyerOffer(val);
+      }
+    });
+    // Scroll thread to bottom
+    const thread = document.getElementById("haggle-thread");
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  },
+
+  acceptBuyerOffer() {
+    const l = this.haggleListing;
+    const offer = l.offer;
+    const amount = offer.amount;
+    // Complete the sale
+    State.cash += amount;
+    UI.refreshCash();
+    // Remove from listings
+    const arr = this.haggleListingsArray;
+    arr.splice(this.haggleIdx, 1);
+    if (offer.type === "bike") {
+      State.sold.push({ ...l, soldFor: amount, soldAt: Date.now() });
+    }
+    offer.thread.push({ from: "you", text: `Deal! ${money(amount)} it is.` });
+    offer.thread.push({ from: "buyer", text: this.randomAcceptResponse() });
+    UI.toast(`Sold for ${money(amount)}!`);
+    this.closeSellerHaggle();
+    // Refresh views
+    if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
+    if (this.current === "parts") this.renderParts();
+  },
+
+  declineBuyerOffer() {
+    const l = this.haggleListing;
+    const offer = l.offer;
+    offer.thread.push({ from: "you", text: `Sorry, can't do ${money(offer.amount)}.` });
+    offer.thread.push({ from: "buyer", text: this.randomDeclineResponse() });
+    // Clear the offer, listing stays active
+    l.offer = null;
+    UI.toast("Offer declined");
+    this.closeSellerHaggle();
+    if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
+    if (this.current === "parts") this.renderParts();
+  },
+
+  counterBuyerOffer(counterAmount) {
+    const l = this.haggleListing;
+    const offer = l.offer;
+    offer.thread.push({ from: "you", text: `How about ${money(counterAmount)}?` });
+
+    // Buyer AI: decide based on counter vs their max
+    const max = offer.maxAmount;
+    let response, accepted = false, walkedAway = false;
+
+    if (counterAmount <= max) {
+      // Within budget — accept (with some flavor)
+      accepted = true;
+      response = this.randomCounterAcceptResponse(counterAmount);
+      offer.amount = counterAmount;
+    } else if (counterAmount <= max * 1.12) {
+      // Close — 50/50 accept or counter back
+      if (Math.random() < 0.5) {
+        accepted = true;
+        response = this.randomCounterAcceptResponse(counterAmount);
+        offer.amount = counterAmount;
+      } else {
+        // Counter back: meet partway between their offer and your counter
+        const newOffer = Math.round(((offer.amount + counterAmount) / 2) / 5) * 5;
+        offer.amount = Math.min(newOffer, max);
+        response = this.randomCounterBackResponse(offer.amount);
+      }
+    } else {
+      // Too high — 25% walk away, else counter at their max
+      if (Math.random() < 0.25) {
+        walkedAway = true;
+        response = this.randomWalkAwayResponse();
+      } else {
+        offer.amount = max;
+        response = this.randomCounterBackResponse(max);
+      }
+    }
+
+    offer.thread.push({ from: "buyer", text: response });
+
+    if (accepted) {
+      // Auto-complete the sale
+      setTimeout(() => this.acceptBuyerOffer(), 800);
+    } else if (walkedAway) {
+      setTimeout(() => {
+        l.offer = null;
+        this.closeSellerHaggle();
+        UI.toast(`${offer.buyerName} walked away`);
+        if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
+        if (this.current === "parts") this.renderParts();
+      }, 1200);
+    } else {
+      // Re-render with updated offer
+      this.renderSellerHaggle();
+    }
+  },
+
+  randomAcceptResponse() {
+    return [
+      "Awesome, thanks!",
+      "Perfect! When can I pick it up?",
+      "Great, deal!",
+      "Sweet, I'll take it!",
+    ][(Math.random() * 4) | 0];
+  },
+
+  randomDeclineResponse() {
+    return [
+      "No worries, thanks anyway.",
+      "Alright, let me know if you change your mind.",
+      "Ok, good luck with the sale!",
+    ][(Math.random() * 3) | 0];
+  },
+
+  randomCounterAcceptResponse(amount) {
+    return [
+      `Hmm... ${money(amount)}. Yeah, I can do that.`,
+      `Alright, ${money(amount)} works for me.`,
+      `You drive a hard bargain. ${money(amount)} it is.`,
+    ][(Math.random() * 3) | 0];
+  },
+
+  randomCounterBackResponse(amount) {
+    return [
+      `That's a bit steep for me. How about ${money(amount)}?`,
+      `I can't go that high. ${money(amount)} is my best.`,
+      `Meet me at ${money(amount)}?`,
+    ][(Math.random() * 3) | 0];
+  },
+
+  randomWalkAwayResponse() {
+    return [
+      "Yeah that's too rich for my blood. Good luck!",
+      "Can't do that. I'll keep looking.",
+      "No way. Thanks anyway.",
+    ][(Math.random() * 3) | 0];
+  },
+
   tickBikeSales() {
+    this.maybeMakeOffer();
     if (!this.myBikeListings.length) return;
     for (let i = this.myBikeListings.length - 1; i >= 0; i--) {
       const l = this.myBikeListings[i];
@@ -258,6 +512,7 @@ const Views = {
   },
 
   tickSales() {
+    this.maybeMakeOffer();
     if (!this.myPartListings.length) return;
     // Each listing has a chance to sell every tick
     // Better prices (closer to market value) sell faster
@@ -336,8 +591,9 @@ const Views = {
         const minsListed = Math.floor((Date.now() - l.listedAt) / 60000);
         const timeStr = minsListed < 1 ? "just now" : `${minsListed}m ago`;
         return `
-      <div class="eby-item">
-        <div class="eby-thumb"><img src="${img}" alt="${l.partLabel}" loading="lazy"></div>
+      <div class="eby-item"${l.offer ? ` data-part-offer="${i}" style="cursor:pointer"` : ""}>
+        <div class="eby-thumb"><img src="${img}" alt="${l.partLabel}" loading="lazy">
+          ${l.offer ? `<div class="offer-badge">1</div>` : ""}</div>
         <div class="eby-info">
           <div class="eby-name">${l.partLabel} for ${l.bikeBrand} ${l.bikeModel}</div>
           <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
@@ -358,7 +614,15 @@ const Views = {
         this.renderParts();
       }));
     el.querySelectorAll("[data-delist]").forEach(b =>
-      b.addEventListener("click", () => this.delistPart(+b.dataset.delist)));
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.delistPart(+b.dataset.delist);
+      }));
+    el.querySelectorAll("[data-part-offer]").forEach(c =>
+      c.addEventListener("click", (e) => {
+        if (e.target.closest("[data-delist]")) return;
+        this.openSellerHaggle(this.myPartListings, +c.dataset.partOffer);
+      }));
   },
   startAuctionTimer() {
     if (this.auctionTimer) return;

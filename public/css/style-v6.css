@@ -67,7 +67,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .photo img { max-width: 150px; max-height: 134px; width: auto; height: auto;
   vertical-align: middle; display: inline-block;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }
-.card-body { padding: 8px 10px 10px; }
+.card-body { padding: 8px 10px 10px; background: #fff; min-height: 64px; }
 .card .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
 .card .price { font-size: 1.02rem; font-weight: 800; color: var(--ink); }
 .card .cond { font-size: .62rem; padding: 3px 8px; }

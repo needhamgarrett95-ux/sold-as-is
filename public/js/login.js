@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btn.disabled) return;
     btn.disabled = true;
     btn.textContent = "Signing in...";
-    pw.focus();
+    // Note: no pw.focus() — iOS would pop the keyboard during auto-type
     let n = 0;
     const timer = setInterval(() => {
       n++;

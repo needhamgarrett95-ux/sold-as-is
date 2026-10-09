@@ -105,6 +105,51 @@ const PART_DIST = {
 const PART_STATES = ["pristine", "used_good", "used_bad", "totaled"];
 const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot" };
 
+// Condition % → state mapping (0-100)
+function pctToState(pct) {
+  if (pct >= 90) return "pristine";
+  if (pct >= 70) return "used_good";
+  if (pct >= 40) return "used_bad";
+  return "totaled";
+}
+// Default % for a given state (midpoint of its band)
+function stateToPct(state) {
+  return { pristine: 95, used_good: 80, used_bad: 55, totaled: 20 }[state] ?? 50;
+}
+// Ensure a part has a conditionPct (backfill for older parts)
+function ensurePct(p) {
+  if (typeof p.conditionPct !== "number") {
+    p.conditionPct = stateToPct(p.state);
+  }
+  return p.conditionPct;
+}
+
+// Repair pricing: base by part, scaled by how bad the condition is
+const REPAIR_BASE = {
+  engine: 80, exhaust: 35, wheel_front: 25, wheel_rear: 25,
+  fuel_tank: 30, headlight: 18, handlebars: 14, turn_signals: 10,
+};
+function repairCost(part) {
+  const pct = ensurePct(part);
+  const base = REPAIR_BASE[part.partKey] || 20;
+  // Worse condition = more expensive: 1.6x at 25% → 0.9x at 69%
+  const mult = 1.6 - (pct / 100);
+  return Math.max(5, Math.round(base * mult));
+}
+// Attempt a repair: returns { newPct, improved }
+// Cannot repair below 25%. Max result 70%. Chance-based.
+function attemptRepair(part) {
+  const pct = ensurePct(part);
+  if (pct < 25) return { newPct: pct, improved: false, reason: "too_far_gone" };
+  // 75% chance of improvement, else it holds
+  if (Math.random() > 0.75) {
+    return { newPct: pct, improved: false, reason: "no_change" };
+  }
+  const gain = 10 + ((Math.random() * 20) | 0); // +10-30
+  const newPct = Math.min(70, pct + gain);
+  return { newPct, improved: newPct > pct, reason: "ok" };
+}
+
 // V4: only show parts that actually exist for each bike
 function availableParts(sprite) {
   const avail = (typeof PARTS_MANIFEST !== "undefined" && PARTS_MANIFEST[sprite]) || null;

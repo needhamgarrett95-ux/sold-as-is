@@ -500,24 +500,68 @@ const Views = {
         <div class="sub">Stripped parts and Boneyard purchases live here.</div></div>
         <div class="empty"><strong>No parts yet</strong>Part out a bike or buy from the Boneyard.</div>`;
     }
-    // Group by part key
-    const groups = {};
-    parts.forEach(p => {
-      const k = `${p.partKey}|${p.bikeBrand}|${p.bikeModel}`;
-      if (!groups[k]) groups[k] = { ...p, count: 0 };
-      groups[k].count++;
-    });
     return `<div class="pane-head"><h2>Parts Inventory</h2>
-      <div class="sub">${parts.length} part(s) in storage</div></div>
+      <div class="sub">${parts.length} part(s) in storage · tap 🔧 to repair</div></div>
       <div class="eby-list">` +
-      Object.values(groups).map(g => `
+      parts.map((p, i) => {
+        const pct = ensurePct(p);
+        const state = pctToState(pct);
+        const img = partImg(p.bikeSprite, p.partKey, state);
+        const canRepair = pct >= 25 && pct < 70;
+        const tooFarGone = pct < 25;
+        const cost = repairCost(p);
+        // Color the bar by condition
+        const barColor = pct >= 70 ? "#4caf50" : pct >= 40 ? "#ff9800" : "#f44336";
+        return `
       <div class="eby-item">
-        <div class="eby-thumb"><img src="${g.img}" alt="${g.partLabel}" loading="lazy"></div>
+        <div class="eby-thumb"><img src="${img}" alt="${p.partLabel}" loading="lazy" data-part-img="${i}"></div>
         <div class="eby-info">
-          <div class="eby-name">${g.partLabel} — ${g.bikeBrand} ${g.bikeModel}</div>
-          <div class="eby-cond">${g.stateLabel || "Pristine"}${g.count > 1 ? ` × ${g.count}` : ""}</div>
+          <div class="eby-name">${p.partLabel} — ${p.bikeBrand} ${p.bikeModel}</div>
+          <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
+          <div class="cond-bar"><div class="cond-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          ${tooFarGone
+            ? `<div class="eby-meta" style="color:#f44336">Too far gone to repair</div>`
+            : canRepair
+              ? `<button class="eby-repair" data-repair="${i}">🔧 Repair — ${money(cost)}</button>`
+              : `<div class="eby-meta" style="color:#4caf50">Max condition reached</div>`}
         </div>
-      </div>`).join("") + `</div>`;
+      </div>`;
+      }).join("") + `</div>`;
+  },
+
+  repairPart(i) {
+    const p = (State.parts || [])[i];
+    if (!p) return;
+    const pct = ensurePct(p);
+    if (pct < 25) {
+      UI.toast("That part is too far gone to repair");
+      return;
+    }
+    if (pct >= 70) {
+      UI.toast("Already at max repair condition");
+      return;
+    }
+    const cost = repairCost(p);
+    if (!State.canAfford(cost)) {
+      UI.toast("Not enough cash for that repair");
+      return;
+    }
+    State.cash -= cost;
+    const result = attemptRepair(p);
+    const oldState = pctToState(pct);
+    p.conditionPct = result.newPct;
+    const newState = pctToState(result.newPct);
+    p.state = newState;
+    p.stateLabel = PART_STATE_LABEL[newState];
+    // Refresh the image if the condition tier changed
+    p.img = partImg(p.bikeSprite, p.partKey, newState);
+    UI.refreshCash();
+    if (result.improved) {
+      UI.toast(`Repaired to ${result.newPct}% (${p.stateLabel})!`);
+    } else if (result.reason === "no_change") {
+      UI.toast("Repair didn't take — no improvement");
+    }
+    this.renderGarage();
   },
 
   assembleHTML() {
@@ -600,6 +644,20 @@ const Views = {
     // Assemble buttons
     el.querySelectorAll("[data-assemble]").forEach(b =>
       b.addEventListener("click", () => this.assembleBike(b.dataset.assemble)));
+    // Repair buttons
+    el.querySelectorAll("[data-repair]").forEach(b => {
+      const rep = (e) => { e.preventDefault(); e.stopPropagation(); this.repairPart(+b.dataset.repair); };
+      b.addEventListener("click", rep);
+      let ty = 0, tx = 0;
+      b.addEventListener("touchstart", (e) => {
+        ty = e.touches[0].clientY; tx = e.touches[0].clientX;
+      }, { passive: true });
+      b.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - ty);
+        const dx = Math.abs(e.changedTouches[0].clientX - tx);
+        if (dy < 10 && dx < 10) rep(e);
+      }, { passive: false });
+    });
   },
 
   garageDetailAction(act) {

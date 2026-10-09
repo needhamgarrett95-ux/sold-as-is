@@ -49,6 +49,7 @@ const Views = {
   boneyardTab: "buy", // "buy" | "sell"
   myPartListings: [], // player's own part listings
   myBikeListings: [], // player's own bike listings
+  playerAuctionTimer: null,
   marketTab: "browse", // "browse" | "mine"
   salesTimer: null,
   bikeSalesTimer: null,
@@ -254,36 +255,41 @@ const Views = {
 
   // Generate a buyer offer for a listing (called periodically)
   maybeMakeOffer() {
-    // Check bike listings
+    // Buyers haggle on bike listings only (parts use fixed/auction)
     for (const l of this.myBikeListings) {
       if (!l.offer && Math.random() < 0.15) {
         this.makeBuyerOffer(l, "bike");
-      }
-    }
-    // Check part listings
-    for (const l of this.myPartListings) {
-      if (!l.offer && Math.random() < 0.12) {
-        this.makeBuyerOffer(l, "part");
       }
     }
   },
 
   makeBuyerOffer(listing, type) {
     const askPrice = listing.askPrice;
-    // Buyer offers 65-88% of asking
-    const offerPct = 0.65 + Math.random() * 0.23;
+    // Buyer personality: eager | haggler | flaky
+    const styleRoll = Math.random();
+    const style = styleRoll < 0.35 ? "eager" : styleRoll < 0.75 ? "haggler" : "flaky";
+    // Opening offer varies by style
+    const offerPct = style === "eager" ? 0.78 + Math.random() * 0.12
+      : style === "haggler" ? 0.60 + Math.random() * 0.15
+      : 0.65 + Math.random() * 0.20;
     const offerAmount = Math.round((askPrice * offerPct) / 5) * 5;
     const buyerName = this.buyerNames[(Math.random() * this.buyerNames.length) | 0];
-    // Buyer's secret max (what they'll go up to)
-    const maxPct = 0.88 + Math.random() * 0.17; // 88-105% of asking
+    const maxPct = style === "eager" ? 0.95 + Math.random() * 0.10
+      : style === "haggler" ? 0.85 + Math.random() * 0.12
+      : 0.80 + Math.random() * 0.15;
+    const opener = style === "eager"
+      ? `Hi! I love this bike. Would you take ${money(offerAmount)}? I can pick up today.`
+      : style === "haggler"
+      ? `Hey, interested. What's your bottom dollar? I could do ${money(offerAmount)}.`
+      : `Hi, is this still available? Would ${money(offerAmount)} work?`;
     listing.offer = {
       amount: offerAmount,
       buyerName,
+      style,
+      rounds: 0,
       maxAmount: Math.round((askPrice * maxPct) / 5) * 5,
       type,
-      thread: [
-        { from: "buyer", text: `Hi! Interested in your ${type === "bike" ? "bike" : "part"}. Would you take ${money(offerAmount)}?` }
-      ],
+      thread: [{ from: "buyer", text: opener }],
     };
     UI.toast(`${buyerName} made an offer!`);
     // Refresh the relevant view
@@ -396,37 +402,47 @@ const Views = {
   counterBuyerOffer(counterAmount) {
     const l = this.haggleListing;
     const offer = l.offer;
+    offer.rounds = (offer.rounds || 0) + 1;
     offer.thread.push({ from: "you", text: `How about ${money(counterAmount)}?` });
 
-    // Buyer AI: decide based on counter vs their max
     const max = offer.maxAmount;
+    const style = offer.style || "haggler";
     let response, accepted = false, walkedAway = false;
 
+    // Style modifiers
+    const patience = style === "eager" ? 0.9 : style === "haggler" ? 0.5 : 0.3;
+    const walkChance = style === "flaky" ? 0.40 : style === "eager" ? 0.10 : 0.25;
+
     if (counterAmount <= max) {
-      // Within budget — accept (with some flavor)
-      accepted = true;
-      response = this.randomCounterAcceptResponse(counterAmount);
-      offer.amount = counterAmount;
-    } else if (counterAmount <= max * 1.12) {
-      // Close — 50/50 accept or counter back
-      if (Math.random() < 0.5) {
-        accepted = true;
-        response = this.randomCounterAcceptResponse(counterAmount);
-        offer.amount = counterAmount;
+      // Within budget — eagers accept fast, hagglers try one more squeeze
+      if (style === "haggler" && offer.rounds < 2 && Math.random() < 0.4) {
+        const squeeze = Math.round(((offer.amount + counterAmount) / 2) / 5) * 5;
+        offer.amount = Math.min(squeeze, max);
+        response = `Almost... can we do ${money(offer.amount)}? Meet me there and it's a deal.`;
       } else {
-        // Counter back: meet partway between their offer and your counter
+        accepted = true;
+        response = this.randomCounterAcceptResponse(counterAmount, style);
+        offer.amount = counterAmount;
+      }
+    } else if (counterAmount <= max * 1.10) {
+      // Close to max
+      if (Math.random() < patience) {
         const newOffer = Math.round(((offer.amount + counterAmount) / 2) / 5) * 5;
         offer.amount = Math.min(newOffer, max);
-        response = this.randomCounterBackResponse(offer.amount);
+        response = this.randomCounterBackResponse(offer.amount, style);
+      } else {
+        accepted = true;
+        response = this.randomCounterAcceptResponse(counterAmount, style);
+        offer.amount = counterAmount;
       }
     } else {
-      // Too high — 25% walk away, else counter at their max
-      if (Math.random() < 0.25) {
+      // Way over — likely walk, or stretch to max
+      if (Math.random() < walkChance) {
         walkedAway = true;
-        response = this.randomWalkAwayResponse();
+        response = this.randomWalkAwayResponse(style);
       } else {
         offer.amount = max;
-        response = this.randomCounterBackResponse(max);
+        response = `That's my absolute ceiling — ${money(max)}. Take it or leave it.`;
       }
     }
 
@@ -466,7 +482,15 @@ const Views = {
     ][(Math.random() * 3) | 0];
   },
 
-  randomCounterAcceptResponse(amount) {
+  randomCounterAcceptResponse(amount, style) {
+    if (style === "eager") return [
+      `Yes! ${money(amount)} — I'll take it!`,
+      `Deal! ${money(amount)}. When can I come get it?`,
+    ][(Math.random() * 2) | 0];
+    if (style === "flaky") return [
+      `Ugh, fine. ${money(amount)}.`,
+      `Alright alright, ${money(amount)}.`,
+    ][(Math.random() * 2) | 0];
     return [
       `Hmm... ${money(amount)}. Yeah, I can do that.`,
       `Alright, ${money(amount)} works for me.`,
@@ -474,7 +498,14 @@ const Views = {
     ][(Math.random() * 3) | 0];
   },
 
-  randomCounterBackResponse(amount) {
+  randomCounterBackResponse(amount, style) {
+    if (style === "eager") return [
+      `I can stretch to ${money(amount)} — that's really my limit.`,
+    ][0];
+    if (style === "flaky") return [
+      `Meh, ${money(amount)} is all I'd do.`,
+      `${money(amount)}? Take it or I'm out.`,
+    ][(Math.random() * 2) | 0];
     return [
       `That's a bit steep for me. How about ${money(amount)}?`,
       `I can't go that high. ${money(amount)} is my best.`,
@@ -482,7 +513,11 @@ const Views = {
     ][(Math.random() * 3) | 0];
   },
 
-  randomWalkAwayResponse() {
+  randomWalkAwayResponse(style) {
+    if (style === "flaky") return [
+      "lol no. bye.",
+      "Yeah I'm out.",
+    ][(Math.random() * 2) | 0];
     return [
       "Yeah that's too rich for my blood. Good luck!",
       "Can't do that. I'll keep looking.",
@@ -536,7 +571,36 @@ const Views = {
     }
   },
 
-  // List a part from inventory for sale
+  showPartPriceInput(el, idx, listType, marketPrice) {
+    const isAuction = listType === "auction";
+    const label = isAuction ? "Starting bid" : "Price";
+    const btnText = isAuction ? "Start Auction (60s)" : "List";
+    // Replace the type row with price input
+    const row = el.querySelector(".sell-type-row");
+    if (row) {
+      row.outerHTML = `<div class="sell-price-row">
+        <input type="number" inputmode="numeric" id="sell-price-${idx}" value="${marketPrice}" min="1">
+        <button class="eby-confirm" data-confirm-sell="${idx}" data-ltype="${listType}">${btnText}</button>
+        <button class="eby-cancel" data-cancel-sell>✕</button>
+      </div>`;
+      const input = el.querySelector(`#sell-price-${idx}`);
+      const confirmBtn = el.querySelector(`[data-confirm-sell="${idx}"]`);
+      const cancelBtn = el.querySelector(`[data-cancel-sell]`);
+      if (confirmBtn) confirmBtn.addEventListener("click", () => {
+        input.blur();
+        const ltype = confirmBtn.dataset.ltype;
+        if (ltype === "auction") {
+          this.listPartAuction(idx, input.value);
+        } else {
+          this.listPartForSale(idx, input.value);
+        }
+      });
+      if (cancelBtn) cancelBtn.addEventListener("click", () => this.renderGarage());
+      if (input) input.focus();
+    }
+  },
+
+  // List a part from inventory for sale (fixed price)
   listPartForSale(invIdx, price) {
     const parts = State.parts || [];
     const p = parts[invIdx];
@@ -565,6 +629,97 @@ const Views = {
     this.renderGarage();
   },
 
+  // List a part as a 60-second auction
+  listPartAuction(invIdx, startPrice) {
+    const parts = State.parts || [];
+    const p = parts[invIdx];
+    if (!p) return;
+    startPrice = parseInt(String(startPrice).replace(/[^0-9]/g, ""), 10);
+    if (!startPrice || startPrice <= 0) {
+      UI.toast("Enter a valid starting bid");
+      return;
+    }
+    parts.splice(invIdx, 1);
+    const pct = ensurePct(p);
+    const state = pctToState(pct);
+    // Generate bidders with secret budgets
+    const bidderCount = 2 + ((Math.random() * 3) | 0);
+    const bidders = [];
+    const names = ["Mike R.", "Sarah K.", "Dave", "Jen T.", "Tommy", "Alex P.", "Chris", "Sam"];
+    const used = new Set();
+    for (let i = 0; i < bidderCount; i++) {
+      let n;
+      do { n = names[(Math.random() * names.length) | 0]; } while (used.has(n));
+      used.add(n);
+      const market = (PART_BASE_PRICE[p.partKey] || 20) * (PART_COND_MULT[state] || 0.3);
+      bidders.push({ name: n, maxBid: Math.round(market * (0.9 + Math.random() * 0.6)) });
+    }
+    this.myPartListings.push({
+      ...p,
+      listingType: "auction",
+      startPrice,
+      currentBid: startPrice,
+      highBidder: null,
+      timeLeft: 60,
+      bidders,
+      listedAt: Date.now(),
+    });
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    UI.toast(`Auction started for ${p.partLabel}!`);
+    this.startPlayerAuctionTimer();
+    this.garageTab = "parts";
+    this.garageDetailIdx = -1;
+    this.renderGarage();
+  },
+
+  startPlayerAuctionTimer() {
+    if (this.playerAuctionTimer) return;
+    this.playerAuctionTimer = setInterval(() => this.tickPlayerAuctions(), 1000);
+  },
+
+  tickPlayerAuctions() {
+    let hasActive = false;
+    for (let i = this.myPartListings.length - 1; i >= 0; i--) {
+      const l = this.myPartListings[i];
+      if (l.listingType !== "auction") continue;
+      hasActive = true;
+      l.timeLeft--;
+      const urgency = l.timeLeft <= 10 ? 0.35 : 0.12;
+      if (Math.random() < urgency) {
+        const candidates = l.bidders.filter(b => b.name !== l.highBidder && b.maxBid > l.currentBid);
+        if (candidates.length) {
+          const bidder = candidates[(Math.random() * candidates.length) | 0];
+          const increment = Math.max(1, Math.round(l.currentBid * 0.08));
+          const newBid = Math.min(l.currentBid + increment, bidder.maxBid);
+          if (newBid > l.currentBid) {
+            l.currentBid = newBid;
+            l.highBidder = bidder.name;
+          }
+        }
+      }
+      if (l.timeLeft <= 0) {
+        this.myPartListings.splice(i, 1);
+        if (l.highBidder) {
+          State.cash += l.currentBid;
+          UI.refreshCash();
+          UI.toast(`Auction sold! ${l.partLabel} went for ${money(l.currentBid)} to ${l.highBidder}`);
+        } else {
+          const { listingType, startPrice, currentBid, highBidder, timeLeft, bidders, listedAt, ...part } = l;
+          State.parts = State.parts || [];
+          State.parts.push(part);
+          UI.toast(`No bids on ${l.partLabel} — returned to inventory`);
+        }
+      }
+    }
+    if (!hasActive && this.playerAuctionTimer) {
+      clearInterval(this.playerAuctionTimer);
+      this.playerAuctionTimer = null;
+    }
+    if (this.current === "parts" && this.boneyardTab === "sell") {
+      this.renderParts(true);
+    }
+  },
+
   delistPart(idx) {
     const l = this.myPartListings[idx];
     if (!l) return;
@@ -588,12 +743,29 @@ const Views = {
         const pct = ensurePct(l);
         const state = pctToState(pct);
         const img = partImg(l.bikeSprite, l.partKey, state);
+        const isAuction = l.listingType === "auction";
+        if (isAuction) {
+          const secs = Math.max(0, l.timeLeft);
+          return `
+      <div class="eby-item eby-auction">
+        <div class="eby-thumb"><img src="${img}" alt="${l.partLabel}" loading="lazy">
+          <div class="eby-auc-badge">⏱ ${secs}s</div></div>
+        <div class="eby-info">
+          <div class="eby-name">${l.partLabel} for ${l.bikeBrand} ${l.bikeModel}</div>
+          <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
+          <div class="eby-price-row">
+            <span class="eby-price">${money(l.currentBid)}</span>
+            <span class="eby-bids">${l.highBidder ? `High bidder: ${l.highBidder}` : "No bids yet"}</span>
+          </div>
+          <div class="eby-meta">Your auction · ends in ${secs}s</div>
+        </div>
+      </div>`;
+        }
         const minsListed = Math.floor((Date.now() - l.listedAt) / 60000);
         const timeStr = minsListed < 1 ? "just now" : `${minsListed}m ago`;
         return `
-      <div class="eby-item"${l.offer ? ` data-part-offer="${i}" style="cursor:pointer"` : ""}>
-        <div class="eby-thumb"><img src="${img}" alt="${l.partLabel}" loading="lazy">
-          ${l.offer ? `<div class="offer-badge">1</div>` : ""}</div>
+      <div class="eby-item">
+        <div class="eby-thumb"><img src="${img}" alt="${l.partLabel}" loading="lazy"></div>
         <div class="eby-info">
           <div class="eby-name">${l.partLabel} for ${l.bikeBrand} ${l.bikeModel}</div>
           <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
@@ -618,11 +790,7 @@ const Views = {
         e.stopPropagation();
         this.delistPart(+b.dataset.delist);
       }));
-    el.querySelectorAll("[data-part-offer]").forEach(c =>
-      c.addEventListener("click", (e) => {
-        if (e.target.closest("[data-delist]")) return;
-        this.openSellerHaggle(this.myPartListings, +c.dataset.partOffer);
-      }));
+
   },
   startAuctionTimer() {
     if (this.auctionTimer) return;
@@ -752,6 +920,7 @@ const Views = {
     if (!this.partsShop.length) this.partsShop = genPartsShop(16);
     this.startAuctionTimer();
     this.startSalesTimer();
+    this.startPlayerAuctionTimer();
     const el = document.getElementById("parts-view");
     // Preserve scroll position during auction ticks
     const scrollY = preserve ? el.scrollTop : 0;
@@ -1180,27 +1349,21 @@ const Views = {
       const idx = +b.dataset.sellPart;
       const sell = (e) => {
         e.preventDefault(); e.stopPropagation();
-        // Replace button with price input
         const p = (State.parts || [])[idx];
         if (!p) return;
         const pct = ensurePct(p);
         const state = pctToState(pct);
         const marketPrice = Math.round((PART_BASE_PRICE[p.partKey] || 20) * (PART_COND_MULT[state] || 0.3));
-        b.outerHTML = `<div class="sell-price-row">
-          <input type="number" inputmode="numeric" id="sell-price-${idx}" value="${marketPrice}" min="1">
-          <button class="eby-confirm" data-confirm-sell="${idx}">List</button>
+        // Show listing type choice
+        b.outerHTML = `<div class="sell-type-row">
+          <button class="eby-typechoice" data-listtype="fixed" data-idx="${idx}">💰 Fixed Price</button>
+          <button class="eby-typechoice" data-listtype="auction" data-idx="${idx}">🔨 Auction</button>
           <button class="eby-cancel" data-cancel-sell>✕</button>
         </div>`;
-        // Bind the new buttons
-        const confirmBtn = el.querySelector(`[data-confirm-sell="${idx}"]`);
+        el.querySelectorAll("[data-listtype]").forEach(tb =>
+          tb.addEventListener("click", () => this.showPartPriceInput(el, idx, tb.dataset.listtype, marketPrice)));
         const cancelBtn = el.querySelector(`[data-cancel-sell]`);
-        const input = el.querySelector(`#sell-price-${idx}`);
-        if (confirmBtn) confirmBtn.addEventListener("click", () => {
-          input.blur();
-          this.listPartForSale(idx, input.value);
-        });
         if (cancelBtn) cancelBtn.addEventListener("click", () => this.renderGarage());
-        if (input) input.focus();
       };
       b.addEventListener("click", sell);
     });

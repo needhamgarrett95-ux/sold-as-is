@@ -261,6 +261,11 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .eby-delist { margin-top: 6px; background: #fff; color: #666;
   border: 1px solid #ccc; padding: 6px 12px; border-radius: 6px;
   font-size: .8rem; cursor: pointer; }
+.sell-type-row { display: flex; gap: 6px; margin-top: 6px; }
+.eby-typechoice { flex: 1; background: #fff; border: 1.5px solid #e04536;
+  color: #e04536; padding: 8px; border-radius: 8px; font-size: .82rem;
+  font-weight: 700; cursor: pointer; }
+.eby-typechoice:active { background: #fef0ee; }
 .market-tabs { margin: 8px 0; }
 /* offer badge */
 .offer-badge { position: absolute; top: 6px; right: 6px;

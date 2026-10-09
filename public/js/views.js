@@ -1,4 +1,11 @@
 // Sold As-Is — garage & collection views
+const SITES = {
+  market:     { tab: "MotoMarket — Mopeds for sale", url: "motomarket.place/mopeds",     icon: "🏍" },
+  parts:      { tab: "Boneyard — Moped parts",       url: "boneyard.place",              icon: "⚙️" },
+  garage:     { tab: "MotoMarket — My Garage",       url: "motomarket.place/garage",     icon: "🔧" },
+  collection: { tab: "MotoMarket — My Collection",   url: "motomarket.place/collection", icon: "🏆" },
+};
+
 const Views = {
   current: "market",
   partsShop: [],
@@ -8,6 +15,12 @@ const Views = {
     Detail.close();
     document.querySelectorAll("#tabbar .tab").forEach(b =>
       b.classList.toggle("active", b.dataset.view === name));
+    // Update the fake browser chrome to match the "site" we're on
+    const site = SITES[name];
+    const tabEl = document.querySelector("#chrome .tab");
+    if (tabEl) tabEl.innerHTML = `<span class="tab-icon">${site.icon}</span> ${site.tab}`;
+    const urlEl = document.querySelector(".urlbar .url");
+    if (urlEl) urlEl.textContent = site.url;
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
     document.getElementById("cats").style.display = name === "market" ? "" : "none";
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
@@ -23,8 +36,8 @@ const Views = {
   renderParts() {
     if (!this.partsShop.length) this.partsShop = genPartsShop(12);
     const el = document.getElementById("parts-view");
-    el.innerHTML = `<h2>Parts Store</h2>
-      <div class="sub">OEM & used parts for your projects · tap to buy</div>
+    el.innerHTML = `<h2>Boneyard</h2>
+      <div class="sub">Moped parts, sold as-is · tap to buy</div>
       <div class="parts-shop-grid">` +
       this.partsShop.map((p, i) => `
       <div class="shop-part state-${p.state}">

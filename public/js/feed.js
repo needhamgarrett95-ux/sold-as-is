@@ -108,8 +108,17 @@ const Feed = {
     document.querySelectorAll(".card").forEach(c => {
       const open = (e) => { e.preventDefault(); Detail.open(+c.dataset.id); };
       c.addEventListener("click", open);
-      // iOS touch support
-      c.addEventListener("touchend", open, { passive: false });
+      // iOS touch: only open on tap, not on scroll (track finger movement)
+      let touchY = 0, touchX = 0;
+      c.addEventListener("touchstart", (e) => {
+        touchY = e.touches[0].clientY;
+        touchX = e.touches[0].clientX;
+      }, { passive: true });
+      c.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - touchY);
+        const dx = Math.abs(e.changedTouches[0].clientX - touchX);
+        if (dy < 10 && dx < 10) open(e);
+      }, { passive: false });
     });
   },
 };

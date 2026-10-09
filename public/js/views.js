@@ -388,45 +388,274 @@ const Views = {
     this.renderParts();
   },
 
-  renderGarage() {
-    const el = document.getElementById("garage-view");
-    if (!State.garage.length) {
-      el.innerHTML = `<h2>Your Garage</h2><div class="sub">Bikes you own live here.</div>
-        <div class="empty"><strong>Empty garage</strong>Hit the market and buy your first flip.</div>`;
-      return;
-    }
-    el.innerHTML = `<h2>Your Garage</h2>
-      <div class="sub">${State.garage.length} bike(s) · decide their fate</div>` +
-      State.garage.map((b, i) => `
-      <div class="g-item">
-        <div class="g-top">
-          <span class="g-name">${b.brand} ${b.model}</span>
-          <span class="g-price">${money(b.boughtFor)}</span>
-        </div>
-        <div class="g-meta">${b.condition} · bought ${b.postedAgo} · fair value ~${money(b.fairValue)}</div>
-        <div class="g-actions">
-          <button class="btn-restore" data-act="restore" data-i="${i}">Restore</button>
-          <button class="btn-strip" data-act="strip" data-i="${i}">Strip</button>
-          <button class="btn-sell" data-act="sell" data-i="${i}">Sell</button>
-          <button class="btn-keep" data-act="keep" data-i="${i}">Keep</button>
-        </div>
-      </div>`).join("");
-    el.querySelectorAll("[data-act]").forEach(btn =>
-      btn.addEventListener("click", () => this.garageAction(btn.dataset.act, +btn.dataset.i)));
+  // ============ GARAGE ============
+  garageTab: "bikes", // "bikes" | "parts" | "assemble"
+  garageDetailIdx: -1,
+
+  // Description presets by bike condition
+  descPresets(cond) {
+    const top = ["Mint", "Clean"];
+    const mid = ["Good", "Fair"];
+    if (top.includes(cond)) return [
+      "Showroom condition. Meticulously maintained, always garaged.",
+      "Collector quality. All original, runs like new.",
+      "Stunning example. Turn-key and ready to ride.",
+    ];
+    if (mid.includes(cond)) return [
+      "Solid rider. Starts easy, runs strong.",
+      "Good honest bike. Some patina, mechanically sound.",
+      "Daily rider ready. Just serviced, new plug.",
+    ];
+    return [
+      "Project bike. Sold as-is, priced accordingly.",
+      "Barn find. Needs work but all there.",
+      "For restoration or parts. Bring a trailer.",
+    ];
   },
 
-  garageAction(act, i) {
-    const bike = State.garage[i];
-    if (act === "keep") {
-      bike.kept = true;
-      UI.toast(`${bike.brand} ${bike.model} added to your collection`);
+  renderGarage() {
+    const el = document.getElementById("garage-view");
+    const tabs = `
+      <div class="g-tabs">
+        <button class="g-tab${this.garageTab === "bikes" ? " active" : ""}" data-gtab="bikes">🏍 Bikes${State.garage.length ? ` (${State.garage.length})` : ""}</button>
+        <button class="g-tab${this.garageTab === "parts" ? " active" : ""}" data-gtab="parts">⚙️ Parts${State.parts && State.parts.length ? ` (${State.parts.length})` : ""}</button>
+        <button class="g-tab${this.garageTab === "assemble" ? " active" : ""}" data-gtab="assemble">🔧 Assemble</button>
+      </div>`;
+    if (this.garageTab === "parts") {
+      el.innerHTML = tabs + this.partsInventoryHTML();
+    } else if (this.garageTab === "assemble") {
+      el.innerHTML = tabs + this.assembleHTML();
+    } else if (this.garageDetailIdx >= 0) {
+      el.innerHTML = tabs + this.garageDetailHTML();
+    } else {
+      el.innerHTML = tabs + this.garageGridHTML();
+    }
+    // Tab switching
+    el.querySelectorAll("[data-gtab]").forEach(t =>
+      t.addEventListener("click", () => {
+        this.garageTab = t.dataset.gtab;
+        this.garageDetailIdx = -1;
+        this.renderGarage();
+      }));
+    this.bindGarageActions(el);
+  },
+
+  garageDetailHTML() {
+    const b = State.garage[this.garageDetailIdx];
+    if (!b) return `<div class="empty">Bike not found.</div>`;
+    const presets = this.descPresets(b.condition);
+    if (!b.desc) b.desc = presets[0];
+    return `
+      <button class="back-btn" id="g-back">← Back</button>
+      <div class="g-detail">
+        <div class="g-detail-photo">
+          <img src="assets/bikes/${b.sprite}.png" alt="${b.brand} ${b.model}">
+          <div class="card-cond">${b.condition}</div>
+        </div>
+        <h2>${b.brand} ${b.model}</h2>
+        <div class="sub">Bought for ${money(b.boughtFor)} · fair value ~${money(b.fairValue)}</div>
+        <div class="g-desc-block">
+          <label>Listing description</label>
+          <textarea id="g-desc" rows="3">${b.desc}</textarea>
+          <div class="g-presets">
+            ${presets.map((p, i) => `<button class="g-preset" data-preset="${i}">${p.slice(0, 40)}...</button>`).join("")}
+          </div>
+        </div>
+        <div class="g-detail-actions">
+          <button class="btn-list" data-gact="list">${b.listed ? "✓ Listed" : "📋 List on Marketplace"}</button>
+          <button class="btn-keep" data-gact="keep">${b.kept ? "★ In Collection" : "🏆 Add to Collection"}</button>
+          <button class="btn-strip" data-gact="partout">🔧 Part Out</button>
+        </div>
+        ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}
+      </div>`;
+  },
+
+  partsInventoryHTML() {
+    const parts = State.parts || [];
+    if (!parts.length) {
+      return `<div class="pane-head"><h2>Parts Inventory</h2>
+        <div class="sub">Stripped parts and Boneyard purchases live here.</div></div>
+        <div class="empty"><strong>No parts yet</strong>Part out a bike or buy from the Boneyard.</div>`;
+    }
+    // Group by part key
+    const groups = {};
+    parts.forEach(p => {
+      const k = `${p.partKey}|${p.bikeBrand}|${p.bikeModel}`;
+      if (!groups[k]) groups[k] = { ...p, count: 0 };
+      groups[k].count++;
+    });
+    return `<div class="pane-head"><h2>Parts Inventory</h2>
+      <div class="sub">${parts.length} part(s) in storage</div></div>
+      <div class="eby-list">` +
+      Object.values(groups).map(g => `
+      <div class="eby-item">
+        <div class="eby-thumb"><img src="${g.img}" alt="${g.partLabel}" loading="lazy"></div>
+        <div class="eby-info">
+          <div class="eby-name">${g.partLabel} — ${g.bikeBrand} ${g.bikeModel}</div>
+          <div class="eby-cond">${g.stateLabel || "Pristine"}${g.count > 1 ? ` × ${g.count}` : ""}</div>
+        </div>
+      </div>`).join("") + `</div>`;
+  },
+
+  assembleHTML() {
+    const parts = State.parts || [];
+    // Find frames in inventory (frame = core part)
+    const frames = parts.filter(p => p.partKey === "frame");
+    if (!frames.length) {
+      return `<div class="pane-head"><h2>Assemble</h2>
+        <div class="sub">Build a bike from your parts.</div></div>
+        <div class="empty"><strong>No frames in inventory</strong>You need a frame to start a build. Part out a bike to get one.</div>`;
+    }
+    // Group frames by bike
+    const byBike = {};
+    frames.forEach((f, i) => {
+      const k = f.bikeSprite;
+      if (!byBike[k]) byBike[k] = { ...f, indices: [] };
+      byBike[k].indices.push(parts.indexOf(f));
+    });
+    return `<div class="pane-head"><h2>Assemble</h2>
+      <div class="sub">Pick a frame to start your build</div></div>
+      <div class="eby-list">` +
+      Object.values(byBike).map(f => {
+        const avail = availableParts(f.bikeSprite);
+        const have = avail.filter(p =>
+          parts.some(sp => sp.bikeSprite === f.bikeSprite && sp.partKey === p.key));
+        const pct = Math.round(have.length / avail.length * 100);
+        return `
+      <div class="eby-item">
+        <div class="eby-thumb"><img src="${f.img}" alt="Frame" loading="lazy"></div>
+        <div class="eby-info">
+          <div class="eby-name">${f.bikeBrand} ${f.bikeModel} — Frame</div>
+          <div class="eby-cond">${have.length}/${avail.length} parts (${pct}%)</div>
+          <div class="eby-parts-bar"><div class="eby-parts-fill" style="width:${pct}%"></div></div>
+          <button class="eby-buy" data-assemble="${f.bikeSprite}">Assemble Bike</button>
+        </div>
+      </div>`;
+      }).join("") + `</div>`;
+  },
+
+  bindGarageActions(el) {
+    // Bike card taps → detail
+    el.querySelectorAll("[data-gbike]").forEach(c => {
+      const open = (e) => {
+        if (e) e.preventDefault();
+        this.garageDetailIdx = +c.dataset.gbike;
+        this.renderGarage();
+      };
+      c.addEventListener("click", open);
+      let ty = 0, tx = 0;
+      c.addEventListener("touchstart", (e) => {
+        ty = e.touches[0].clientY; tx = e.touches[0].clientX;
+      }, { passive: true });
+      c.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - ty);
+        const dx = Math.abs(e.changedTouches[0].clientX - tx);
+        if (dy < 10 && dx < 10) open(e);
+      }, { passive: false });
+    });
+    // Back from detail
+    const back = el.querySelector("#g-back");
+    if (back) back.addEventListener("click", () => {
+      this.garageDetailIdx = -1;
       this.renderGarage();
-      const n = document.getElementById("nav-garage-n");
-      if (n) n.textContent = State.garage.length ? `(${State.garage.length})` : "";
+    });
+    // Description presets
+    el.querySelectorAll("[data-preset]").forEach(b =>
+      b.addEventListener("click", () => {
+        const bike = State.garage[this.garageDetailIdx];
+        bike.desc = this.descPresets(bike.condition)[+b.dataset.preset];
+        el.querySelector("#g-desc").value = bike.desc;
+      }));
+    // Description save on edit
+    const descInput = el.querySelector("#g-desc");
+    if (descInput) descInput.addEventListener("input", (e) => {
+      State.garage[this.garageDetailIdx].desc = e.target.value;
+    });
+    // Detail actions
+    el.querySelectorAll("[data-gact]").forEach(b =>
+      b.addEventListener("click", () => this.garageDetailAction(b.dataset.gact)));
+    // Assemble buttons
+    el.querySelectorAll("[data-assemble]").forEach(b =>
+      b.addEventListener("click", () => this.assembleBike(b.dataset.assemble)));
+  },
+
+  garageDetailAction(act) {
+    const bike = State.garage[this.garageDetailIdx];
+    if (!bike) return;
+    if (act === "list") {
+      bike.listed = !bike.listed;
+      UI.toast(bike.listed
+        ? `${bike.brand} ${bike.model} listed on the marketplace`
+        : `${bike.brand} ${bike.model} unlisted`);
+      this.renderGarage();
+    } else if (act === "keep") {
+      bike.kept = !bike.kept;
+      UI.toast(bike.kept
+        ? `${bike.brand} ${bike.model} added to your collection`
+        : `${bike.brand} ${bike.model} removed from collection`);
+      this.renderGarage();
+    } else if (act === "partout") {
+      this.partOutBike(this.garageDetailIdx);
+    }
+  },
+
+  partOutBike(idx) {
+    const bike = State.garage[idx];
+    if (!bike) return;
+    if (!confirm(`Strip the ${bike.brand} ${bike.model} for parts? This cannot be undone.`)) return;
+    const avail = availableParts(bike.sprite);
+    State.parts = State.parts || [];
+    // Each part inherits the bike's part condition
+    for (const p of avail) {
+      const state = (bike.partStates && bike.partStates[p.key]) || "pristine";
+      State.parts.push({
+        partKey: p.key, partLabel: p.label,
+        bikeBrand: bike.brand, bikeModel: bike.model, bikeSprite: bike.sprite,
+        state, stateLabel: PART_STATE_LABEL[state],
+        img: partImg(bike.sprite, p.key, "pristine"), // V4: pristine art for now
+      });
+    }
+    State.garage.splice(idx, 1);
+    this.garageDetailIdx = -1;
+    this.garageTab = "parts";
+    UI.toast(`${bike.brand} ${bike.model} stripped — ${avail.length} parts in inventory`);
+    this.renderGarage();
+  },
+
+  assembleBike(sprite) {
+    const parts = State.parts || [];
+    const avail = availableParts(sprite);
+    // Check we have all parts (at least one of each)
+    const missing = avail.filter(p =>
+      !parts.some(sp => sp.bikeSprite === sprite && sp.partKey === p.key));
+    if (missing.length) {
+      UI.toast(`Missing: ${missing.map(m => m.label).join(", ")}`);
       return;
     }
-    const labels = { restore: "Restoration shop", strip: "Part-out", sell: "Re-listing" };
-    UI.toast(`${labels[act]} for the ${bike.brand} ${bike.model} — coming soon`);
+    // Remove one of each part from inventory
+    for (const p of avail) {
+      const i = parts.findIndex(sp => sp.bikeSprite === sprite && sp.partKey === p.key);
+      if (i >= 0) parts.splice(i, 1);
+    }
+    // Find the bike data
+    const bikeData = BIKES.find(b => b.sprite === sprite);
+    if (!bikeData) return;
+    // Create the assembled bike (condition based on parts used — simplified to Good)
+    const newBike = {
+      id: `assembled-${Date.now()}`,
+      bikeId: bikeData.id, brand: bikeData.brand, model: bikeData.name,
+      sprite: bikeData.sprite, baseValue: bikeData.base, rarity: bikeData.rarity,
+      condition: "Good", price: bikeData.base, boughtFor: 0,
+      partStates: {}, fairValue: bikeData.base,
+      desc: "Assembled from parts. Built, not bought.",
+      listed: false, kept: false,
+    };
+    // Roll part states as Good
+    for (const p of avail) newBike.partStates[p.key] = "used_good";
+    State.garage.push(newBike);
+    this.garageTab = "bikes";
+    UI.toast(`${bikeData.brand} ${bikeData.name} assembled!`);
+    this.renderGarage();
   },
 
   renderCollection() {

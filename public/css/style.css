@@ -202,6 +202,44 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   cursor: pointer; width: 100%; }
 .eby-buy:active { transform: scale(.98); }
 
+/* ---------- garage ---------- */
+.g-tabs { display: flex; gap: 8px; padding: 12px; background: var(--card);
+  border-bottom: 1px solid var(--line); }
+.g-tab { flex: 1; padding: 10px 0; border: 1.5px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--dim); font-size: .85rem; font-weight: 700;
+  cursor: pointer; }
+.g-tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+.pane-head { padding: 16px 12px 8px; }
+.pane-head h2 { font-size: 1.3rem; font-weight: 800; color: var(--ink); margin: 0 0 4px; }
+.pane-head .sub { font-size: .85rem; color: var(--dim); }
+.g-detail { padding: 0 12px 20px; }
+.g-detail-photo { position: relative; background: linear-gradient(135deg, #e8e4d8, #d5d0c0);
+  border-radius: 12px; height: 200px; display: flex; align-items: center;
+  justify-content: center; overflow: hidden; margin-bottom: 12px; }
+.g-detail-photo img { max-width: 90%; max-height: 90%; }
+.g-detail h2 { font-size: 1.4rem; margin: 0 0 4px; color: var(--ink); }
+.g-desc-block { margin: 16px 0; }
+.g-desc-block label { display: block; font-size: .8rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .5px; color: var(--dim); margin-bottom: 8px; }
+.g-desc-block textarea { width: 100%; padding: 12px; border: 1.5px solid var(--line);
+  border-radius: 8px; font-size: .92rem; font-family: inherit; resize: vertical;
+  background: #fff; color: var(--ink); }
+.g-presets { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.g-preset { text-align: left; padding: 9px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--paper); color: var(--dim);
+  font-size: .82rem; cursor: pointer; }
+.g-preset:active { border-color: var(--blue); color: var(--blue); }
+.g-detail-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.g-detail-actions button { padding: 14px; border: none; border-radius: 10px;
+  font-size: .95rem; font-weight: 700; cursor: pointer; }
+.btn-list { background: var(--blue); color: #fff; }
+.btn-keep { background: #f0f0f0; color: var(--ink); border: 1.5px solid var(--line) !important; }
+.btn-strip { background: #fff; color: #b5651d; border: 1.5px solid #b5651d !important; }
+.eby-parts-bar { height: 8px; background: #eee; border-radius: 4px; margin: 8px 0;
+  overflow: hidden; }
+.eby-parts-fill { height: 100%; background: var(--green); border-radius: 4px;
+  transition: width .3s; }
+
 /* ---------- garage / collection views ---------- */
 .pane { flex: 1; overflow-y: auto; padding: 14px 12px; -webkit-overflow-scrolling: touch; }
 .pane.hidden { display: none; }

@@ -267,6 +267,18 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   font-weight: 700; cursor: pointer; }
 .eby-typechoice:active { background: #fef0ee; }
 .market-tabs { margin: 8px 0; }
+/* nav badges */
+.wtab { position: relative; }
+.nav-badge { position: absolute; top: 4px; right: 8px;
+  background: #e04536; color: #fff; font-size: .65rem; font-weight: 800;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px; z-index: 2; }
+.nav-badge.hidden { display: none; }
+/* tab badge for My Listings */
+.eby-type { position: relative; }
+.tab-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #e04536; margin-left: 6px; vertical-align: middle; }
 /* offer badge */
 .offer-badge { position: absolute; top: 6px; right: 6px;
   background: #e04536; color: #fff; font-size: .75rem; font-weight: 800;

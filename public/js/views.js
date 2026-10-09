@@ -34,8 +34,14 @@ const Views = {
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
-    if (name === "market") { this.renderMarketTabs(); this.renderMarketFeed(); }
-    if (name === "parts") this.renderParts();
+    if (name === "market") {
+      this.renderMarketTabs(); this.renderMarketFeed();
+      if (this.marketTab === "mine") this.clearMarketBadges();
+    }
+    if (name === "parts") {
+      this.renderParts();
+      if (this.boneyardTab === "sell") this.clearPartsBadges();
+    }
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
     const n = document.getElementById("nav-garage-n");
@@ -50,6 +56,7 @@ const Views = {
   myPartListings: [], // player's own part listings
   myBikeListings: [], // player's own bike listings
   playerAuctionTimer: null,
+  unseenPartSales: 0, // unviewed boneyard sales
   marketTab: "browse", // "browse" | "mine"
   salesTimer: null,
   bikeSalesTimer: null,
@@ -152,16 +159,49 @@ const Views = {
     el.innerHTML = `
       <div class="eby-typefilter market-tabs">
         <button class="eby-type${this.marketTab === "browse" ? " active" : ""}" data-mtab="browse">Browse</button>
-        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${this.myBikeListings.length ? ` (${this.myBikeListings.length})` : ""}</button>
+        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${this.myBikeListings.length ? ` (${this.myBikeListings.length})` : ""}${this.myBikeListings.some(l => l.offer) && this.marketTab !== "mine" ? `<span class="tab-dot"></span>` : ""}</button>
       </div>`;
     el.querySelectorAll("[data-mtab]").forEach(t =>
       t.addEventListener("click", () => {
         this.marketTab = t.dataset.mtab;
+        if (t.dataset.mtab === "mine") this.clearMarketBadges();
         this.renderMarketTabs();
         this.renderMarketFeed();
       }));
     const cats = document.getElementById("cats");
     if (cats) cats.style.display = this.marketTab === "browse" ? "" : "none";
+    this.updateNavBadges();
+  },
+
+  // Update notification badges on nav and tabs
+  updateNavBadges() {
+    // Count pending bike offers
+    const bikeOffers = this.myBikeListings.filter(l => l.offer).length;
+    // Market nav badge
+    const marketBadge = document.getElementById("nav-badge-market");
+    if (marketBadge) {
+      marketBadge.textContent = bikeOffers;
+      marketBadge.classList.toggle("hidden", bikeOffers === 0);
+    }
+    // My Listings tab dot — update via re-render of tabs
+    // Boneyard nav badge (unseen part sales)
+    const partsBadge = document.getElementById("nav-badge-parts");
+    if (partsBadge) {
+      partsBadge.textContent = this.unseenPartSales;
+      partsBadge.classList.toggle("hidden", this.unseenPartSales === 0);
+    }
+  },
+
+  clearMarketBadges() {
+    // Called when user views My Listings — offers still show on cards,
+    // but nav badge clears since they've seen them
+    const marketBadge = document.getElementById("nav-badge-market");
+    if (marketBadge) marketBadge.classList.add("hidden");
+  },
+
+  clearPartsBadges() {
+    this.unseenPartSales = 0;
+    this.updateNavBadges();
   },
 
   renderMarketFeed() {
@@ -292,6 +332,7 @@ const Views = {
       thread: [{ from: "buyer", text: opener }],
     };
     UI.toast(`${buyerName} made an offer!`);
+    this.updateNavBadges();
     // Refresh the relevant view
     if (this.current === "market" && this.marketTab === "mine") {
       this.renderMarketFeed(); this.renderMarketTabs();
@@ -561,6 +602,8 @@ const Views = {
       if (Math.random() < chance) {
         // Sold!
         this.myPartListings.splice(i, 1);
+        this.unseenPartSales++;
+        this.updateNavBadges();
         State.cash += l.askPrice;
         UI.refreshCash();
         UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
@@ -701,6 +744,8 @@ const Views = {
         this.myPartListings.splice(i, 1);
         if (l.highBidder) {
           State.cash += l.currentBid;
+          this.unseenPartSales++;
+          this.updateNavBadges();
           UI.refreshCash();
           UI.toast(`Auction sold! ${l.partLabel} went for ${money(l.currentBid)} to ${l.highBidder}`);
         } else {
@@ -783,6 +828,7 @@ const Views = {
     el.querySelectorAll("[data-btab]").forEach(t =>
       t.addEventListener("click", () => {
         this.boneyardTab = t.dataset.btab;
+        if (t.dataset.btab === "sell") this.clearPartsBadges();
         this.renderParts();
       }));
     el.querySelectorAll("[data-delist]").forEach(b =>
@@ -1033,6 +1079,7 @@ const Views = {
     el.querySelectorAll("[data-btab]").forEach(t =>
       t.addEventListener("click", () => {
         this.boneyardTab = t.dataset.btab;
+        if (t.dataset.btab === "sell") this.clearPartsBadges();
         this.renderParts();
       }));
     // Listing type filter

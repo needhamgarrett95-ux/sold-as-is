@@ -251,9 +251,13 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   border: none; padding: 8px 14px; border-radius: 8px;
   font-size: .82rem; font-weight: 700; cursor: pointer; width: 100%; }
 .eby-sell:active { transform: scale(.98); opacity: .9; }
-.sell-price-row { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
-.sell-price-row input { flex: 1; padding: 8px; border: 1.5px solid #ccc;
+.sell-price-row { display: flex; gap: 6px; margin-top: 6px; align-items: center;
+  max-width: 100%; overflow: hidden; }
+.sell-price-row input { flex: 1; min-width: 0; padding: 8px; border: 1.5px solid #ccc;
   border-radius: 8px; font-size: .9rem; }
+.sell-type-row { display: flex; gap: 6px; margin-top: 6px; max-width: 100%; overflow: hidden; }
+.sold-tag { background: #e04536; color: #fff; font-size: .7rem; font-weight: 800;
+  padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
 .eby-confirm { background: #4caf50; color: #fff; border: none;
   padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
 .eby-cancel { background: #999; color: #fff; border: none;

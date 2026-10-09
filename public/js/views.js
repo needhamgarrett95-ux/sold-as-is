@@ -57,6 +57,8 @@ const Views = {
   myBikeListings: [], // player's own bike listings
   playerAuctionTimer: null,
   unseenPartSales: 0, // unviewed boneyard sales
+  bikeListingFilter: "all", // "all" | "active" | "sold"
+  partListingFilter: "all", // "all" | "active" | "sold"
   marketTab: "browse", // "browse" | "mine"
   salesTimer: null,
   bikeSalesTimer: null,
@@ -218,22 +220,39 @@ const Views = {
       feed.innerHTML = `<div class="empty"><strong>No listings yet</strong>List a bike from your garage to sell it here.</div>`;
       return;
     }
-    feed.innerHTML = `<div class="feed-grid">` +
-      this.myBikeListings.map((l, i) => {
+    const filterHtml = `
+      <div class="eby-typefilter">
+        <button class="eby-type${this.bikeListingFilter === "all" ? " active" : ""}" data-bf="all">All</button>
+        <button class="eby-type${this.bikeListingFilter === "active" ? " active" : ""}" data-bf="active">Active</button>
+        <button class="eby-type${this.bikeListingFilter === "sold" ? " active" : ""}" data-bf="sold">Sold</button>
+      </div>`;
+    const shown = this.myBikeListings
+      .map((l, i) => ({ ...l, idx: i }))
+      .filter(l => this.bikeListingFilter === "all" ? true
+        : this.bikeListingFilter === "active" ? !l.sold : l.sold);
+    if (!shown.length) {
+      feed.innerHTML = filterHtml + `<div class="empty"><strong>Nothing here</strong>No ${this.bikeListingFilter} listings.</div>`;
+      feed.querySelectorAll("[data-bf]").forEach(b =>
+        b.addEventListener("click", () => { this.bikeListingFilter = b.dataset.bf; this.renderMyBikeListings(); }));
+      return;
+    }
+    feed.innerHTML = filterHtml + `<div class="feed-grid">` +
+      shown.map((l) => {
+        const i = l.idx;
         const minsListed = Math.floor((Date.now() - l.listedAt) / 60000);
         const timeStr = minsListed < 1 ? "just now" : `${minsListed}m ago`;
         return `
       <article class="card" data-bike-offer="${i}">
         <div class="photo">
-          <div class="just-listed">Your Listing</div>
-          ${l.offer ? `<div class="offer-badge">1</div>` : ""}
+          <div class="just-listed">${l.sold ? "SOLD" : "Your Listing"}</div>
+          ${l.offer && !l.sold ? `<div class="offer-badge">1</div>` : ""}
           <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false"${Feed.spriteNudge.has(l.sprite) ? ' class="nudged"' : ""}>
           <div class="card-cond">${l.condition}</div>
         </div>
         <div class="card-info">
-          <div class="card-price-name"><strong>${money(l.askPrice)}</strong> &middot; ${l.brand} ${l.model}</div>
-          <div class="card-loc">Listed ${timeStr} · awaiting buyers</div>
-          <button class="eby-delist" data-delist-bike="${i}" style="margin-top:6px;width:100%">Remove Listing</button>
+          <div class="card-price-name"><strong>${l.sold ? money(l.soldFor) : money(l.askPrice)}</strong> &middot; ${l.brand} ${l.model}</div>
+          <div class="card-loc">${l.sold ? `Sold!` : `Listed ${timeStr} · awaiting buyers`}</div>
+          ${l.sold ? "" : `<button class="eby-delist" data-delist-bike="${i}" style="margin-top:6px;width:100%">Remove Listing</button>`}
         </div>
       </article>`;
       }).join("") + `</div>`;
@@ -242,10 +261,12 @@ const Views = {
         e.preventDefault(); e.stopPropagation();
         this.delistBike(+b.dataset.delistBike);
       }));
+    feed.querySelectorAll("[data-bf]").forEach(b =>
+      b.addEventListener("click", () => { this.bikeListingFilter = b.dataset.bf; this.renderMyBikeListings(); }));
     // Tap listing with offer → open haggle
     feed.querySelectorAll("[data-bike-offer]").forEach(c => {
       const idx = +c.dataset.bikeOffer;
-      if (!this.myBikeListings[idx].offer) return;
+      if (!this.myBikeListings[idx].offer || this.myBikeListings[idx].sold) return;
       c.addEventListener("click", (e) => {
         // Don't open if tapping the delist button
         if (e.target.closest("[data-delist-bike]")) return;
@@ -297,7 +318,7 @@ const Views = {
   maybeMakeOffer() {
     // Buyers haggle on bike listings only (parts use fixed/auction)
     for (const l of this.myBikeListings) {
-      if (!l.offer && Math.random() < 0.15) {
+      if (!l.sold && !l.offer && Math.random() < 0.15) {
         this.makeBuyerOffer(l, "bike");
       }
     }
@@ -412,9 +433,8 @@ const Views = {
     // Complete the sale
     State.cash += amount;
     UI.refreshCash();
-    // Remove from listings
-    const arr = this.haggleListingsArray;
-    arr.splice(this.haggleIdx, 1);
+    // Mark as sold (keep visible)
+    l.sold = true; l.soldFor = amount; l.soldAt = Date.now();
     if (offer.type === "bike") {
       State.sold.push({ ...l, soldFor: amount, soldAt: Date.now() });
     }
@@ -571,10 +591,11 @@ const Views = {
     if (!this.myBikeListings.length) return;
     for (let i = this.myBikeListings.length - 1; i >= 0; i--) {
       const l = this.myBikeListings[i];
+      if (l.sold) continue;
       const fairness = (l.fairValue || l.boughtFor || 500) / Math.max(1, l.askPrice);
       const chance = Math.min(0.20, 0.05 * fairness);
       if (Math.random() < chance) {
-        this.myBikeListings.splice(i, 1);
+        l.sold = true; l.soldFor = l.askPrice; l.soldAt = Date.now();
         State.cash += l.askPrice;
         State.sold.push({ ...l, soldFor: l.askPrice, soldAt: Date.now() });
         UI.refreshCash();
@@ -594,14 +615,14 @@ const Views = {
     // Better prices (closer to market value) sell faster
     for (let i = this.myPartListings.length - 1; i >= 0; i--) {
       const l = this.myPartListings[i];
+      if (l.sold) continue;
       l.ticksListed = (l.ticksListed || 0) + 1;
       // Base 8% chance per 5s tick, adjusted by price fairness
       const marketPrice = Math.round(PART_BASE_PRICE[l.partKey] * PART_COND_MULT[l.state] || 20);
       const fairness = marketPrice / Math.max(1, l.askPrice); // >1 = good deal, <1 = overpriced
       const chance = Math.min(0.30, 0.08 * fairness);
       if (Math.random() < chance) {
-        // Sold!
-        this.myPartListings.splice(i, 1);
+        l.sold = true; l.soldFor = l.askPrice; l.soldAt = Date.now();
         this.unseenPartSales++;
         this.updateNavBadges();
         State.cash += l.askPrice;
@@ -724,7 +745,7 @@ const Views = {
     let hasActive = false;
     for (let i = this.myPartListings.length - 1; i >= 0; i--) {
       const l = this.myPartListings[i];
-      if (l.listingType !== "auction") continue;
+      if (l.listingType !== "auction" || l.sold) continue;
       hasActive = true;
       l.timeLeft--;
       const urgency = l.timeLeft <= 10 ? 0.35 : 0.12;
@@ -741,8 +762,9 @@ const Views = {
         }
       }
       if (l.timeLeft <= 0) {
-        this.myPartListings.splice(i, 1);
+        const endedNow = true;
         if (l.highBidder) {
+          l.sold = true; l.soldFor = l.currentBid; l.soldAt = Date.now();
           State.cash += l.currentBid;
           this.unseenPartSales++;
           this.updateNavBadges();
@@ -754,12 +776,48 @@ const Views = {
           State.parts.push(part);
           UI.toast(`No bids on ${l.partLabel} — returned to inventory`);
         }
+        // Refresh to show SOLD state
+        setTimeout(() => this.refreshAfterAuctionEnd(), 100);
       }
     }
     if (!hasActive && this.playerAuctionTimer) {
       clearInterval(this.playerAuctionTimer);
       this.playerAuctionTimer = null;
     }
+    // Update timers in place (no full re-render = no flashing)
+    if (this.current === "parts" && this.boneyardTab === "sell") {
+      const el = document.getElementById("parts-view");
+      if (el) {
+        // Update each auction's timer badge and bid display
+        this.myPartListings.forEach((l) => {
+          if (l.listingType !== "auction" || l.sold) return;
+          // Find the badge by matching the listing — use index-based lookup
+          const idx = this.myPartListings.indexOf(l);
+          const items = el.querySelectorAll(".eby-item.eby-auction");
+          // Match by position in filtered list
+          const shown = this.myPartListings
+            .filter(x => this.partListingFilter === "all" ? true
+              : this.partListingFilter === "active" ? !x.sold : x.sold);
+          const shownIdx = shown.indexOf(l);
+          if (shownIdx >= 0 && items[shownIdx]) {
+            const badge = items[shownIdx].querySelector(".eby-auc-badge");
+            if (badge) badge.textContent = `⏱ ${Math.max(0, l.timeLeft)}s`;
+            const priceEl = items[shownIdx].querySelector(".eby-price");
+            if (priceEl) priceEl.textContent = money(l.currentBid);
+            const bidsEl = items[shownIdx].querySelector(".eby-bids");
+            if (bidsEl) bidsEl.textContent = l.highBidder ? `High bidder: ${l.highBidder}` : "No bids yet";
+            const metaEl = items[shownIdx].querySelector(".eby-meta");
+            if (metaEl && !l.sold) metaEl.textContent = `Your auction · ends in ${Math.max(0, l.timeLeft)}s`;
+          }
+        });
+      }
+      // If an auction just ended, do a full refresh to show SOLD state
+      // (check if any recently sold)
+    }
+  },
+
+  // Call this when an auction ends to refresh the SOLD display
+  refreshAfterAuctionEnd() {
     if (this.current === "parts" && this.boneyardTab === "sell") {
       this.renderParts(true);
     }
@@ -783,8 +841,22 @@ const Views = {
         <strong>No listings yet</strong>
         List parts from your inventory to sell them here.</div></div>`;
     }
-    return `<div class="eby-list">` +
-      this.myPartListings.map((l, i) => {
+    const filterHtml = `
+      <div class="eby-typefilter">
+        <button class="eby-type${this.partListingFilter === "all" ? " active" : ""}" data-pf="all">All</button>
+        <button class="eby-type${this.partListingFilter === "active" ? " active" : ""}" data-pf="active">Active</button>
+        <button class="eby-type${this.partListingFilter === "sold" ? " active" : ""}" data-pf="sold">Sold</button>
+      </div>`;
+    const shown = this.myPartListings
+      .map((l, i) => ({ ...l, idx: i }))
+      .filter(l => this.partListingFilter === "all" ? true
+        : this.partListingFilter === "active" ? !l.sold : l.sold);
+    if (!shown.length) {
+      return filterHtml + `<div class="eby-list"><div class="empty"><strong>Nothing here</strong>No ${this.partListingFilter} listings.</div></div>`;
+    }
+    return filterHtml + `<div class="eby-list">` +
+      shown.map((l) => {
+        const i = l.idx;
         const pct = ensurePct(l);
         const state = pctToState(pct);
         const img = partImg(l.bikeSprite, l.partKey, state);
@@ -802,7 +874,7 @@ const Views = {
             <span class="eby-price">${money(l.currentBid)}</span>
             <span class="eby-bids">${l.highBidder ? `High bidder: ${l.highBidder}` : "No bids yet"}</span>
           </div>
-          <div class="eby-meta">Your auction · ends in ${secs}s</div>
+          <div class="eby-meta">${l.sold ? `Sold for ${money(l.soldFor)} to ${l.highBidder}!` : `Your auction · ends in ${secs}s`}</div>
         </div>
       </div>`;
         }
@@ -815,16 +887,19 @@ const Views = {
           <div class="eby-name">${l.partLabel} for ${l.bikeBrand} ${l.bikeModel}</div>
           <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
           <div class="eby-price-row">
-            <span class="eby-price">${money(l.askPrice)}</span>
+            <span class="eby-price">${l.sold ? money(l.soldFor) : money(l.askPrice)}</span>
+            ${l.sold ? `<span class="sold-tag">SOLD</span>` : ""}
           </div>
-          <div class="eby-meta">Listed ${timeStr} · waiting for buyers...</div>
-          <button class="eby-delist" data-delist="${i}">Remove Listing</button>
+          <div class="eby-meta">${l.sold ? `Sold!` : `Listed ${timeStr} · waiting for buyers...`}</div>
+          ${l.sold ? "" : `<button class="eby-delist" data-delist="${i}">Remove Listing</button>`}
         </div>
       </div>`;
       }).join("") + `</div>`;
   },
 
   bindMyListings(el) {
+    el.querySelectorAll("[data-pf]").forEach(b =>
+      b.addEventListener("click", () => { this.partListingFilter = b.dataset.pf; this.renderParts(); }));
     el.querySelectorAll("[data-btab]").forEach(t =>
       t.addEventListener("click", () => {
         this.boneyardTab = t.dataset.btab;

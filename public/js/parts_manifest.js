@@ -1,10 +1,11 @@
-// Sold As-Is — V4 parts availability per bike (generated)
+// Sold As-Is — parts availability per bike (generated)
 const PARTS_MANIFEST = {
   "derbi_ds50": [
     "engine",
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -14,6 +15,7 @@ const PARTS_MANIFEST = {
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -25,13 +27,15 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "honda_cub_c70": [
     "engine",
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -53,13 +57,15 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "honda_mb5": [
     "engine",
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -69,6 +75,7 @@ const PARTS_MANIFEST = {
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -80,15 +87,18 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "motobecane_moby_x": [
     "engine",
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "puch_cobra": [
     "engine",
@@ -97,7 +107,8 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "puch_magnum": [
     "engine",
@@ -106,7 +117,8 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "puch_maxi": [
     "engine",
@@ -115,7 +127,8 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "puch_newport": [
     "engine",
@@ -124,13 +137,15 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "suzuki_fa50": [
     "engine",
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -141,7 +156,9 @@ const PARTS_MANIFEST = {
     "wheel_front",
     "wheel_rear",
     "fuel_tank",
-    "handlebars"
+    "headlight",
+    "handlebars",
+    "turn_signals"
   ],
   "suzuki_or50": [
     "engine",
@@ -150,7 +167,8 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "tomos_colt": [
     "engine",
@@ -159,7 +177,8 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "tomos_sprint": [
     "engine",
@@ -168,7 +187,8 @@ const PARTS_MANIFEST = {
     "wheel_rear",
     "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "tomos_st": [
     "engine",
@@ -195,6 +215,7 @@ const PARTS_MANIFEST = {
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -204,14 +225,17 @@ const PARTS_MANIFEST = {
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
-    "handlebars"
+    "handlebars",
+    "turn_signals"
   ],
   "vespa_grande": [
     "engine",
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -221,6 +245,7 @@ const PARTS_MANIFEST = {
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -230,6 +255,7 @@ const PARTS_MANIFEST = {
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"
@@ -259,6 +285,7 @@ const PARTS_MANIFEST = {
     "exhaust",
     "wheel_front",
     "wheel_rear",
+    "fuel_tank",
     "headlight",
     "handlebars",
     "turn_signals"

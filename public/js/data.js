@@ -93,12 +93,13 @@ const PARTS = [
 
 // Probability of each part state given the bike's overall condition
 const PART_DIST = {
-  "Mint":       [0.90, 0.10, 0.00, 0.00],
-  "Clean":      [0.70, 0.25, 0.05, 0.00],
-  "Good":       [0.45, 0.40, 0.15, 0.00],
-  "Fair":       [0.20, 0.45, 0.30, 0.05],
-  "Rough":      [0.05, 0.25, 0.50, 0.20],
-  "Non-runner": [0.00, 0.15, 0.55, 0.30],
+  // [pristine, used_good, used_bad, totaled] — pristine is rare
+  "Mint":       [0.15, 0.50, 0.30, 0.05],
+  "Clean":      [0.10, 0.45, 0.35, 0.10],
+  "Good":       [0.05, 0.40, 0.40, 0.15],
+  "Fair":       [0.03, 0.30, 0.47, 0.20],
+  "Rough":      [0.01, 0.15, 0.54, 0.30],
+  "Non-runner": [0.00, 0.10, 0.50, 0.40],
   "Parts bike": [0.00, 0.05, 0.35, 0.60],
 };
 const PART_STATES = ["pristine", "used_good", "used_bad", "totaled"];
@@ -125,8 +126,10 @@ function rollPartStates(condition, sprite) {
 }
 
 function partImg(sprite, partKey, state) {
+  // Map game sprite names to parts folder names (zuma uses underscore)
+  const folder = sprite.replace(/-/g, "_");
   const suffix = state === "pristine" ? "" : "_" + state;
-  return `assets/parts/${sprite}/${partKey}${suffix}.png`;
+  return `assets/bikes/parts/${folder}/${partKey}${suffix}.png`;
 }
 
 // ---------- parts shop ----------
@@ -146,8 +149,12 @@ function genPartsShop(n = 16) {
     const bike = BIKES[(Math.random() * BIKES.length) | 0];
     const avail = availableParts(bike.sprite);
     const part = avail[(Math.random() * avail.length) | 0];
-    // V4: pristine only for now (variants coming)
-    const state = "pristine";
+    // Randomize condition — pristine is rare on the Boneyard
+    const roll = Math.random();
+    const state = roll < 0.08 ? "pristine"
+      : roll < 0.40 ? "used_good"
+      : roll < 0.75 ? "used_bad"
+      : "totaled";
     const price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
     // eBay flavor: watchers + strikethrough "was" price
     const watchers = 1 + ((Math.random() * 14) | 0);

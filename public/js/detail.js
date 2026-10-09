@@ -57,8 +57,8 @@ const Detail = {
     el.innerHTML = `
     <div class="detail-scroll">
       <button class="back-btn" id="d-back">← Back</button>
-      <div class="d-photo" style="background:${Feed.photoColor(l.bikeId)}">
-        <div class="photo-bike big">${l.brand}<br><strong>${l.model}</strong></div>
+      <div class="d-photo photo-real big">
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}">
         <div class="photo-count">📷 ${l.photos}</div>
       </div>
       <div class="d-body">

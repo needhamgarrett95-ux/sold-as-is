@@ -57,6 +57,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   color: #fff; font-size: .66rem; font-weight: 800; padding: 3px 8px;
   border-radius: 4px; letter-spacing: 1px; }
 .photo { height: 168px; display: flex; align-items: center; justify-content: center; position: relative; }
+.photo-real { background: linear-gradient(135deg, #e8e4d8, #d5d0c0); }
+.photo-real img { max-height: 150px; max-width: 92%; object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.25)); }
+.photo-real.big img { max-height: 210px; }
 .photo-bike { text-align: center; color: #fff; font-size: .95rem; letter-spacing: 1px;
   text-shadow: 0 2px 8px rgba(0,0,0,.55); opacity: .94; }
 .photo-bike strong { font-size: 1.3rem; letter-spacing: 0; display: block; }

@@ -56,8 +56,8 @@ const Feed = {
     return `
     <article class="card" data-id="${l.id}">
       ${l.fresh ? '<div class="fresh-tag">NEW</div>' : ""}
-      <div class="photo" style="background:${this.photoColor(l.bikeId)}">
-        <div class="photo-bike">${l.brand}<br><strong>${l.model}</strong></div>
+      <div class="photo photo-real">
+        <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy">
         <div class="photo-count">📷 ${l.photos}</div>
       </div>
       <div class="card-body">

@@ -2,49 +2,49 @@
 
 const BRANDS = {
   Yamaha:   { models: [
-    { name: "Zuma Prebug",  base: 1400, rarity: 4, desc: "The bug-eyed legend. Pre-2002." },
-    { name: "QT50 Yamahopper", base: 650, rarity: 2, desc: "Shaft-drive oddball. Charming." },
-    { name: "RD50", base: 900, rarity: 3, desc: "Two-stroke screamer in a tiny package." },
-    { name: "DT50", base: 750, rarity: 2, desc: "Enduro-styled 50. Trail-ready." },
+    { name: "Zuma Prebug",  base: 1400, rarity: 4, sprite: "yamaha_zuma_prebug", desc: "The bug-eyed legend. Pre-2002." },
+    { name: "QT50 Yamahopper", base: 650, rarity: 2, sprite: "yamaha_qt50", desc: "Shaft-drive oddball. Charming." },
+    { name: "RD50", base: 900, rarity: 3, sprite: "yamaha_rd50", desc: "Two-stroke screamer in a tiny package." },
+    { name: "DT50", base: 750, rarity: 2, sprite: "yamaha_dt50", desc: "Enduro-styled 50. Trail-ready." },
   ]},
   Honda:    { models: [
-    { name: "MB5",     base: 1600, rarity: 4, desc: "The holy grail. Black/red or nothing." },
-    { name: "Dio",     base: 800, rarity: 2, desc: "Scooter scene staple. Tunes easy." },
-    { name: "Express", base: 550, rarity: 2, desc: "Noped royalty. Everyone's first." },
-    { name: "Cub C70", base: 1100, rarity: 3, desc: "Step-through icon. Runs forever." },
+    { name: "MB5",     base: 1600, rarity: 4, sprite: "honda_mb5", desc: "The holy grail. Black/red or nothing." },
+    { name: "Dio",     base: 800, rarity: 2, sprite: "honda_dio", desc: "Scooter scene staple. Tunes easy." },
+    { name: "Express", base: 550, rarity: 2, sprite: "honda_express", desc: "Noped royalty. Everyone's first." },
+    { name: "Cub C70", base: 1100, rarity: 3, sprite: "honda_cub_c70", desc: "Step-through icon. Runs forever." },
   ]},
   Tomos:    { models: [
-    { name: "Sprint",   base: 450, rarity: 1, desc: "The workhorse. Parts everywhere." },
-    { name: "Targa LX", base: 550, rarity: 2, desc: "Top-tank Tomos. Clean lines." },
-    { name: "ST",       base: 400, rarity: 1, desc: "Basic, honest, cheap." },
-    { name: "Colt",     base: 500, rarity: 2, desc: "Underrated. Snappy A55 motor." },
+    { name: "Sprint",   base: 450, rarity: 1, sprite: "tomos_sprint", desc: "The workhorse. Parts everywhere." },
+    { name: "Targa LX", base: 550, rarity: 2, sprite: "tomos_targa_lx", desc: "Top-tank Tomos. Clean lines." },
+    { name: "ST",       base: 400, rarity: 1, sprite: "tomos_st", desc: "Basic, honest, cheap." },
+    { name: "Colt",     base: 500, rarity: 2, sprite: "tomos_colt", desc: "Underrated. Snappy A55 motor." },
   ]},
   Puch:     { models: [
-    { name: "Maxi",    base: 500, rarity: 1, desc: "The people's moped. Millions made." },
-    { name: "Magnum",  base: 1300, rarity: 4, desc: "Top-tank king. Bring money." },
-    { name: "Newport", base: 450, rarity: 1, desc: "Maxi's sibling. Same guts." },
-    { name: "Cobra",   base: 700, rarity: 3, desc: "Rare bird. Weird and wonderful." },
+    { name: "Maxi",    base: 500, rarity: 1, sprite: "puch_maxi", desc: "The people's moped. Millions made." },
+    { name: "Magnum",  base: 1300, rarity: 4, sprite: "puch_magnum", desc: "Top-tank king. Bring money." },
+    { name: "Newport", base: 450, rarity: 1, sprite: "puch_newport", desc: "Maxi's sibling. Same guts." },
+    { name: "Cobra",   base: 700, rarity: 3, sprite: "puch_cobra", desc: "Rare bird. Weird and wonderful." },
   ]},
   Vespa:    { models: [
-    { name: "Ciao",   base: 600, rarity: 2, desc: "Italian charm, bicycle pedals." },
-    { name: "Grande", base: 750, rarity: 3, desc: "Big Ciao energy. Variated." },
-    { name: "Bravo",  base: 550, rarity: 2, desc: "The sporty one. Kinda." },
-    { name: "Si",     base: 650, rarity: 2, desc: "Monoshock style. Cool factor high." },
+    { name: "Ciao",   base: 600, rarity: 2, sprite: "vespa_ciao", desc: "Italian charm, bicycle pedals." },
+    { name: "Grande", base: 750, rarity: 3, sprite: "vespa_grande", desc: "Big Ciao energy. Variated." },
+    { name: "Bravo",  base: 550, rarity: 2, sprite: "vespa_bravo", desc: "The sporty one. Kinda." },
+    { name: "Si",     base: 650, rarity: 2, sprite: "vespa_si", desc: "Monoshock style. Cool factor high." },
   ]},
   Suzuki:   { models: [
-    { name: "FA50 Shuttle", base: 450, rarity: 1, desc: "Shaft drive. Weird in a good way." },
-    { name: "JR50",         base: 350, rarity: 1, desc: "Kids' dirt bike. Tiny ripper." },
-    { name: "OR50",         base: 500, rarity: 2, desc: "Moped oddity. Collectors notice." },
+    { name: "FA50 Shuttle", base: 450, rarity: 1, sprite: "suzuki_fa50", desc: "Shaft drive. Weird in a good way." },
+    { name: "JR50",         base: 350, rarity: 1, sprite: "suzuki_jr50", desc: "Kids' dirt bike. Tiny ripper." },
+    { name: "OR50",         base: 500, rarity: 2, sprite: "suzuki_or50", desc: "Moped oddity. Collectors notice." },
   ]},
   Motobecane: { models: [
-    { name: "50V Mobylette", base: 550, rarity: 2, desc: "French classic. Variator magic." },
-    { name: "AV88",          base: 650, rarity: 3, desc: "Vintage French. Beautiful rust." },
-    { name: "Moby X",        base: 400, rarity: 1, desc: "Later Moby. Still French." },
+    { name: "50V Mobylette", base: 550, rarity: 2, sprite: "motobecane_50v", desc: "French classic. Variator magic." },
+    { name: "AV88",          base: 650, rarity: 3, sprite: "motobecane_av88", desc: "Vintage French. Beautiful rust." },
+    { name: "Moby X",        base: 400, rarity: 1, sprite: "motobecane_moby_x", desc: "Later Moby. Still French." },
   ]},
   Derbi:    { models: [
-    { name: "Variant", base: 600, rarity: 2, desc: "Spanish flair. Reed-valve pep." },
-    { name: "DS50",    base: 500, rarity: 2, desc: "Sporty 50. Handles great." },
-    { name: "Laguna",  base: 700, rarity: 3, desc: "Sleek and rare. Head-turner." },
+    { name: "Variant", base: 600, rarity: 2, sprite: "derbi_variant", desc: "Spanish flair. Reed-valve pep." },
+    { name: "DS50",    base: 500, rarity: 2, sprite: "derbi_ds50", desc: "Sporty 50. Handles great." },
+    { name: "Laguna",  base: 700, rarity: 3, sprite: "derbi_laguna", desc: "Sleek and rare. Head-turner." },
   ]},
 };
 
@@ -101,6 +101,7 @@ function makeListing(id) {
   const minsAgo = Math.floor(Math.random() * 600) + 2;
   return {
     id, bikeId: bike.id, brand: bike.brand, model: bike.name,
+    sprite: bike.sprite,
     baseValue: bike.base, rarity: bike.rarity,
     condition: cond.name, price,
     // fair value estimate (what inspection would reveal)

@@ -10,6 +10,7 @@ const Detail = {
     this.offer = null;
     this.thread = [];
     this.haggleResponse = null;
+    this.blocked = false;
     this.notice = null;
     this.render();
     document.getElementById("detail").classList.remove("hidden");
@@ -36,6 +37,29 @@ const Detail = {
     const offerPrice = parseInt(digits, 10);
     if (offerPrice <= 0) {
       this.haggleResponse = { response: `"Very funny."`, accepted: false, price: null };
+      this.render();
+      return;
+    }
+    // Already blocked? Seller wants nothing to do with you.
+    if (this.blocked) {
+      this.thread.push({ from: "you", text: money(offerPrice) });
+      this.thread.push({ from: "seller", text: `"I'm not selling to you. Piss off."` });
+      this.render();
+      return;
+    }
+    // Bad faith: trying to go lower AFTER a deal was on the table
+    const agreedPrice = this.haggleResponse && this.haggleResponse.price;
+    if (agreedPrice && offerPrice < agreedPrice) {
+      const angry = [
+        `"Are you fucking kidding me? We HAD a deal at ${money(agreedPrice)}."`,
+        `"Nah. Fuck this. You had ${money(agreedPrice)} and you got greedy. Deal's dead."`,
+        `"Trying to renegotiate down AFTER we agreed? Hell no. I'm done with you."`,
+      ];
+      this.thread = this.thread || [];
+      this.thread.push({ from: "you", text: money(offerPrice) });
+      this.thread.push({ from: "seller", text: angry[(Math.random() * angry.length) | 0] });
+      this.blocked = true;
+      this.haggleResponse = { response: null, accepted: false, price: null };
       this.render();
       return;
     }
@@ -137,8 +161,8 @@ const Detail = {
             <button id="offer-send">Send</button>
           </div>
         </div>
-        <button class="buy-btn" id="d-buy">
-          ${(hr && hr.price) ? `Buy for ${money(hr.price)}` : `Buy now — ${money(l.price)}`}
+        <button class="buy-btn${this.blocked ? " blocked" : ""}" id="d-buy"${this.blocked ? " disabled" : ""}>
+          ${this.blocked ? `Seller blocked you` : (hr && hr.price) ? `Buy for ${money(hr.price)}` : `Buy now — ${money(l.price)}`}
         </button>
         <div class="as-is">Sold as-is. No warranties, no take-backs.</div>
       </div>

@@ -9,8 +9,7 @@ const Feed = {
     this.nextId += this.batchSize;
     this.render();
     // No infinite scroll — feed is locked to 5 rows, refresh for new batch
-    // Fresh listings drop periodically
-    setInterval(() => this.dropFresh(), 45000);
+    // (auto dropFresh removed — it caused random layout breaks)
   },
 
   dropFresh() {

@@ -9,8 +9,27 @@
 <link rel="icon" type="image/png" href="app-icon.png">
 <link rel="apple-touch-icon" href="app-icon.png">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/login.css">
 </head>
 <body>
+<!-- Login / splash screen -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-avatar"></div>
+    <div class="login-brand">moto<span>market</span></div>
+    <div class="login-sub">Sign in to continue to MotoMarket</div>
+    <div class="field">
+      <label>Username</label>
+      <input id="username" type="text" value="flippin_scootz" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="•••••••" autocomplete="off">
+    </div>
+    <button id="login-btn">Log In</button>
+    <div class="login-foot">Sold as-is. <b>No warranties, no take-backs.</b></div>
+  </div>
+</div>
 <div id="browser">
   <div id="chrome">
     <div class="traffic">
@@ -50,5 +69,6 @@
 <script src="js/detail.js"></script>
 <script src="js/views.js"></script>
 <script src="js/app.js"></script>
+<script src="js/login.js"></script>
 </body>
 </html>

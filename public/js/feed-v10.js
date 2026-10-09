@@ -32,6 +32,7 @@ const Feed = {
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     this.listings.forEach(l => l.fresh = true);
+    BG.clear();
     this.render();
     document.getElementById("feed").scrollTop = 0;
     this.cooldownUntil = now + this.COOLDOWN_S * 1000;
@@ -89,7 +90,7 @@ const Feed = {
     const nudge = Feed.spriteNudge[l.sprite] || 0;
     return `
     <article class="card" data-id="${l.id}">
-      <div class="photo">
+      <div class="photo" style="background-image:url(${BG.urlFor(l)})">
         ${l.fresh ? '<div class="just-listed">Just listed</div>' : ""}
         <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false" style="margin-top:${8 + nudge}px">
         <div class="card-cond">${l.condition}</div>

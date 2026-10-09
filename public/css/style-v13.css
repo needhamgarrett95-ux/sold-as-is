@@ -58,7 +58,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .card { position: relative; background: transparent; border: none; cursor: pointer; min-width: 0; }
 .card:active { transform: scale(.98); }
 .card .photo { height: 150px; border-radius: 8px; overflow: hidden;
-  background: linear-gradient(135deg, #e8e4d8, #d5d0c0);
+  background-color: #e8e4d8; background-size: cover; background-position: center;
+  image-rendering: pixelated;
   position: relative; text-align: center; }
 .card .photo img { max-width: 140px; max-height: 125px; width: auto; height: auto;
   margin-top: 8px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.2)); }

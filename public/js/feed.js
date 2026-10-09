@@ -37,7 +37,6 @@ const Feed = {
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     this.listings.forEach(l => l.fresh = true);
-    BG.clear();
     this.render();
     document.getElementById("feed").scrollTop = 0;
     this.cooldownUntil = now + this.COOLDOWN_S * 1000;

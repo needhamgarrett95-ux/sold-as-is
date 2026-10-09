@@ -27,7 +27,12 @@ const Feed = {
 
   refresh() {
     const now = Date.now();
-    if (now < this.cooldownUntil) return;
+    if (now < this.cooldownUntil) {
+      const remain = Math.ceil((this.cooldownUntil - now) / 1000);
+      const m = Math.floor(remain / 60), s = remain % 60;
+      UI.toast(`Refresh available in ${m}:${String(s).padStart(2, "0")}`);
+      return;
+    }
     // Fresh random batch replaces current feed
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
@@ -101,7 +106,11 @@ const Feed = {
   render() {
     document.getElementById("feed").innerHTML =
       this.listings.map(l => this.card(l)).join("");
-    document.querySelectorAll(".card").forEach(c =>
-      c.addEventListener("click", () => Detail.open(+c.dataset.id)));
+    document.querySelectorAll(".card").forEach(c => {
+      const open = (e) => { e.preventDefault(); Detail.open(+c.dataset.id); };
+      c.addEventListener("click", open);
+      // iOS touch support
+      c.addEventListener("touchend", open, { passive: false });
+    });
   },
 };

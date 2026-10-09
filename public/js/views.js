@@ -31,28 +31,59 @@ const Views = {
     if (n) n.textContent = State.garage.length ? `${State.garage.length}` : "";
   },
 
+  partsFilter: "all",
+
   renderParts() {
-    if (!this.partsShop.length) this.partsShop = genPartsShop(12);
+    if (!this.partsShop.length) this.partsShop = genPartsShop(16);
     const el = document.getElementById("parts-view");
-    el.innerHTML = `<h2>Boneyard</h2>
-      <div class="sub">Moped parts, sold as-is · tap to buy</div>
-      <div class="parts-shop-grid">` +
-      this.partsShop.map((p, i) => `
-      <div class="shop-part state-${p.state}">
-        <img src="${p.img}" alt="${p.partLabel}" loading="lazy">
-        <div class="shop-part-name">${p.partLabel}</div>
-        <div class="shop-part-fit">${p.bikeBrand} ${p.bikeModel}</div>
-        <div class="shop-part-state">${p.stateLabel}</div>
-        <div class="shop-part-buy">
-          <span class="shop-part-price">${money(p.price)}</span>
-          <button data-buy-part="${i}">Buy</button>
+    // Bike filter options
+    const bikeOpts = [`<option value="all">All bikes</option>`].concat(
+      BIKES.map(b => `<option value="${b.sprite}"${this.partsFilter === b.sprite ? " selected" : ""}>${b.brand} ${b.name}</option>`)
+    ).join("");
+    const shown = this.partsShop
+      .map((p, i) => ({ ...p, idx: i }))
+      .filter(p => this.partsFilter === "all" || p.bikeSprite === this.partsFilter);
+    el.innerHTML = `
+      <div class="eby-head">
+        <div class="eby-title">🛵 Find parts that fit</div>
+        <select id="parts-bike-filter" class="eby-filter">${bikeOpts}</select>
+      </div>
+      <div class="eby-list">` +
+      (shown.length ? shown.map(p => `
+      <div class="eby-item">
+        <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy"></div>
+        <div class="eby-info">
+          <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
+          <div class="eby-cond">${p.stateLabel}</div>
+          <div class="eby-price-row">
+            <span class="eby-price">${money(p.price)}</span>
+            ${p.wasPrice ? `<span class="eby-was">${money(p.wasPrice)}</span>` : ""}
+          </div>
+          <div class="eby-meta">Buy It Now</div>
+          <div class="eby-meta">Free delivery</div>
+          <div class="eby-meta">${p.watchers} watchers</div>
+          <button class="eby-buy" data-buy-part="${p.idx}">Buy It Now</button>
         </div>
-      </div>`).join("") + `</div>`;
-    el.querySelectorAll("[data-buy-part]").forEach(btn =>
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.buyPart(+btn.dataset.buyPart);
-      }));
+      </div>`).join("")
+      : `<div class="empty"><strong>No parts for this bike</strong>Try a different model.</div>`) +
+      `</div>`;
+    document.getElementById("parts-bike-filter").addEventListener("change", (e) => {
+      this.partsFilter = e.target.value;
+      this.renderParts();
+    });
+    el.querySelectorAll("[data-buy-part]").forEach(btn => {
+      const buy = (e) => { e.preventDefault(); e.stopPropagation(); this.buyPart(+btn.dataset.buyPart); };
+      btn.addEventListener("click", buy);
+      let ty = 0, tx = 0;
+      btn.addEventListener("touchstart", (e) => {
+        ty = e.touches[0].clientY; tx = e.touches[0].clientX;
+      }, { passive: true });
+      btn.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - ty);
+        const dx = Math.abs(e.changedTouches[0].clientX - tx);
+        if (dy < 10 && dx < 10) buy(e);
+      }, { passive: false });
+    });
   },
 
   buyPart(i) {

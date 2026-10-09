@@ -145,11 +145,14 @@ function genPartsShop(n = 12) {
     // V4: pristine only for now (variants coming)
     const state = "pristine";
     const price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
+    // eBay flavor: watchers + strikethrough "was" price
+    const watchers = 1 + ((Math.random() * 14) | 0);
+    const wasPrice = Math.random() < 0.4 ? Math.round(price * (1.1 + Math.random() * 0.25)) : null;
     out.push({
       id: i, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
       partKey: part.key, partLabel: part.label, state,
       stateLabel: PART_STATE_LABEL[state],
-      price, img: partImg(bike.sprite, part.key, state),
+      price, wasPrice, watchers, img: partImg(bike.sprite, part.key, state),
     });
   }
   return out;

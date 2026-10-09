@@ -5,9 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
   Feed.init();
   UI.refreshCash();
   Views.initPartsFilter();
-  if (hadSave) {
-    UI.toast("Welcome back! Progress restored.");
-  }
   // Auto-save every 30s and when app goes to background
   setInterval(() => Save.save(), 30000);
   document.addEventListener("visibilitychange", () => {

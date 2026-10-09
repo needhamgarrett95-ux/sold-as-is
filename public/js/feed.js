@@ -2,21 +2,29 @@
 const Feed = {
   listings: [],
   nextId: 0,
-  batchSize: 10, // 5 rows x 2 cols, locked
+  batchSize: 16, // 8 rows x 2 cols, locked
+  filter: "all",
 
   init() {
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     this.render();
-    // No infinite scroll — feed is locked to 5 rows, refresh for new batch
+    // No infinite scroll — feed is locked to 8 rows, refresh for new batch
     // (auto dropFresh removed — it caused random layout breaks)
   },
 
-  dropFresh() {
-    const fresh = genListings(2, this.nextId);
-    this.nextId += 2;
-    fresh.forEach(l => l.fresh = true);
-    this.listings.unshift(...fresh);
+  // Filter predicates for the category tabs
+  matchesFilter(l) {
+    switch (this.filter) {
+      case "under500": return l.price < 500;
+      case "runners": return ["Mint", "Clean", "Good", "Fair"].includes(l.condition);
+      case "projects": return ["Rough", "Non-runner", "Parts bike"].includes(l.condition);
+      default: return true;
+    }
+  },
+
+  setFilter(f) {
+    this.filter = f;
     this.render();
   },
 
@@ -103,8 +111,10 @@ const Feed = {
   },
 
   render() {
+    const shown = this.listings.filter(l => this.matchesFilter(l));
     document.getElementById("feed").innerHTML =
-      this.listings.map(l => this.card(l)).join("");
+      shown.length ? shown.map(l => this.card(l)).join("")
+        : `<div class="empty"><strong>No matches</strong>Try a different category or refresh for new listings.</div>`;
     document.querySelectorAll(".card").forEach(c => {
       const open = (e) => { e.preventDefault(); Detail.open(+c.dataset.id); };
       c.addEventListener("click", open);

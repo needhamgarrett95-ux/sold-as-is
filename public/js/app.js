@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     c.addEventListener("click", () => {
       document.querySelectorAll("#cats a").forEach(x => x.classList.remove("active"));
       c.classList.add("active");
-      UI.toast(`Showing: ${c.textContent} (filter coming soon)`);
+      Feed.setFilter(c.dataset.filter);
     }));
   console.log("Sold As-Is: marketplace feed live.");
 });

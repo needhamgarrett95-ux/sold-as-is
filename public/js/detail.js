@@ -123,7 +123,7 @@ const Detail = {
       <button class="back-btn" id="d-back">← Back</button>
       <div class="d-photo">
         <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" draggable="false">
-        <div class="photo-count">📷 ${l.photos}</div>
+        <div class="photo-count">${Icon.get('camera')} ${l.photos}</div>
       </div>
       <div class="d-body">
         <div class="price-row">
@@ -135,7 +135,7 @@ const Detail = {
         <p class="desc">${l.description}</p>
         <div class="seller">
           <div class="avatar">${l.seller[0].toUpperCase()}</div>
-          <div><strong>${l.seller}</strong><div class="meta">★ ${l.sellerRating} seller rating</div></div>
+          <div><strong>${l.seller}</strong><div class="meta">${Icon.get('star')} ${l.sellerRating} seller rating</div></div>
         </div>
         <div class="cond-report">
           <h3>Condition Report</h3>
@@ -154,7 +154,7 @@ const Detail = {
           this.thread.map(m => `<div class="msg ${m.from}">${m.text}</div>`).join("") + `</div>` : ""}
         ${this.notice ? `<div class="notice">${this.notice}</div>` : ""}
         <div class="msg-seller-card">
-          <div class="msg-seller-head">💬 Message seller</div>
+          <div class="msg-seller-head">${Icon.get('chat')} Message seller</div>
           <div class="msg-seller-row">
             <input id="offer-input" type="text" inputmode="numeric" pattern="[0-9]*"
               placeholder="Make an offer... ($)" autocomplete="off">

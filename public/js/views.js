@@ -1,9 +1,9 @@
 // Sold As-Is — garage & collection views
 const SITES = {
-  market:     { tab: "Sold As-Is — Mopeds for sale", url: "soldasis.place/mopeds",     icon: "🏍" },
-  parts:      { tab: "Boneyard — Moped parts",       url: "boneyard.place",              icon: "⚙️" },
-  garage:     { tab: "Sold As-Is — My Garage",       url: "soldasis.place/garage",     icon: "🔧" },
-  collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "🏆" },
+  market:     { tab: "Sold As-Is — Mopeds for sale", url: "soldasis.place/mopeds",     icon: "moped" },
+  parts:      { tab: "Boneyard — Moped parts",       url: "boneyard.place",              icon: "gear" },
+  garage:     { tab: "Sold As-Is — My Garage",       url: "soldasis.place/garage",     icon: "wrench" },
+  collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "trophy" },
 };
 
 const Views = {
@@ -371,7 +371,7 @@ const Views = {
     el.innerHTML = `
       <div class="haggle-modal">
         <div class="haggle-head">
-          <button class="haggle-close" id="haggle-close">✕</button>
+          <button class="haggle-close" id="haggle-close">${Icon.get('close')}</button>
           <div class="haggle-title">${title}</div>
           <div class="haggle-sub">Asking ${money(l.askPrice)} · Offer ${money(offer.amount)}</div>
         </div>
@@ -634,7 +634,7 @@ const Views = {
         <div class="sell-price-inputrow">
           <input type="number" inputmode="numeric" id="sell-price-${idx}" value="${marketPrice}" min="1">
           <button class="eby-confirm" data-confirm-sell="${idx}" data-ltype="${listType}">${btnText}</button>
-          <button class="eby-cancel" data-cancel-sell>✕</button>
+          <button class="eby-cancel" data-cancel-sell>${Icon.get('close')}</button>
         </div>
       </div>`;
       const input = el.querySelector(`#sell-price-${idx}`);
@@ -1060,7 +1060,7 @@ const Views = {
     if (this.boneyardTab === "sell") {
       el.innerHTML = `
       <div class="eby-head">
-        <div class="eby-title">🛵 Find parts that fit</div>
+        <div class="eby-title">${Icon.get('scooter')} Find parts that fit</div>
       </div>` + btabHtml + this.myListingsHTML();
       if (preserve) el.scrollTop = scrollY;
       this.bindMyListings(el);
@@ -1068,7 +1068,7 @@ const Views = {
     }
     el.innerHTML = `
       <div class="eby-head">
-        <div class="eby-title">🛵 Find parts that fit</div>
+        <div class="eby-title">${Icon.get('scooter')} Find parts that fit</div>
       </div>` + btabHtml + `
       <div class="eby-typefilter">
         <button class="eby-type${this.typeFilter === "all" ? " active" : ""}" data-type="all">All</button>
@@ -1220,9 +1220,9 @@ const Views = {
     const el = document.getElementById("garage-view");
     const tabs = `
       <div class="g-tabs">
-        <button class="g-tab${this.garageTab === "bikes" ? " active" : ""}" data-gtab="bikes">🏍 Bikes${State.garage.length ? ` (${State.garage.length})` : ""}</button>
-        <button class="g-tab${this.garageTab === "parts" ? " active" : ""}" data-gtab="parts">⚙️ Parts${State.parts && State.parts.length ? ` (${State.parts.length})` : ""}</button>
-        <button class="g-tab${this.garageTab === "assemble" ? " active" : ""}" data-gtab="assemble">🔧 Assemble</button>
+        <button class="g-tab${this.garageTab === "bikes" ? " active" : ""}" data-gtab="bikes">${Icon.get('moped')} Bikes${State.garage.length ? ` (${State.garage.length})` : ""}</button>
+        <button class="g-tab${this.garageTab === "parts" ? " active" : ""}" data-gtab="parts">${Icon.get('gear')} Parts${State.parts && State.parts.length ? ` (${State.parts.length})` : ""}</button>
+        <button class="g-tab${this.garageTab === "assemble" ? " active" : ""}" data-gtab="assemble">${Icon.get('wrench')} Assemble</button>
       </div>`;
     if (this.garageTab === "parts") {
       el.innerHTML = tabs + this.partsInventoryHTML();
@@ -1261,7 +1261,7 @@ const Views = {
         </div>
         <div class="card-info">
           <div class="card-price-name"><strong>${money(b.boughtFor)}</strong> &middot; ${b.brand} ${b.model}</div>
-          <div class="card-loc">${b.kept ? "★ In collection" : "Pending"}</div>
+          <div class="card-loc">${b.kept ? "${Icon.get('star')} In collection" : "Pending"}</div>
         </div>
       </article>`).join("") + `</div>`;
   },
@@ -1288,9 +1288,9 @@ const Views = {
           </div>
         </div>
         <div class="g-detail-actions">
-          <button class="btn-list" data-gact="list">📋 List on Marketplace</button>
-          <button class="btn-keep" data-gact="keep">${b.kept ? "★ In Collection" : "🏆 Add to Collection"}</button>
-          <button class="btn-strip" data-gact="partout">🔧 Part Out</button>
+          <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
+          <button class="btn-keep" data-gact="keep">${b.kept ? "${Icon.get('star')} In Collection" : "${Icon.get('trophy')} Add to Collection"}</button>
+          <button class="btn-strip" data-gact="partout">${Icon.get('wrench')} Part Out</button>
         </div>
         ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}
       </div>`;
@@ -1304,7 +1304,7 @@ const Views = {
         <div class="empty"><strong>No parts yet</strong>Part out a bike or buy from the Boneyard.</div>`;
     }
     return `<div class="pane-head"><h2>Parts Inventory</h2>
-      <div class="sub">${parts.length} part(s) in storage · tap 🔧 to repair</div></div>
+      <div class="sub">${parts.length} part(s) in storage · tap ${Icon.get('wrench')} to repair</div></div>
       <div class="eby-list">` +
       parts.map((p, i) => {
         const pct = ensurePct(p);
@@ -1328,9 +1328,9 @@ const Views = {
             if (tooFarGone) return `<div class="eby-meta" style="color:#f44336">Too far gone to repair</div>`;
             if (left <= 0) return `<div class="eby-meta" style="color:#999">No repairs left</div>`;
             if (!canRepair) return `<div class="eby-meta" style="color:#4caf50">Max condition reached</div>`;
-            return `<button class="eby-repair" data-repair="${i}">🔧 Repair — ${money(cost)} (${left} left)</button>`;
+            return `<button class="eby-repair" data-repair="${i}">${Icon.get('wrench')} Repair — ${money(cost)} (${left} left)</button>`;
           })()}
-          <button class="eby-sell" data-sell-part="${i}">💰 Sell This Part</button>
+          <button class="eby-sell" data-sell-part="${i}">${Icon.get('cash')} Sell This Part</button>
         </div>
       </div>`;
       }).join("") + `</div>`;
@@ -1498,9 +1498,9 @@ const Views = {
         const marketPrice = Math.round((PART_BASE_PRICE[p.partKey] || 20) * (PART_COND_MULT[state] || 0.3));
         // Show listing type choice
         b.outerHTML = `<div class="sell-type-row">
-          <button class="eby-typechoice" data-listtype="fixed" data-idx="${idx}">💰 Fixed Price</button>
-          <button class="eby-typechoice" data-listtype="auction" data-idx="${idx}">🔨 Auction</button>
-          <button class="eby-cancel" data-cancel-sell>✕</button>
+          <button class="eby-typechoice" data-listtype="fixed" data-idx="${idx}">${Icon.get('cash')} Fixed Price</button>
+          <button class="eby-typechoice" data-listtype="auction" data-idx="${idx}">${Icon.get('gavel')} Auction</button>
+          <button class="eby-cancel" data-cancel-sell>${Icon.get('close')}</button>
         </div>`;
         el.querySelectorAll("[data-listtype]").forEach(tb =>
           tb.addEventListener("click", () => this.showPartPriceInput(el, idx, tb.dataset.listtype, marketPrice)));
@@ -1522,7 +1522,7 @@ const Views = {
         btn.outerHTML = `<div class="sell-price-row">
           <input type="number" inputmode="numeric" id="bike-list-price" value="${suggest}" min="1">
           <button class="eby-confirm" id="bike-list-confirm">List</button>
-          <button class="eby-cancel" id="bike-list-cancel">✕</button>
+          <button class="eby-cancel" id="bike-list-cancel">${Icon.get('close')}</button>
         </div>`;
         const input = document.getElementById("bike-list-price");
         const confirm = document.getElementById("bike-list-confirm");
@@ -1624,7 +1624,7 @@ const Views = {
       <div class="set-row">
         <div class="set-name">${s.brand} — ${s.owned}/${s.total}</div>
         <div class="set-slots">${Array.from({ length: s.total }, (_, i) =>
-          `<div class="slot ${i < s.owned ? "filled" : ""}">${i < s.owned ? "✓" : "?"}</div>`).join("")}
+          `<div class="slot ${i < s.owned ? "filled" : ""}">${i < s.owned ? "${Icon.get('check')}" : "?"}</div>`).join("")}
         </div>
       </div>`).join("");
   },

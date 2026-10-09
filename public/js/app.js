@@ -1,5 +1,7 @@
 // Sold As-Is — app entry point
 document.addEventListener("DOMContentLoaded", () => {
+  // Hydrate custom icons
+  Icon.hydrate();
   // Load saved progress (after Views is defined)
   const hadSave = Save.load();
   Feed.init();

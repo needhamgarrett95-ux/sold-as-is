@@ -36,13 +36,13 @@
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
     </div>
     <div id="tabstrip">
-      <button class="wtab active" data-view="market"><span class="tab-icon">🏍</span> Sold As-Is</button>
-      <button class="wtab" data-view="parts"><span class="tab-icon">⚙️</span> Boneyard</button>
-      <button class="wtab" data-view="garage"><span class="tab-icon">🔧</span> Garage</button>
-      <button class="wtab" data-view="collection"><span class="tab-icon">🏆</span> Collection</button>
+      <button class="wtab active" data-view="market"><span class="tab-icon" data-icon="moped"></span> Sold As-Is</button>
+      <button class="wtab" data-view="parts"><span class="tab-icon" data-icon="gear"></span> Boneyard</button>
+      <button class="wtab" data-view="garage"><span class="tab-icon" data-icon="wrench"></span> Garage</button>
+      <button class="wtab" data-view="collection"><span class="tab-icon" data-icon="trophy"></span> Collection</button>
     </div>
     <div class="urlbar">
-      <span class="lock">🔒</span><span class="url">soldasis.place/mopeds</span>
+      <span class="lock" data-icon="lock"></span><span class="url">soldasis.place/mopeds</span>
       <button class="url-refresh" id="refresh-btn" title="Refresh listings">↻</button>
       <div class="url-wallet" id="cash">$1,500</div>
     </div>
@@ -50,7 +50,7 @@
   <div id="site">
     <header id="site-header">
       <div class="logo" id="logo-main">sold <span>as-is</span></div>
-      <div class="logo logo-boneyard hidden" id="logo-boneyard">🦴 bone<span>yard</span></div>
+      <div class="logo logo-boneyard hidden" id="logo-boneyard"><span data-icon="bone"></span> bone<span>yard</span></div>
       <div class="search" id="site-search"><input type="text" id="market-search" placeholder="Search mopeds, brands..." autocomplete="off"></div>
       <select id="parts-bike-filter" class="eby-filter hidden"></select>
     </header>
@@ -70,6 +70,7 @@
 <script src="js/data.js"></script>
 <script src="js/parts_manifest.js"></script>
 <script src="js/state.js"></script>
+<script src="js/icons.js"></script>
 <script src="js/feed.js"></script>
 <script src="js/detail.js"></script>
 <script src="js/views.js"></script>

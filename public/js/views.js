@@ -639,15 +639,19 @@ const Views = {
 
   showPartPriceInput(el, idx, listType, marketPrice) {
     const isAuction = listType === "auction";
-    const label = isAuction ? "Starting bid" : "Price";
     const btnText = isAuction ? "Start Auction (60s)" : "List";
+    const part = (State.parts || [])[idx];
+    const paid = part && part.paidPrice ? money(part.paidPrice) : "—";
     // Replace the type row with price input
     const row = el.querySelector(".sell-type-row");
     if (row) {
       row.outerHTML = `<div class="sell-price-row">
-        <input type="number" inputmode="numeric" id="sell-price-${idx}" value="${marketPrice}" min="1">
-        <button class="eby-confirm" data-confirm-sell="${idx}" data-ltype="${listType}">${btnText}</button>
-        <button class="eby-cancel" data-cancel-sell>✕</button>
+        <div class="sell-price-info">Fair market: <strong>${money(marketPrice)}</strong> · You paid: <strong>${paid}</strong></div>
+        <div class="sell-price-inputrow">
+          <input type="number" inputmode="numeric" id="sell-price-${idx}" value="${marketPrice}" min="1">
+          <button class="eby-confirm" data-confirm-sell="${idx}" data-ltype="${listType}">${btnText}</button>
+          <button class="eby-cancel" data-cancel-sell>✕</button>
+        </div>
       </div>`;
       const input = el.querySelector(`#sell-price-${idx}`);
       const confirmBtn = el.querySelector(`[data-confirm-sell="${idx}"]`);
@@ -1190,6 +1194,7 @@ const Views = {
     }
     State.cash -= p.price;
     State.parts = State.parts || [];
+    p.paidPrice = p.price; // track what we paid
     State.parts.push(p);
     this.partsShop.splice(i, 1);
     UI.refreshCash();
@@ -1534,12 +1539,14 @@ const Views = {
     const avail = availableParts(bike.sprite);
     State.parts = State.parts || [];
     // Each part inherits the bike's part condition
+    const costPerPart = Math.round((bike.boughtFor || 0) / Math.max(1, avail.length));
     for (const p of avail) {
       const state = (bike.partStates && bike.partStates[p.key]) || "pristine";
       State.parts.push({
         partKey: p.key, partLabel: p.label,
         bikeBrand: bike.brand, bikeModel: bike.model, bikeSprite: bike.sprite,
         state, stateLabel: PART_STATE_LABEL[state],
+        paidPrice: costPerPart, // share of what we paid for the bike
         img: partImg(bike.sprite, p.key, "pristine"), // V4: pristine art for now
       });
     }

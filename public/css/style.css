@@ -504,7 +504,7 @@ button:focus { outline: none !important; box-shadow: none !important; }
 
 /* Base: constrain content width on large screens */
 @media (min-width: 768px) {
-  body { max-width: 900px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,.1); }
+  body { max-width: 1200px; margin: 0 auto; }
   #feed { grid-template-columns: repeat(3, 1fr); }
 }
 
@@ -525,7 +525,7 @@ button:focus { outline: none !important; box-shadow: none !important; }
 
 /* iPad landscape and desktop */
 @media (min-width: 1024px) {
-  body { max-width: 1100px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,.1); }
+  body { max-width: 1400px; margin: 0 auto; }
   #feed { grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 14px; }
   /* Center modals instead of bottom sheets */
   #part-detail, #cart-view, #seller-haggle { align-items: center; padding: 20px; }
@@ -542,4 +542,9 @@ button:focus { outline: none !important; box-shadow: none !important; }
   .pd-photo { height: 140px; }
   .pd-photo img { max-height: 120px; }
   .pd-body { padding: 12px; }
+}
+
+@media (min-width: 1600px) {
+  body { max-width: 1600px; }
+  #feed { grid-template-columns: repeat(5, 1fr); }
 }

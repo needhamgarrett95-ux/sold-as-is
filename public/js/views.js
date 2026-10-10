@@ -335,7 +335,7 @@ const Views = {
       : 0.80 + Math.random() * 0.15;
     // Smooth Talker: buyers open higher and stretch further
     const stBonus = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
-    // Slick listing copy swindles buyers closer to asking (sell score 0-3 → up to +9%)
+    // Well-written honest copy earns buyers' trust (sell score 0-2 → up to +6%)
     const sellScore = this.descSellScore(listing.desc || "");
     const sellBonus = sellScore * 0.03;
     const boostedOffer = Math.round((offerAmount * (1 + stBonus + sellBonus)) / 5) * 5;
@@ -1865,39 +1865,51 @@ const Views = {
     const tier = (typeof Skills !== "undefined") ? Skills.unlocked["smoothtalker"] || 0 : 0;
     const top = ["Mint", "Clean"];
     const mid = ["Good", "Fair"];
-    const base = top.includes(cond) ? [
-      { t: "Showroom condition. Meticulously maintained, always garaged.", sell: 1 },
-      { t: "Collector quality. All original, runs like new.", sell: 1 },
-      { t: "Stunning example. Turn-key and ready to ride.", sell: 1 },
-    ] : mid.includes(cond) ? [
-      { t: "Solid rider. Starts easy, runs strong.", sell: 0 },
-      { t: "Good honest bike. Some patina, mechanically sound.", sell: 0 },
-      { t: "Daily rider ready. Just serviced, new plug.", sell: 0 },
-    ] : [
-      { t: "Project bike. Sold as-is, priced accordingly.", sell: 0 },
-      { t: "Barn find. Needs work but all there.", sell: 0 },
-      { t: "For restoration or parts. Bring a trailer.", sell: 0 },
-    ];
-    // Tier unlocks: polished → salesy → swindler
-    const unlocks = {
-      1: [
-        { t: "Clean title in hand. Fires right up, idles smooth.", sell: 1 },
-        { t: "Turn-key classic. Ready for the road today.", sell: 1 },
+    // Every description is honest to the bike's actual condition.
+    // Higher Smooth Talker tiers unlock better-written honest copy, never lies.
+    // sell score: 0 = plain honest, 1 = well-written honest, 2 = compelling honest
+    const copy = {
+      top: [
+        // Tier 0 — honest basics
+        { t: "Clean bike. Runs well, no major issues.", sell: 0 },
+        { t: "Good condition. Starts up and rides fine.", sell: 0 },
+        { t: "Solid bike. Everything works as it should.", sell: 0 },
+        // Tier 1 — polished honest
+        { t: "Showroom condition. Meticulously maintained, always garaged.", sell: 1 },
+        { t: "Collector quality. All original, runs like new.", sell: 1 },
+        // Tier 2 — compelling honest
+        { t: "Stunning example. Turn-key and ready to ride today.", sell: 2 },
+        { t: "Clean title in hand. Fires right up, idles smooth.", sell: 2 },
       ],
-      2: [
-        { t: "Head-turner. Gets compliments at every stoplight.", sell: 2 },
-        { t: "Investment-grade. These only go up in value.", sell: 2 },
+      mid: [
+        // Tier 0 — honest basics
+        { t: "Runs and rides. Has some wear, priced fairly.", sell: 0 },
+        { t: "Decent bike. Some cosmetic wear, mechanically okay.", sell: 0 },
+        { t: "Usable bike. Not perfect, but gets you around.", sell: 0 },
+        // Tier 1 — polished honest
+        { t: "Solid rider. Starts easy, runs strong.", sell: 1 },
+        { t: "Good honest bike. Some patina, mechanically sound.", sell: 1 },
+        // Tier 2 — compelling honest
+        { t: "Daily rider ready. Just serviced, new plug.", sell: 2 },
+        { t: "Honest miles, honest price. Ready to ride home.", sell: 2 },
       ],
-      3: [
-        { t: "One-owner garage queen. Babied its whole life.", sell: 3 },
-        { t: "Priced to move but worth every penny. Won't last.", sell: 3 },
+      rough: [
+        // Tier 0 — honest basics
+        { t: "Project bike. Needs work, sold as-is.", sell: 0 },
+        { t: "Rough condition. For someone who wrenches.", sell: 0 },
+        { t: "Not running right. Priced for the condition.", sell: 0 },
+        // Tier 1 — polished honest
+        { t: "Project bike. Sold as-is, priced accordingly.", sell: 1 },
+        { t: "Barn find. Needs work but all there.", sell: 1 },
+        // Tier 2 — compelling honest
+        { t: "For restoration or parts. Bring a trailer.", sell: 2 },
+        { t: "Mechanic's special. Know what you're getting into.", sell: 2 },
       ],
     };
-    let out = [...base];
-    for (let t = 1; t <= tier; t++) {
-      if (unlocks[t]) out = out.concat(unlocks[t]);
-    }
-    return out;
+    const pool = top.includes(cond) ? copy.top : mid.includes(cond) ? copy.mid : copy.rough;
+    // Tier 0 sees first 3, tier 1 sees first 5, tier 2+ sees all 7
+    const count = tier >= 2 ? 7 : tier >= 1 ? 5 : 3;
+    return pool.slice(0, count);
   },
 
   // Fun condition-matching blurb for Boneyard part listings
@@ -1928,7 +1940,7 @@ const Views = {
     return arr[(Math.random() * arr.length) | 0];
   },
 
-  // Sell score of a listing's description (0-3), drives buyer generosity
+  // Sell score of a listing's description (0-2), drives buyer trust
   descSellScore(desc) {
     const all = this.descPresets("Mint").concat(this.descPresets("Good")).concat(this.descPresets("Rough"));
     const found = all.find(p => p.t === desc);

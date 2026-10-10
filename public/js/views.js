@@ -2468,6 +2468,9 @@ const Views = {
     r.partStates = r.partStates || {};
     r.partStates[partKey] = part.state || "used_good";
     r.missingParts = r.missingParts.filter(k => k !== partKey);
+    // You installed it yourself — no need to reveal, you know the condition
+    r.revealedParts = r.revealedParts || [];
+    if (!r.revealedParts.includes(partKey)) r.revealedParts.push(partKey);
     this.rollerPickSlot = null;
     // Track install cost for XP basis
     r.installedCost = (r.installedCost || 0) + (part.paidPrice || 0);
@@ -2485,7 +2488,12 @@ const Views = {
     // Mark missing parts in partStates so they show in listings
     r.partStates = r.partStates || {};
     (r.missingParts || []).forEach(k => { r.partStates[k] = "missing"; });
-    r.condition = missing > 0 ? "Rough" : "Good";
+    // Recalculate true condition from parts (not just Rough/Good)
+    if (typeof calcBikeCondition !== "undefined") {
+      r.condition = calcBikeCondition(r.partStates, r.sprite);
+    } else {
+      r.condition = missing > 0 ? "Rough" : "Good";
+    }
     r.fairValue = this.rollerValue(r);
     // Clear the missing list since it's now encoded in partStates
     r.missingParts = [];

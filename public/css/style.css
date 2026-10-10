@@ -688,5 +688,10 @@ button.settings-item:active { background: #faf6f1; }
 .music-popup-track .music-note { color: #febc2e; }
 #music-track-name { font-size: .85rem; font-weight: 700; }
 .music-popup-controls { display: flex; justify-content: center; gap: 8px; padding: 10px; border-bottom: 1px solid #f0ebe4; }
-.music-popup-controls button { background: #262b32; border: none; color: #dfe3e8; font-size: 1.1rem; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; }
+.music-popup-controls button { background: #262b32; border: none; color: #dfe3e8; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .music-popup-controls button:active { transform: scale(.92); background: #3a4048; }
+.music-popup-controls button svg { width: 22px; height: 22px; }
+.music-note-btn { color: #febc2e !important; }
+.music-note-btn svg { width: 18px; height: 18px; stroke-width: 2.6; }
+.music-note-icon { display: inline-flex; color: #febc2e; }
+.music-note-icon svg { width: 20px; height: 20px; }

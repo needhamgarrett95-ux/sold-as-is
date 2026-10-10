@@ -26,14 +26,7 @@ const AudioEngine = {
     this.sfxTyping.preload = "auto";
     this.sfxTouch = new Audio("audio/sfx-touch-b.mp3");
     this.sfxTouch.preload = "auto";
-    // Start music (after user gesture — iOS requirement)
-    const startOnGesture = () => {
-      if (this.musicOn) this.playMusic();
-      document.removeEventListener("touchstart", startOnGesture);
-      document.removeEventListener("click", startOnGesture);
-    };
-    document.addEventListener("touchstart", startOnGesture, { once: true });
-    document.addEventListener("click", startOnGesture, { once: true });
+    // Music starts only when the player taps play (no autoplay)
   },
 
   savePrefs() {
@@ -55,6 +48,8 @@ const AudioEngine = {
       this.music.src = t.file;
     }
     this.music.play().catch(() => {});
+    this.music.onplay = () => this.updatePlayerUI();
+    this.music.onpause = () => this.updatePlayerUI();
     this.updatePlayerUI();
   },
 
@@ -113,8 +108,13 @@ const AudioEngine = {
   updatePlayerUI() {
     const t = document.getElementById("music-track-name");
     if (t) t.textContent = this.tracks[this.currentTrack].name;
-    const btn = document.getElementById("music-toggle");
-    if (btn) btn.textContent = this.musicOn ? "⏸" : "▶";
+    const icon = document.getElementById("music-toggle-icon");
+    if (icon) {
+      // Swap play/pause SVG
+      const playing = this.musicOn && this.music && !this.music.paused;
+      icon.setAttribute("data-icon", playing ? "pause" : "play");
+      if (typeof Icon !== "undefined") Icon.hydrate(icon.parentElement);
+    }
   },
 
   renderPlayer() {

@@ -8,8 +8,8 @@
 <title>Sold As-Is</title>
 <link rel="icon" type="image/png" href="app-icon.png">
 <link rel="apple-touch-icon" href="app-icon.png">
-<link rel="stylesheet" href="css/style.css?v=aud02">
-<link rel="stylesheet" href="css/login.css?v=aud02">
+<link rel="stylesheet" href="css/style.css?v=aud03">
+<link rel="stylesheet" href="css/login.css?v=aud03">
 </head>
 <body>
 <!-- Login / splash screen -->
@@ -34,19 +34,19 @@
   <div id="chrome">
     <div class="traffic">
       <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-      <button class="settings-cog" id="music-note" title="Music" aria-label="Music" style="margin-left:0"><span style="font-size:14px">♪</span></button>
       <button class="settings-cog" id="settings-cog" title="Settings" aria-label="Settings"><span data-icon="gear"></span></button>
+      <button class="settings-cog music-note-btn" id="music-note" title="Music" aria-label="Music"><span data-icon="music"></span></button>
     </div>
     <div class="music-popup hidden" id="music-popup">
       <div class="settings-head">Now Playing</div>
       <div class="music-popup-track">
-        <span class="music-note" style="font-size:1.2rem">♪</span>
+        <span class="music-note-icon" data-icon="music"></span>
         <span id="music-track-name">—</span>
       </div>
       <div class="music-popup-controls">
-        <button id="music-prev" aria-label="Previous">⏮</button>
-        <button id="music-toggle" aria-label="Play/Pause">⏸</button>
-        <button id="music-next" aria-label="Next">⏭</button>
+        <button id="music-prev" aria-label="Previous"><span data-icon="prev"></span></button>
+        <button id="music-toggle" aria-label="Play/Pause"><span data-icon="pause" id="music-toggle-icon"></span></button>
+        <button id="music-next" aria-label="Next"><span data-icon="next"></span></button>
       </div>
       <button class="settings-item" id="music-sfx-toggle">Sound effects <span class="settings-sub" id="music-sfx-sub">on</span></button>
     </div>
@@ -89,16 +89,16 @@
     <footer id="site-footer">Sold As-Is © 2026 · Sold as-is. No warranties, no take-backs. · <a>Terms</a> · <a>Privacy</a></footer>
   </div>
 </div>
-<script src="js/data.js?v=aud02"></script>
-<script src="js/parts_manifest.js?v=aud02"></script>
-<script src="js/state.js?v=aud02"></script>
-<script src="js/skills.js?v=aud02"></script>
-<script src="js/icons.js?v=aud02"></script>
-<script src="js/feed.js?v=aud02"></script>
-<script src="js/detail.js?v=aud02"></script>
-<script src="js/views.js?v=aud02"></script>
-<script src="js/app.js?v=aud02"></script>
-<script src="js/login.js?v=aud02"></script>
-<script src="js/audio.js?v=aud02"></script>
+<script src="js/data.js?v=aud03"></script>
+<script src="js/parts_manifest.js?v=aud03"></script>
+<script src="js/state.js?v=aud03"></script>
+<script src="js/skills.js?v=aud03"></script>
+<script src="js/icons.js?v=aud03"></script>
+<script src="js/feed.js?v=aud03"></script>
+<script src="js/detail.js?v=aud03"></script>
+<script src="js/views.js?v=aud03"></script>
+<script src="js/app.js?v=aud03"></script>
+<script src="js/login.js?v=aud03"></script>
+<script src="js/audio.js?v=aud03"></script>
 </body>
 </html>

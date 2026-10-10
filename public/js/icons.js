@@ -36,6 +36,17 @@ const Icon = (() => {
     // Bone — boneyard logo (diagonal dog bone, filled knobs)
     bone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9.5 14.5l5-5" stroke-width="4"/><circle cx="7" cy="7" r="2.4" fill="currentColor" stroke="none"/><circle cx="10.2" cy="4.8" r="2.4" fill="currentColor" stroke="none"/><circle cx="17" cy="17" r="2.4" fill="currentColor" stroke="none"/><circle cx="13.8" cy="19.2" r="2.4" fill="currentColor" stroke="none"/></svg>`,
 
+    // Prev track
+    prev: S(`<path d="M6 5v14" stroke-width="2.5"/><path d="M19 5l-9 7 9 7V5z" fill="currentColor" stroke="none"/>`),
+    // Play
+    play: S(`<path d="M8 5l11 7-11 7V5z" fill="currentColor" stroke="none"/>`),
+    // Pause
+    pause: S(`<path d="M8 5v14" stroke-width="3.5"/><path d="M16 5v14" stroke-width="3.5"/>`),
+    // Next track
+    next: S(`<path d="M18 5v14" stroke-width="2.5"/><path d="M5 5l9 7-9 7V5z" fill="currentColor" stroke="none"/>`),
+    // Music note
+    music: S(`<path d="M9 18V6l10-2v12" stroke-width="2.2"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>`),
+
     // Clipboard — list on marketplace
     clipboard: S(`<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4a2 2 0 0 1 6 0M9 11h6M9 15h6"/>`),
 

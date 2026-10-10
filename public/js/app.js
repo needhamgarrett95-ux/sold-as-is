@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Spotify: toggle the embed player
     document.getElementById("settings-spotify")?.addEventListener("click", () => {
       menu.classList.add("hidden");
-      if (typeof SpotifyPlayer !== "undefined") SpotifyPlayer.toggleEmbed();
+      if (typeof SpotifyPlayer !== "undefined") SpotifyPlayer.openInApp();
     });
     // Show the Spotify mini bar
     if (typeof SpotifyPlayer !== "undefined") SpotifyPlayer.renderMiniPlayer();

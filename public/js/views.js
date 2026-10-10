@@ -69,6 +69,8 @@ const Views = {
   partsRefreshesLeft: 3,
   partsCooldownUntil: 0,
   partsCooldownTimer: null,
+  PARTS_COOLDOWN_KEY: "soldasis_parts_cooldown",
+  PARTS_REFRESHES_KEY: "soldasis_parts_refreshes",
 
   refreshParts() {
     const now = Date.now();
@@ -80,10 +82,15 @@ const Views = {
     if (this.partsRefreshesLeft <= 0) {
       // Start 30s cooldown, reset free refreshes after
       this.partsCooldownUntil = now + 30 * 1000;
+      try {
+        localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
+        localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
+      } catch (e) {}
       this.tickPartsCooldown();
       return;
     }
     this.partsRefreshesLeft--;
+    try { localStorage.setItem(this.PARTS_REFRESHES_KEY, String(this.partsRefreshesLeft)); } catch (e) {}
     this.partsShop = genPartsShop(16);
     // Eliseo_M always has a part listed
     this.partsShop.unshift(makeDannyPart(1000 + ((Math.random() * 9000) | 0)));
@@ -103,6 +110,10 @@ const Views = {
     UI.toast(`New parts listings (${this.partsRefreshesLeft} free refreshes left)`);
     if (this.partsRefreshesLeft <= 0) {
       this.partsCooldownUntil = Date.now() + 30 * 1000;
+      try {
+        localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
+        localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
+      } catch (e) {}
       this.tickPartsCooldown();
     } else {
       this.updateRefreshBtn();
@@ -117,6 +128,10 @@ const Views = {
       if (remain <= 0) {
         clearInterval(this.partsCooldownTimer);
         this.partsRefreshesLeft = 3; // reset free refreshes
+        try {
+          localStorage.setItem(this.PARTS_REFRESHES_KEY, "3");
+          localStorage.removeItem(this.PARTS_COOLDOWN_KEY);
+        } catch (e) {}
         this.updateRefreshBtn();
         return;
       }
@@ -131,6 +146,23 @@ const Views = {
 
   updateRefreshBtn() {
     // Called when switching tabs or after cooldown ends
+    // Restore persisted state on first call
+    if (!this._partsRestored) {
+      this._partsRestored = true;
+      try {
+        const savedCooldown = parseInt(localStorage.getItem(this.PARTS_COOLDOWN_KEY) || "0", 10);
+        const savedRefreshes = parseInt(localStorage.getItem(this.PARTS_REFRESHES_KEY) || "3", 10);
+        if (savedCooldown > Date.now()) {
+          this.partsCooldownUntil = savedCooldown;
+          this.partsRefreshesLeft = 0;
+          setTimeout(() => this.tickPartsCooldown(), 100);
+        } else {
+          this.partsRefreshesLeft = isNaN(savedRefreshes) ? 3 : savedRefreshes;
+          // Clear expired cooldown
+          localStorage.removeItem(this.PARTS_COOLDOWN_KEY);
+        }
+      } catch (e) {}
+    }
     const btn = document.getElementById("refresh-btn");
     if (!btn) return;
     if (this.current === "parts") {

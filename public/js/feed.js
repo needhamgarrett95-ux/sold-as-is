@@ -7,6 +7,15 @@ const Feed = {
   search: "",
 
   init() {
+    // Restore cooldown from previous session
+    try {
+      const saved = parseInt(localStorage.getItem(this.COOLDOWN_KEY) || "0", 10);
+      if (saved > Date.now()) {
+        this.cooldownUntil = saved;
+        // Start the visual timer after DOM is ready
+        setTimeout(() => this.tickCooldown(), 100);
+      }
+    } catch (e) {}
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     // Eliseo_M always has a listing up
@@ -49,6 +58,7 @@ const Feed = {
   COOLDOWN_S: 210,
   cooldownUntil: 0,
   cooldownTimer: null,
+  COOLDOWN_KEY: "soldasis_market_cooldown",
 
   refresh() {
     const now = Date.now();
@@ -67,6 +77,7 @@ const Feed = {
     this.render();
     document.getElementById("feed").scrollTop = 0;
     this.cooldownUntil = now + this.COOLDOWN_S * 1000;
+    try { localStorage.setItem(this.COOLDOWN_KEY, String(this.cooldownUntil)); } catch (e) {}
     this.tickCooldown();
     UI.toast("Marketplace refreshed — new listings");
   },

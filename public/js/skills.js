@@ -25,11 +25,11 @@ const SKILL_DEFS = [
     id: "gearhead",
     name: "Gear Head",
     icon: "gear",
-    desc: "Read part condition like a pro.",
+    desc: "See through a seller's lies. Reveals part conditions on marketplace listings — otherwise they're hidden until you buy and inspect in your garage.",
     tiers: [
       "Listings show condition labels (Poor / Fair / Good / Mint).",
       "Listings show exact condition percentage.",
-      "Also reveals hidden defects and estimated repair cost.",
+      "Also flags parts worth a closer look in the garage.",
     ],
   },
   {

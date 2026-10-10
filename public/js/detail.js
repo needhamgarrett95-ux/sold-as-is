@@ -143,13 +143,29 @@ const Detail = {
         </div>
         <div class="cond-report">
           <h3>Condition Report</h3>
+          ${((typeof Skills !== "undefined") && Skills.tier("gearhead") > 0) ? "" : `<div class="cond-locked-note">${Icon.get('lock')} Train <strong>Gear Head</strong> to see part conditions before buying — or buy it and inspect in your garage.</div>`}
           <div class="parts-grid">
             ${availableParts(l.sprite).map(p => {
               const st = (l.partStates && l.partStates[p.key]) || "pristine";
-              return `<div class="part-cell state-${st}">
-                <img src="${partImg(l.sprite, p.key, st)}" alt="${p.label}" loading="lazy">
+              const gh = (typeof Skills !== "undefined") ? Skills.tier("gearhead") : 0;
+              let stateLabel, pctLabel = "";
+              if (gh === 0) {
+                stateLabel = `<span class="cond-hidden">???</span>`;
+              } else if (gh === 1) {
+                stateLabel = PART_STATE_LABEL[st];
+              } else {
+                const pctMap = { pristine: 95, used_good: 60, used_bad: 35, totaled: 10 };
+                const pct = pctMap[st] || 50;
+                stateLabel = PART_STATE_LABEL[st];
+                pctLabel = ` · ${pct}%`;
+                if (gh >= 3 && st !== "pristine") {
+                  stateLabel += `<div class="cond-defects">⚠ inspect in garage</div>`;
+                }
+              }
+              return `<div class="part-cell state-${gh === 0 ? "hidden" : st}">
+                <img src="${partImg(l.sprite, p.key, gh === 0 ? "pristine" : st)}" alt="${p.label}" loading="lazy">
                 <div class="part-label">${p.label}</div>
-                <div class="part-state">${PART_STATE_LABEL[st]}</div>
+                <div class="part-state">${stateLabel}${pctLabel}</div>
               </div>`;
             }).join("")}
           </div>

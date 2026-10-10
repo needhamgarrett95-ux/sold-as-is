@@ -1714,6 +1714,22 @@ const Views = {
             ${presets.map((p, i) => `<button class="g-preset" data-preset="${i}">${p.slice(0, 40)}...</button>`).join("")}
           </div>
         </div>
+        <div class="cond-report">
+          <h3>Inspect Parts</h3>
+          <div class="sub" style="margin-bottom:8px">Tap a part to reveal its condition.</div>
+          <div class="parts-grid">
+            ${availableParts(b.sprite).map(p => {
+              const st = (b.partStates && b.partStates[p.key]) || "pristine";
+              const revealed = (b.revealedParts || []).includes(p.key);
+              const label = revealed ? PART_STATE_LABEL[st] : `<span class="cond-hidden">???</span>`;
+              return `<div class="part-cell state-${revealed ? st : "hidden"}" data-inspect-part="${p.key}">
+                <img src="${partImg(b.sprite, p.key, revealed ? st : "pristine")}" alt="${p.label}" loading="lazy">
+                <div class="part-label">${p.label}</div>
+                <div class="part-state">${label}</div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>
         <div class="g-detail-actions">
           <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
           <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
@@ -1950,6 +1966,22 @@ const Views = {
     // Detail actions
     el.querySelectorAll("[data-gact]").forEach(b =>
       b.addEventListener("click", () => this.garageDetailAction(b.dataset.gact)));
+    // Inspect parts: tap to reveal condition
+    el.querySelectorAll("[data-inspect-part]").forEach(cell => {
+      cell.addEventListener("click", () => {
+        const bike = State.garage[this.garageDetailIdx];
+        if (!bike) return;
+        const key = cell.dataset.inspectPart;
+        bike.revealedParts = bike.revealedParts || [];
+        if (!bike.revealedParts.includes(key)) {
+          bike.revealedParts.push(key);
+          Save.save();
+          this.renderGarage();
+          const st = (bike.partStates && bike.partStates[key]) || "pristine";
+          UI.toast(`${cell.querySelector(".part-label").textContent}: ${PART_STATE_LABEL[st]}`);
+        }
+      });
+    });
     // Assemble buttons
     el.querySelectorAll("[data-assemble]").forEach(b =>
       b.addEventListener("click", () => this.assembleBike(b.dataset.assemble)));

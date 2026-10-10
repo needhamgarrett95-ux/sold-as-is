@@ -622,3 +622,14 @@ button:focus { outline: none !important; box-shadow: none !important; }
 .retry-btn { width: 100%; margin-top: 8px; padding: 10px; border-radius: 8px; border: 2px solid #6a4c93; background: #f3efff; color: #6a4c93; font-weight: 800; cursor: pointer; }
 .retry-btn:active { transform: scale(.98); }
 .cart-disc { font-size: .82rem; color: #2e7d32; font-weight: 700; margin-bottom: 4px; }
+
+/* Inspection: hidden conditions */
+.cond-locked-note {
+  font-size: .82rem; color: #6a4c93; background: #f3efff;
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
+}
+.cond-locked-note svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; }
+.part-cell.state-hidden { cursor: default; }
+.part-cell.state-hidden img { filter: grayscale(.4) brightness(.96); }
+.part-cell[data-inspect-part] { cursor: pointer; }
+.part-cell[data-inspect-part]:active { transform: scale(.96); }

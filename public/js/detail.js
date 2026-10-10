@@ -554,9 +554,13 @@ const UI = {
   },
   _toastQueue: [],
   _toastShowing: false,
+  _unreadActivity: 0,
   toast(msg, category) {
     this._toastQueue.push(msg);
     this._showNextToast();
+    // Bump unread badge on bell
+    this._unreadActivity++;
+    this.updateBellBadge();
     // Log to activity feed (auto-detect category if not given)
     try {
       if (!category) {
@@ -571,6 +575,9 @@ const UI = {
   },
   _activityTab: "marketplace",
   showActivity(tab) {
+    // Clear unread badge
+    this._unreadActivity = 0;
+    this.updateBellBadge();
     const popup = document.getElementById("activity-popup");
     const list = document.getElementById("activity-list");
     if (!popup || !list) return;
@@ -604,6 +611,20 @@ const UI = {
       popup.classList.toggle("hidden");
     } else {
       popup.classList.remove("hidden");
+    }
+  },
+  updateBellBadge() {
+    const bell = document.getElementById("activity-bell");
+    if (!bell) return;
+    let dot = bell.querySelector(".bell-dot");
+    if (this._unreadActivity > 0) {
+      if (!dot) {
+        dot = document.createElement("span");
+        dot.className = "bell-dot";
+        bell.appendChild(dot);
+      }
+    } else if (dot) {
+      dot.remove();
     }
   },
   _showNextToast() {

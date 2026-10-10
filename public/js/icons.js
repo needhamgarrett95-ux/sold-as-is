@@ -84,6 +84,8 @@ const Icon = (() => {
 
     // Cart
     cart: S(`<circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M3 4h2l2.4 11h10.4l2-8H7"/>`),
+    // Bell (activity)
+    bell: S(`<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>`),
   };
 
   return {
@@ -102,6 +104,5 @@ const Icon = (() => {
       });
     },
     names: Object.keys(icons),
-    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
 };
 })();

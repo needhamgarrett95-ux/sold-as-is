@@ -49,8 +49,18 @@ document.addEventListener("DOMContentLoaded", () => {
         UI.toast("Requesting location…");
         PlayerLoc.request((ok) => {
           refreshLocSub();
-          UI.toast(ok ? "Location on — sellers are near you now" : "Location unavailable");
-          if (ok) location.reload();
+          if (ok) {
+            UI.toast("Location on — sellers are near you now");
+            // Regenerate listings with local labels (bypass cooldown)
+            if (typeof Feed !== "undefined" && Feed.listings) {
+              Feed.cooldownUntil = 0;
+              Feed.refresh();
+            } else {
+              location.reload();
+            }
+          } else {
+            UI.toast("Location unavailable");
+          }
         });
       }
     });

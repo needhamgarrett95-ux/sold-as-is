@@ -581,10 +581,12 @@ const Views = {
   // Buyer reply picker — never repeats the last one
   _lastBuyerReply: null,
   pickBuyerReply(options) {
-    let pool = options.filter(o => o !== this._lastBuyerReply);
+    this._recentBuyerReplies = this._recentBuyerReplies || [];
+    let pool = options.filter(o => !this._recentBuyerReplies.includes(o));
     if (!pool.length) pool = options;
     const pick = pool[(Math.random() * pool.length) | 0];
-    this._lastBuyerReply = pick;
+    this._recentBuyerReplies.push(pick);
+    if (this._recentBuyerReplies.length > 3) this._recentBuyerReplies.shift();
     return pick;
   },
 
@@ -598,6 +600,14 @@ const Views = {
       `Hi there! Very interested. I can do ${money(amount)} and pick up this weekend.`,
       `This looks perfect. Would ${money(amount)} get it done?`,
       `Hey, I'm serious about buying. ${money(amount)} — I can Venmo a deposit right now.`,
+      `Hey!! This is the one!! Would you do ${money(amount)}?? I can come TODAY.`,
+      `I've been refreshing this listing for days. ${money(amount)}? Please?`,
+      `Yes! Finally! ${money(amount)} — I can be there in an hour.`,
+      `Hi! I'm ready to buy right now. Is ${money(amount)} okay??`,
+      `This is PERFECT. ${money(amount)}? I won't haggle, I promise.`,
+      `Hey hey! I'll take it! ${money(amount)} cash, today, no games.`,
+      `OMG I've wanted one of these since I was a kid. ${money(amount)}?`,
+      `Hi there — I'm very motivated. ${money(amount)} and I pick up tonight?`,
     ]);
     if (style === "flaky") return this.pickBuyerReply([
       `Hi, is this still available? Would ${money(amount)} work?`,
@@ -608,6 +618,14 @@ const Views = {
       `Hello, I am interested in your moped. I can offer ${money(amount)}.`,
       `Is this still for sale? Lmk, I have ${money(amount)}.`,
       `Hii! Do you still have it?? I could do like ${money(amount)}?`,
+      `hi... is this thing still around? ${money(amount)}? maybe?`,
+      `yo. u still selling? i could do ${money(amount)} i think`,
+      `Hey, sorry, might've messaged before lol. ${money(amount)}?`,
+      `is this available still?? asking for a friend. ${money(amount)}`,
+      `Hi! I'm kinda interested? ${money(amount)}? no pressure lol`,
+      `hey man still got it? ${money(amount)} cash money`,
+      `Hello — just browsing really. But ${money(amount)}?`,
+      `yo is this the one from the pics? ${money(amount)}?`,
     ]);
     return this.pickBuyerReply([
       `Hey, interested. What's your bottom dollar? I could do ${money(amount)}.`,
@@ -618,6 +636,14 @@ const Views = {
       `Hey, I'll be straight with you: ${money(amount)} is my max.`,
       `I've bought a few of these. ${money(amount)} is a fair price.`,
       `Morning. ${money(amount)} cash, no hassle, no tire-kickers.`,
+      `Hey. Done my homework on these. ${money(amount)} is the number.`,
+      `Interested. I've got ${money(amount)} cash and I'm nearby.`,
+      `Nice. I'm comparing a couple options — ${money(amount)} gets my attention.`,
+      `I'll offer ${money(amount)}. That's a strong offer in this market.`,
+      `Hey there, I flip these myself. ${money(amount)} is fair, you know it.`,
+      `Cash buyer, no drama. ${money(amount)}. Let me know.`,
+      `Morning. I can do ${money(amount)} today — that's my honest offer.`,
+      `Look, I'll cut to it: ${money(amount)}. No back and forth needed.`,
     ]);
   },
 
@@ -635,6 +661,18 @@ const Views = {
       "Awesome! This made my week.",
       "Great! I'll bring a truck.",
       "Done deal! Thank you!",
+      "Fantastic! When works for pickup?",
+      "Yes! I'll bring cash. Thank you!",
+      "Great! I'm on my way — text me the address.",
+      "Perfect, deal! You just made my day.",
+      "Awesome! I'll see you this evening?",
+      "Done! I'll bring a buddy with a truck.",
+      "Sweet! Can't wait to see it in person.",
+      "Excellent! I'll Venmo a deposit now if you want.",
+      "Woo! Okay, what time should I come by?",
+      "Great news! I'll bring exact cash.",
+      "Love it. See you soon — thanks again!",
+      "Deal! I'll clear my schedule for pickup.",
     ]);
   },
 
@@ -650,6 +688,16 @@ const Views = {
       "Got it, thanks! I'll keep hunting.",
       "Fair enough. Good luck with the sale!",
       "No hard feelings. Thanks!",
+      "All good, thanks for the reply!",
+      "Okay, I'll keep looking. Good luck!",
+      "No problem at all. Hope it sells fast!",
+      "Gotcha. Thanks for letting me know!",
+      "Fair enough! Good luck with the sale.",
+      "Thanks anyway — I'll find the right one eventually.",
+      "Appreciate you getting back to me!",
+      "Understood, no worries. Good luck!",
+      "Okay cool, thanks! I'll keep browsing.",
+      "No sweat. Hope you get your asking price!",
     ]);
   },
 
@@ -663,6 +711,14 @@ const Views = {
       `Yes yes yes! ${money(amount)}. See you soon!`,
       `${money(amount)}? Deal! I'm so excited.`,
       `Perfect! ${money(amount)}. I'll pick up today if that works.`,
+      `YES! ${money(amount)}! I'm literally grabbing my keys.`,
+      `Deal deal deal! ${money(amount)}! What time??`,
+      `${money(amount)} — absolutely! You're the best!`,
+      `I'll take it at ${money(amount)}! See you in 20 minutes?`,
+      `YES. ${money(amount)}. This is happening!`,
+      `Perfect!! ${money(amount)} — I'm so happy right now.`,
+      `${money(amount)}? SOLD. I'll bring cash and a huge smile.`,
+      `Done! ${money(amount)}! Text me where to meet!`,
     ]);
     if (style === "flaky") return this.pickBuyerReply([
       `Ugh, fine. ${money(amount)}.`,
@@ -673,6 +729,14 @@ const Views = {
       `OK ${money(amount)}. Don't make me regret this lol`,
       `${money(amount)}. Yeah okay.`,
       `Whatever, ${money(amount)}. It's fine.`,
+      `ugh ok fine. ${money(amount)}. when tho`,
+      `alright ${money(amount)}. i guess im buying a moped today lol`,
+      `...fine. ${money(amount)}. dont flake on me tho`,
+      `${money(amount)}. k.`,
+      `meh ok. ${money(amount)}. see u whenever`,
+      `FINE. ${money(amount)}. happy? lol`,
+      `${money(amount)} sure. lmk when`,
+      `ok ok ${money(amount)}. i'll figure out pickup later`,
     ]);
     return this.pickBuyerReply([
       `Hmm... ${money(amount)}. Yeah, I can do that.`,
@@ -685,6 +749,16 @@ const Views = {
       `Alright, I'll do ${money(amount)}. Good negotiating.`,
       `${money(amount)}... yeah. Okay, I'm in.`,
       `Deal at ${money(amount)}. I respect the hustle.`,
+      `${money(amount)}. Alright, you've got a deal. Well played.`,
+      `Okay — ${money(amount)}. I can respect a tough negotiator.`,
+      `Deal. ${money(amount)}. I think we both did fine here.`,
+      `${money(amount)} it is. I'll bring cash this afternoon.`,
+      `You've got yourself a deal at ${money(amount)}.`,
+      `Fine, ${money(amount)}. You held firm — I respect that.`,
+      `Agreed at ${money(amount)}. Let's wrap this up.`,
+      `${money(amount)}... alright. I'm in. Good doing business.`,
+      `I'll take it at ${money(amount)}. Fair is fair.`,
+      `Done at ${money(amount)}. When's a good time for pickup?`,
     ]);
   },
 
@@ -698,6 +772,14 @@ const Views = {
       `Best I can do is ${money(amount)}. I really hope that's enough.`,
       `${money(amount)} — I'm scraping together everything I've got.`,
       `Could you do ${money(amount)}? I'd be so grateful.`,
+      `I can do ${money(amount)}! Please, I really want this one.`,
+      `${money(amount)} — that's every dollar I have, I swear.`,
+      `What if I do ${money(amount)}? I can come right now!`,
+      `Okay okay — ${money(amount)}? That's my max, for real.`,
+      `I could stretch to ${money(amount)}... that's it though!`,
+      `Please? ${money(amount)}? I'll bring coffee too!`,
+      `${money(amount)}! Final offer! I'm begging here!`,
+      `I can make ${money(amount)} work — can you? Please say yes.`,
     ]);
     if (style === "flaky") return this.pickBuyerReply([
       `Meh, ${money(amount)} is all I'd do.`,
@@ -708,6 +790,14 @@ const Views = {
       `${money(amount)} or I'm gonna look at the other one.`,
       `Ehh ${money(amount)}. Final. Probably.`,
       `${money(amount)}? I'll think about it. Actually yeah, ${money(amount)}.`,
+      `like... ${money(amount)}? idk`,
+      `${money(amount)}. maybe. we'll see lol`,
+      `i mean i could do ${money(amount)}? or not. lmk`,
+      `${money(amount)}? eh. i'll let u know`,
+      `whatever, ${money(amount)}. if u want`,
+      `hmm ${money(amount)}. i'll think abt it`,
+      `${money(amount)}?? fine? i guess?`,
+      `ok ${money(amount)}. actually wait. yeah ${money(amount)}.`,
     ]);
     return this.pickBuyerReply([
       `That's a bit steep for me. How about ${money(amount)}?`,
@@ -720,6 +810,16 @@ const Views = {
       `I'd love to say yes, but ${money(amount)} is all I've got.`,
       `${money(amount)}. That's me meeting you in the middle.`,
       `How's ${money(amount)}? I think that's fair for both of us.`,
+      `I can come up to ${money(amount)}. That's genuinely my ceiling.`,
+      `How about ${money(amount)}? I'm being straight with you.`,
+      `${money(amount)} — and I'll pick up today, no hassle.`,
+      `Let's settle at ${money(amount)}. I think that's right.`,
+      `My final is ${money(amount)}. I hope we can make it work.`,
+      `I'll go ${money(amount)}. That's a fair number for both of us.`,
+      `What do you say to ${money(amount)}? Cash, today.`,
+      `${money(amount)} is the best I can do — and it's a good offer.`,
+      `Split the difference at ${money(amount)}? I'm trying here.`,
+      `Okay, ${money(amount)}. That's me stretching. Your move.`,
     ]);
   },
 
@@ -733,6 +833,14 @@ const Views = {
       "yeah no thanks",
       "I'm gonna pass lol",
       "meh. bye!",
+      "lol nah",
+      "k bye",
+      "pass lol",
+      "nvm changed my mind",
+      "ehh no",
+      "lol sorry bye",
+      "nahhh",
+      "im out lol",
     ]);
     if (style === "eager") return this.pickBuyerReply([
       "Ah man, I really wanted this. Good luck!",
@@ -741,6 +849,12 @@ const Views = {
       "That's out of my range. Hope you find a buyer!",
       "Man... okay. Thanks for your time!",
       "I wish I could. Good luck with the sale!",
+      "Ahh, I can't do it. So sad. Good luck though!",
+      "That's too much for me. I'm crushed, honestly. Good luck!",
+      "I really wanted it... okay. Hope it goes to a good home!",
+      "Can't make it work. Thanks anyway — good luck!",
+      "Dang, that's a bummer. Good luck with the sale!",
+      "I wish! Maybe next time. Good luck!",
     ]);
     return this.pickBuyerReply([
       "Yeah that's too rich for my blood. Good luck!",
@@ -751,6 +865,14 @@ const Views = {
       "Too steep for me. Good luck selling!",
       "I'll keep shopping around. Thanks!",
       "Not at that price. Best of luck!",
+      "Too high. I'll find one cheaper. Good luck.",
+      "Not at that price. Thanks for your time.",
+      "Yeah, I can't justify that. Moving on.",
+      "That's over what these go for. I'll pass.",
+      "Appreciate it, but no. Good luck selling.",
+      "I'm out at that number. Take care.",
+      "No deal. I'll keep hunting.",
+      "Too steep. Someone else will pay it — not me.",
     ]);
   },
 

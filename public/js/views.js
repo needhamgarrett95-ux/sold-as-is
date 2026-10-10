@@ -1448,6 +1448,11 @@ const Views = {
         `"${money(offerAmount)}? Yeah, I can do that."`,
         `"${money(offerAmount)} — sold. It's boxed and ready."`,
         `"Done. ${money(offerAmount)} and it's yours."`,
+        `"${money(offerAmount)}. I'll get it in the mail today."`,
+        `"Sure, ${money(offerAmount)}. Good part, good price."`,
+        `"${money(offerAmount)} works for me. Shipping tomorrow."`,
+        `"You got it. ${money(offerAmount)}, packed with care."`,
+        `"${money(offerAmount)} — deal. Check your inbox for tracking."`,
       ]);
       accepted = true; price = offerAmount;
     } else if (ratio >= 0.85) {
@@ -1455,6 +1460,11 @@ const Views = {
         `"Hmm... ${money(offerAmount)}. Alright, it's yours."`,
         `"${money(offerAmount)}? Eh... fine. Take it."`,
         `"You got me at ${money(offerAmount)}. Don't push it."`,
+        `"${money(offerAmount)}... I wanted more, but okay."`,
+        `"Fine. ${money(offerAmount)}. You're lucky I need shelf space."`,
+        `"${money(offerAmount)}. Sold — but you're not getting another deal like this."`,
+        `"Ugh, okay. ${money(offerAmount)}. It's yours."`,
+        `"${money(offerAmount)} and we never speak of this discount again."`,
       ]);
       accepted = true; price = offerAmount;
     } else if (ratio >= 0.70) {
@@ -1463,6 +1473,11 @@ const Views = {
         `"Can't do ${money(offerAmount)}. How about ${money(counter)}?"`,
         `"${money(offerAmount)}'s light. ${money(counter)} gets it shipped today."`,
         `"Meet me at ${money(counter)} and we got a deal."`,
+        `"I can go ${money(counter)}. That's the best I can do on this one."`,
+        `"How's ${money(counter)} sound? I'm already losing money here."`,
+        `"${money(counter)} — final offer. These don't sit long."`,
+        `"Split it with me at ${money(counter)}. Fair?"`,
+        `"${money(offerAmount)} won't cover shipping. ${money(counter)} and it's on its way."`,
       ]);
       price = counter;
     } else if (ratio >= 0.50) {
@@ -1471,6 +1486,11 @@ const Views = {
         `"${money(offerAmount)}? That's insulting. ${money(counter)} and not a penny less."`,
         `"For ${money(offerAmount)}? Nah. ${money(counter)}, firm."`,
         `"${money(counter)}. I know what I got."`,
+        `"${money(offerAmount)} is a joke. ${money(counter)}, take it or leave it."`,
+        `"I've got three watchers on this. ${money(counter)} or it goes to one of them."`,
+        `"${money(counter)}. That's already below market and you know it."`,
+        `"Nope. ${money(counter)}. I don't haggle on the good stuff."`,
+        `"${money(offerAmount)}? Cute. ${money(counter)} is the price."`,
       ]);
       price = counter;
     } else {
@@ -1479,6 +1499,12 @@ const Views = {
         `"${money(offerAmount)} for this? Blocked. (Not really. But wow.)"`,
         `"Is this a joke? ${money(offerAmount)}?"`,
         `"${money(offerAmount)}. My scrap guy pays more than that."`,
+        `"${money(offerAmount)}? I paid more for the bubble wrap."`,
+        `"Do you do this at the grocery store too? ${money(offerAmount)} — no."`,
+        `"${money(offerAmount)}. I'd make more parting it out myself."`,
+        `"That's not an offer, that's a typo. Try again."`,
+        `"${money(offerAmount)}? The photos alone cost me more in time."`,
+        `"I'm going to assume you missed a zero. ${money(offerAmount)}? Really?"`,
       ]);
     }
 

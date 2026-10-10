@@ -158,9 +158,6 @@ const Detail = {
                 const pct = pctMap[st] || 50;
                 stateLabel = PART_STATE_LABEL[st];
                 pctLabel = ` · ${pct}%`;
-                if (gh >= 3 && st !== "pristine") {
-                  stateLabel += `<div class="cond-defects">⚠ inspect in garage</div>`;
-                }
               }
               return `<div class="part-cell state-${gh === 0 ? "hidden" : st}">
                 <img src="${partImg(l.sprite, p.key, gh === 0 ? "pristine" : st)}" alt="${p.label}" loading="lazy">

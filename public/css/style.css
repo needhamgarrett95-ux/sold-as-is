@@ -161,7 +161,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   border: 1.5px solid var(--line); border-radius: 8px; background: var(--paper);
   color: var(--ink); flex: 1; min-width: 0; }
 .eby-typefilter { display: flex; gap: 8px; padding: 10px 12px; background: var(--card);
-  border-bottom: 1px solid var(--line); }
+  border-bottom: 1px solid var(--line); grid-column: 1 / -1; }
 .eby-type { flex: 1; padding: 9px 0; border: 1.5px solid var(--line); border-radius: 8px;
   background: var(--paper); color: var(--dim); font-size: .85rem; font-weight: 700;
   cursor: pointer; }
@@ -251,8 +251,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   border: none; padding: 8px 14px; border-radius: 8px;
   font-size: .82rem; font-weight: 700; cursor: pointer; width: 100%; }
 .eby-sell:active { transform: scale(.98); opacity: .9; }
-.sell-price-row { display: flex; flex-direction: column; gap: 6px; margin-top: 6px;
+.sell-price-row { display: flex; flex-direction: column; gap: 8px; margin-top: 6px;
   max-width: 100%; overflow: hidden; }
+.sell-price-row input { width: 100%; padding: 12px; border: 1.5px solid #ccc;
+  border-radius: 10px; font-size: 1rem; box-sizing: border-box; }
 .sell-price-info { font-size: .8rem; color: #666; }
 .sell-price-inputrow { display: flex; gap: 6px; align-items: center; max-width: 100%; }
 .sell-price-inputrow input { flex: 1; min-width: 0; padding: 8px; border: 1.5px solid #ccc;
@@ -484,3 +486,7 @@ button svg { vertical-align: -3px; }
 .cart-total { font-size: 1.05rem; margin-bottom: 12px; text-align: right; }
 /* garage bike detail button icons */
 .btn-list svg, .btn-keep svg, .btn-strip svg { width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }
+/* parts inventory wrench icon */
+.pane-head .sub svg { width: 16px; height: 16px; vertical-align: -3px; }
+/* part inventory action icons */
+.eby-sell svg { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }

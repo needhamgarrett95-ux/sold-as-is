@@ -353,6 +353,18 @@ const Views = {
 
   makeBuyerOffer(listing, type) {
     const askPrice = listing.askPrice;
+    // 20%: buyer just pays asking price, no haggling
+    if (Math.random() < 0.20) {
+      const buyerName = this.buyerNames[(Math.random() * this.buyerNames.length) | 0];
+      listing.sold = true; listing.soldFor = askPrice; listing.soldAt = Date.now();
+      State.cash += askPrice;
+      State.sold.push({ ...listing, soldFor: askPrice, soldAt: Date.now() });
+      UI.refreshCash();
+      Save.save();
+      UI.toast(`${buyerName} bought your ${listing.brand} ${listing.model} for ${money(askPrice)}!`, "marketplace");
+      if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
+      return;
+    }
     // Buyer personality: eager | haggler | flaky
     const styleRoll = Math.random();
     const style = styleRoll < 0.35 ? "eager" : styleRoll < 0.75 ? "haggler" : "flaky";
@@ -874,31 +886,9 @@ const Views = {
   },
 
   tickBikeSales() {
+    // Single buyer system: one buyer at a time per listing.
+    // They either buy it now (asking price) or make an offer to negotiate.
     this.maybeMakeOffer();
-    if (!this.myBikeListings.length) return;
-    for (let i = this.myBikeListings.length - 1; i >= 0; i--) {
-      const l = this.myBikeListings[i];
-      if (l.sold) continue;
-      // Never auto-sell a listing with a pending buyer offer
-      if (l.offer) continue;
-      // Don't auto-sell a listing the player is actively haggling on
-      if (Detail.current && Detail.current.id === l.id) continue;
-      const fairness = (l.fairValue || l.boughtFor || 500) / Math.max(1, l.askPrice);
-      const chance = Math.min(0.20, 0.05 * fairness);
-      if (Math.random() < chance) {
-        l.sold = true; l.soldFor = l.askPrice; l.soldAt = Date.now();
-        State.cash += l.askPrice;
-        State.sold.push({ ...l, soldFor: l.askPrice, soldAt: Date.now() });
-        UI.refreshCash();
-        Save.save();
-        // Notify: buyer paid full asking price (no haggling)
-        UI.toast(`Sold your ${l.brand} ${l.model} for ${money(l.askPrice)}!`);
-        if (this.current === "market") {
-          this.renderMarketFeed();
-          this.renderMarketTabs();
-        }
-      }
-    }
   },
 
   tickSales() {

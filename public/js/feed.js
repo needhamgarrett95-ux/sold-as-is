@@ -65,7 +65,6 @@ const Feed = {
     if (now < this.cooldownUntil) {
       const remain = Math.ceil((this.cooldownUntil - now) / 1000);
       const m = Math.floor(remain / 60), s = remain % 60;
-      UI.toast(`Refresh available in ${m}:${String(s).padStart(2, "0")}`);
       return;
     }
     // Fresh random batch replaces current feed
@@ -79,7 +78,6 @@ const Feed = {
     this.cooldownUntil = now + this.COOLDOWN_S * 1000;
     try { localStorage.setItem(this.COOLDOWN_KEY, String(this.cooldownUntil)); } catch (e) {}
     this.tickCooldown();
-    UI.toast("Marketplace refreshed — new listings");
   },
 
   tickCooldown() {

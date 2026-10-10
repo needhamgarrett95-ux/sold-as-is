@@ -428,7 +428,6 @@ const Detail = {
     }
     this.close();
     UI.refreshCash();
-    UI.toast(`Bought the ${l.brand} ${l.model} for ${money(price)}`);
   },
 
   render() {

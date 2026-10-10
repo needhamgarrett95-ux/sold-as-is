@@ -76,7 +76,6 @@ const Views = {
     const now = Date.now();
     if (now < this.partsCooldownUntil) {
       const remain = Math.ceil((this.partsCooldownUntil - now) / 1000);
-      UI.toast(`Boneyard refresh in ${remain}s`);
       return;
     }
     if (this.partsRefreshesLeft <= 0) {
@@ -104,10 +103,8 @@ const Views = {
       });
       if (deals.length) {
         const best = deals.reduce((a, b) => (a.price / Skills.marketAverage(a) < b.price / Skills.marketAverage(b) ? a : b));
-        setTimeout(() => UI.toast(`🔥 Deal alert: ${best.partLabel} ${Math.round((1 - best.price / Skills.marketAverage(best)) * 100)}% below market!`), 600);
       }
     }
-    UI.toast(`New parts listings (${this.partsRefreshesLeft} free refreshes left)`);
     if (this.partsRefreshesLeft <= 0) {
       this.partsCooldownUntil = Date.now() + 30 * 1000;
       try {
@@ -306,13 +303,11 @@ const Views = {
     if (!bike) return;
     price = parseInt(String(price).replace(/[^0-9]/g, ""), 10);
     if (!price || price <= 0) {
-      UI.toast("Enter a valid price");
       return;
     }
     State.garage.splice(garageIdx, 1);
     this.myBikeListings.push({ ...bike, askPrice: price, listedAt: Date.now() });
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-    UI.toast(`${bike.brand} ${bike.model} listed for ${money(price)}`);
     this.startBikeSalesTimer();
     this.garageTab = "bikes";
     this.garageDetailIdx = -1;
@@ -327,7 +322,6 @@ const Views = {
     const { askPrice, listedAt, ...bike } = l;
     bike.listed = false;
     State.garage.push(bike);
-    UI.toast(`${l.brand} ${l.model} returned to garage`);
     Save.save();
     this.renderMarketFeed();
     this.renderMarketTabs();
@@ -391,7 +385,10 @@ const Views = {
       thread: [{ from: "buyer", text: this.randomOpener(style, boostedOffer) }],
     };
     listing.offer.amount = boostedOffer;
-    UI.toast(`${buyerName} made an offer!`);
+    // Only toast if not on the listings screen (badge handles it there)
+    const onListings = (this.current === "market" && this.marketTab === "mine") ||
+                       (this.current === "parts" && this.boneyardTab === "sell");
+    if (!onListings) UI.toast(`${buyerName} made an offer!`);
     this.updateNavBadges();
     // Refresh the relevant view
     if (this.current === "market" && this.marketTab === "mine") {
@@ -481,7 +478,6 @@ const Views = {
     }
     offer.thread.push({ from: "you", text: `Deal! ${money(amount)} it is.` });
     offer.thread.push({ from: "buyer", text: this.randomAcceptResponse() });
-    UI.toast(`Sold for ${money(amount)}!`);
     // XP: profit = sale price - cost basis (purchase + repairs)
     const costBasis = (l.boughtFor || l.paidPrice || 0) + (l.repairSpent || 0);
     const profit = amount - costBasis;
@@ -506,7 +502,6 @@ const Views = {
     offer.thread.push({ from: "buyer", text: this.randomDeclineResponse() });
     // Clear the offer, listing stays active
     l.offer = null;
-    UI.toast("Offer declined");
     this.closeSellerHaggle();
     if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
     if (this.current === "parts") this.renderParts();
@@ -568,7 +563,6 @@ const Views = {
       setTimeout(() => {
         l.offer = null;
         this.closeSellerHaggle();
-        UI.toast(`${offer.buyerName} walked away`);
         if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
         if (this.current === "parts") this.renderParts();
       }, 1200);
@@ -891,7 +885,6 @@ const Views = {
         UI.refreshCash();
         Save.save();
         if (!(this.current === "market" && this.marketTab === "mine")) {
-          UI.toast(`Sold your ${l.brand} ${l.model} for ${money(l.askPrice)}!`);
         }
         if (this.current === "market") {
           this.renderMarketFeed();
@@ -928,7 +921,6 @@ const Views = {
         }
         Save.save();
         if (!(this.current === "parts" && this.boneyardTab === "sell")) {
-          UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
         }
         if (this.current === "parts" && this.boneyardTab === "sell") {
           this.renderParts();
@@ -977,7 +969,6 @@ const Views = {
     if (!p) return;
     price = parseInt(String(price).replace(/[^0-9]/g, ""), 10);
     if (!price || price <= 0) {
-      UI.toast("Enter a valid price");
       return;
     }
     // Remove from inventory, add to listings
@@ -988,7 +979,6 @@ const Views = {
       listedAt: Date.now(),
       ticksListed: 0,
     });
-    UI.toast(`${p.partLabel} listed for ${money(price)}`);
     // Dismiss keyboard
     if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur();
@@ -1007,7 +997,6 @@ const Views = {
     if (!p) return;
     startPrice = parseInt(String(startPrice).replace(/[^0-9]/g, ""), 10);
     if (!startPrice || startPrice <= 0) {
-      UI.toast("Enter a valid starting bid");
       return;
     }
     parts.splice(invIdx, 1);
@@ -1036,7 +1025,6 @@ const Views = {
       listedAt: Date.now(),
     });
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-    UI.toast(`Auction started for ${p.partLabel}!`);
     this.startPlayerAuctionTimer();
     this.garageTab = "parts";
     this.garageDetailIdx = -1;
@@ -1085,7 +1073,6 @@ const Views = {
           }
           Save.save();
           if (!(this.current === "parts" && this.boneyardTab === "sell")) {
-            UI.toast(`Auction sold! ${l.partLabel} went for ${money(l.currentBid)} to ${l.highBidder}`);
           }
         } else {
           const { listingType, startPrice, currentBid, highBidder, timeLeft, bidders, listedAt, ...part } = l;
@@ -1094,7 +1081,6 @@ const Views = {
           // Remove the listing entirely (ended with no sale) — prevents reprocessing
           this.myPartListings.splice(i, 1);
           Save.save();
-          UI.toast(`No bids on ${l.partLabel} — returned to inventory`);
         }
         // Refresh to show SOLD state
         setTimeout(() => this.refreshAfterAuctionEnd(), 100);
@@ -1151,7 +1137,6 @@ const Views = {
     // Return to inventory (strip listing metadata)
     const { askPrice, listedAt, ticksListed, ...part } = l;
     State.parts.push(part);
-    UI.toast(`${l.partLabel} returned to inventory`);
     Save.save();
     this.renderParts();
   },
@@ -1341,12 +1326,10 @@ const Views = {
     if (!p || p.ended || p.timeLeft <= 0) return;
     const nextBid = p.currentBid + p.bidIncrement;
     if (State.cash < nextBid) {
-      UI.toast("Not enough cash to cover that bid");
       return;
     }
     p.currentBid = nextBid;
     p.highBidder = "you";
-    UI.toast(`Bid placed: ${money(nextBid)}`);
     this.updateAuctionUI();
   },
 
@@ -1363,7 +1346,6 @@ const Views = {
         State.stats.auctionsWon++;
         if (typeof Milestones !== "undefined") Milestones.check(State.stats);
         UI.refreshCash();
-        UI.toast(`Won the ${p.partLabel} for ${money(p.currentBid)}!`);
       } else if (i >= 0) {
         this.partsShop.splice(i, 1);
       }
@@ -1650,12 +1632,10 @@ const Views = {
         const val = parseInt(input.value.replace(/[^0-9]/g, ""), 10);
         const minBid = p.currentBid + (p.bidIncrement || 1);
         if (val < minBid) {
-          UI.toast(`Bid must be at least ${money(minBid)}`);
           input.value = minBid;
           return;
         }
         input.blur();
-        if (val === 67) UI.toast("Are you serious, that meme is dead bro");
         this.placePartBid(this.partDetailIdx, val);
         this.renderPartDetail(); // refresh
       });
@@ -1697,10 +1677,8 @@ const Views = {
           this.partsShop.splice(idx, 1);
           UI.refreshCash();
           Save.save();
-          UI.toast(`${part.partLabel} bought for ${money(price)}!`);
           this.renderParts();
         } else if (part) {
-          UI.toast("Not enough cash for that part");
         }
       });
     }
@@ -1848,13 +1826,11 @@ const Views = {
     const p = this.partsShop[idx];
     if (!p || p.listingType !== "auction") return;
     if (!State.canAfford(amount)) {
-      UI.toast("Not enough cash for that bid");
       return;
     }
     p.currentBid = amount;
     p.highBidder = "you";
     // Bidders will respond via the auction timer
-    UI.toast(`Bid placed: ${money(amount)}`);
     this.updateAuctionUI();
   },
 
@@ -1863,17 +1839,14 @@ const Views = {
     const p = this.partsShop[idx];
     if (!p) return;
     if (p.listingType === "auction") {
-      UI.toast("Can't add auctions to cart");
       return;
     }
     // Don't add duplicates
     if (this.cart.includes(idx)) {
-      UI.toast("Already in cart");
       return;
     }
     this.cart.push(idx);
     Save.save();
-    UI.toast(`${p.partLabel} added to cart`);
     this.updateCartBadge();
   },
 
@@ -1965,7 +1938,6 @@ const Views = {
     const total = this.cartTotal();
     if (!this.cart.length) return;
     if (!State.canAfford(total)) {
-      UI.toast(`Not enough cash — need ${money(total)}`);
       return;
     }
     State.cash -= total;
@@ -1987,7 +1959,6 @@ const Views = {
     Save.save();
     this.updateCartBadge();
     this.closeCart();
-    UI.toast(`Bought ${bought.length} part${bought.length === 1 ? "" : "s"} for ${money(total)}!`);
     this.renderParts();
   },
 
@@ -1998,7 +1969,6 @@ const Views = {
     const discount = (typeof Skills !== "undefined") ? Skills.partsDiscount() : 0;
     const price = Math.round(p.price * (1 - discount));
     if (State.cash < price) {
-      UI.toast("Not enough cash for that part");
       return;
     }
     State.cash -= price;
@@ -2012,7 +1982,6 @@ const Views = {
     }
     UI.refreshCash();
     Save.save();
-    UI.toast(`${p.partLabel} (${p.bikeBrand} ${p.bikeModel}) bought${discount > 0 ? ` — ${Math.round(discount * 100)}% off!` : ""}`);
     this.renderParts();
   },
 
@@ -2287,10 +2256,8 @@ const Views = {
         const cost = Skills.tierCost(tier);
         if (!confirm(`Unlock ${def.name} Tier ${tier} for ${cost} skill point${cost > 1 ? "s" : ""}?\n\n${def.tiers[tier - 1]}`)) return;
         if (Skills.unlockTier(skillId)) {
-          UI.toast(`${def.name} Tier ${tier} unlocked!`);
           this.renderGarage();
         } else {
-          UI.toast("Not enough skill points");
         }
       });
     });
@@ -2341,20 +2308,16 @@ const Views = {
     const pct = ensurePct(p);
     const attempts = p.repairAttempts || 0;
     if (attempts >= 3) {
-      UI.toast("No repair attempts left on this part");
       return;
     }
     if (pct < 25) {
-      UI.toast("That part is too far gone to repair");
       return;
     }
     if (pct >= 70) {
-      UI.toast("Already at max repair condition");
       return;
     }
     const cost = repairCost(p);
     if (!State.canAfford(cost)) {
-      UI.toast("Not enough cash for that repair");
       return;
     }
     State.cash -= cost;
@@ -2383,11 +2346,8 @@ const Views = {
     Save.save();
     const left = 3 - p.repairAttempts;
     if (worsened) {
-      UI.toast(`Repair went wrong! Down to ${newPct}% (${p.stateLabel})`);
     } else if (improved) {
-      UI.toast(`Repaired to ${newPct}% (${p.stateLabel})! ${left} attempt${left === 1 ? "" : "s"} left`);
     } else {
-      UI.toast(`Repair didn't take — no improvement. ${left} attempt${left === 1 ? "" : "s"} left`);
     }
     this.renderGarage();
   },
@@ -2500,7 +2460,6 @@ const Views = {
       }
     };
     if (part.bikeSprite !== r.sprite || !(r.missingParts || []).includes(part.partKey)) {
-      UI.toast("That part doesn't fit this slot");
       return;
     }
     parts.splice(invIdx, 1);
@@ -2515,7 +2474,6 @@ const Views = {
     Save.save();
         _recalc();
     this.renderGarage();
-    UI.toast(`${part.partLabel} installed — value ${money(this.rollerValue(r))}`);
   },
 
   rollerToGarage(idx) {
@@ -2537,9 +2495,6 @@ const Views = {
     this.garageTab = "bikes";
     Save.save();
     this.renderGarage();
-    UI.toast(missing > 0
-      ? `${r.brand} ${r.model} moved to garage (missing ${missing} part${missing === 1 ? "" : "s"})`
-      : `${r.brand} ${r.model} rebuilt and moved to garage!`);
   },
 
   rollerDetailIdx: -1,
@@ -2636,7 +2591,6 @@ const Views = {
         if (!r.missingParts.includes(key)) r.missingParts.push(key);
         Save.save();
         this.renderGarage();
-        UI.toast(`${pDef ? pDef.label : key} moved to parts`);
       });
     });
     // Roller detail: close picker
@@ -2665,7 +2619,6 @@ const Views = {
     if (stripToggle) stripToggle.addEventListener("click", () => {
       this.stripMode = !this.stripMode;
       this.renderGarage();
-      UI.toast(this.stripMode ? "Strip mode: tap parts to pull them" : "Inspect mode");
     });
     // Inspect / strip parts: tap to reveal or pull
     el.querySelectorAll("[data-inspect-part]").forEach(cell => {
@@ -2759,7 +2712,6 @@ const Views = {
           return ((bike.partStates && bike.partStates[p.key]) || "pristine") !== "pristine";
         });
         if (bad.length) {
-          UI.toast(`Not collection-worthy — ${bad.length} part${bad.length === 1 ? "" : "s"} not pristine (${bad.slice(0, 3).map(p => p.label).join(", ")}${bad.length > 3 ? "…" : ""})`);
           return;
         }
       }
@@ -2775,9 +2727,6 @@ const Views = {
       } else {
         State.stats.collected = Math.max(0, State.stats.collected - 1);
       }
-      UI.toast(bike.kept
-        ? `${bike.brand} ${bike.model} added to your collection`
-        : `${bike.brand} ${bike.model} removed from collection`);
       Save.save();
       this.renderGarage();
     } else if (act === "toassemble") {
@@ -2790,7 +2739,6 @@ const Views = {
   stripPartFromBike(bike, partKey) {
     bike.missingParts = bike.missingParts || [];
     if (bike.missingParts.includes(partKey)) {
-      UI.toast("Already stripped");
       return;
     }
     // Mark as missing in partStates too
@@ -2819,7 +2767,6 @@ const Views = {
     }
     Save.save();
     this.renderGarage();
-    UI.toast(`${pDef.label} stripped to inventory`);
   },
 
   moveBikeToAssemble(idx) {
@@ -2836,7 +2783,6 @@ const Views = {
     this.garageDetailIdx = -1;
     this.stripMode = false;
     this.garageTab = "assemble";
-    UI.toast(`${bike.brand} ${bike.model} stripped — roller in Assemble`);
     Save.save();
     this.renderGarage();
   },
@@ -2867,7 +2813,6 @@ const Views = {
     const missing = avail.filter(p =>
       !parts.some(sp => sp.bikeSprite === sprite && sp.partKey === p.key));
     if (missing.length) {
-      UI.toast(`Missing: ${missing.map(m => m.label).join(", ")}`);
       return;
     }
     // Remove one of each part from inventory
@@ -2892,7 +2837,6 @@ const Views = {
     for (const p of avail) newBike.partStates[p.key] = "used_good";
     State.garage.push(newBike);
     this.garageTab = "bikes";
-    UI.toast(`${bikeData.brand} ${bikeData.name} assembled!`);
     this.renderGarage();
   },
 

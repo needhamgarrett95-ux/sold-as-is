@@ -23,13 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
         menu.classList.add("hidden");
       }
     });
-    // Spotify: toggle the embed player
-    document.getElementById("settings-spotify")?.addEventListener("click", () => {
-      menu.classList.add("hidden");
-      if (typeof SpotifyPlayer !== "undefined") SpotifyPlayer.toggleEmbed();
-    });
-    // Show the Spotify mini bar
-    if (typeof SpotifyPlayer !== "undefined") SpotifyPlayer.renderMiniPlayer();
     document.getElementById("settings-reset")?.addEventListener("click", () => {
       if (confirm("Start over? This wipes your garage, parts, cash, and skills.")) {
         localStorage.removeItem("soldasis_save_v1");

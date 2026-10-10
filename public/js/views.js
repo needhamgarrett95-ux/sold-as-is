@@ -85,6 +85,8 @@ const Views = {
     }
     this.partsRefreshesLeft--;
     this.partsShop = genPartsShop(16);
+    // Eliseo_M always has a part listed
+    this.partsShop.unshift(makeDannyPart(1000 + ((Math.random() * 9000) | 0)));
     // Reset filters on fresh stock
     this.renderParts();
     // Browser Extension Tier 3: deal alerts
@@ -1212,7 +1214,10 @@ const Views = {
   },
 
   renderParts(preserve) {
-    if (!this.partsShop.length) this.partsShop = genPartsShop(16);
+    if (!this.partsShop.length) {
+      this.partsShop = genPartsShop(16);
+      this.partsShop.unshift(makeDannyPart(1000 + ((Math.random() * 9000) | 0)));
+    }
     this.startAuctionTimer();
     this.startSalesTimer();
     this.startPlayerAuctionTimer();
@@ -1828,7 +1833,11 @@ const Views = {
     State.parts = State.parts || [];
     p.paidPrice = price; // track what we paid (after discount)
     State.parts.push(p);
+    const wasDanny = p.isDanny;
     this.partsShop.splice(i, 1);
+    if (wasDanny) {
+      this.partsShop.unshift(makeDannyPart(1000 + ((Math.random() * 9000) | 0)));
+    }
     UI.refreshCash();
     Save.save();
     UI.toast(`${p.partLabel} (${p.bikeBrand} ${p.bikeModel}) bought${discount > 0 ? ` — ${Math.round(discount * 100)}% off!` : ""}`);

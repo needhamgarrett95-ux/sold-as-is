@@ -9,6 +9,8 @@ const Feed = {
   init() {
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
+    // Eliseo_M always has a listing up
+    this.listings.unshift(makeDannyListing(this.nextId++));
     this.render();
     // No infinite scroll — feed is locked to 8 rows, refresh for new batch
     // (auto dropFresh removed — it caused random layout breaks)
@@ -60,6 +62,8 @@ const Feed = {
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     this.listings.forEach(l => l.fresh = true);
+    // Eliseo_M always has a listing up
+    this.listings.unshift(makeDannyListing(this.nextId++));
     this.render();
     document.getElementById("feed").scrollTop = 0;
     this.cooldownUntil = now + this.COOLDOWN_S * 1000;
@@ -95,12 +99,24 @@ const Feed = {
     this.render();
   },
 
+  // Eliseo_M's listing was bought — put up a fresh one
+  refreshDanny() {
+    this.listings = this.listings.filter(l => !l.isDanny);
+    this.listings.unshift(makeDannyListing(this.nextId++));
+    this.render();
+  },
+
   // Seller blocked the player — yank the listing and drop in a fresh one
   replaceBlocked(id) {
+    const wasDanny = this.listings.some(l => l.id === id && l.isDanny);
     this.listings = this.listings.filter(l => l.id !== id);
-    const fresh = genListings(1, this.nextId);
-    this.nextId += 1;
-    this.listings.push(...fresh);
+    if (wasDanny) {
+      this.listings.unshift(makeDannyListing(this.nextId++));
+    } else {
+      const fresh = genListings(1, this.nextId);
+      this.nextId += 1;
+      this.listings.push(...fresh);
+    }
     this.render();
   },
 

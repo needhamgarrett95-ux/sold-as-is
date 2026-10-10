@@ -294,6 +294,38 @@ function makeListing(id) {
   };
 }
 
+// Eliseo_M — Garrett's brother. Always has one listing in each shop. Pure homage.
+function makeDannyListing(id) {
+  const l = makeListing(id);
+  l.seller = "Eliseo_M";
+  l.sellerRating = (4.8 + Math.random() * 0.2).toFixed(1);
+  l.location = "Sequim";
+  l.miles = (8 + Math.floor(Math.random() * 5)) + " mi";
+  l.isDanny = true;
+  return l;
+}
+
+function makeDannyPart(id) {
+  const bike = BIKES[(Math.random() * BIKES.length) | 0];
+  const avail = availableParts(bike.sprite);
+  const part = avail[(Math.random() * avail.length) | 0];
+  const roll = Math.random();
+  const state = roll < 0.08 ? "pristine"
+    : roll < 0.40 ? "used_good"
+    : roll < 0.75 ? "used_bad"
+    : "totaled";
+  const price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
+  return {
+    id, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
+    partKey: part.key, partLabel: part.label, state,
+    stateLabel: PART_STATE_LABEL[state],
+    price, wasPrice: null, watchers: 1 + ((Math.random() * 10) | 0),
+    img: partImg(bike.sprite, part.key, state),
+    listingType: "bin",
+    seller: "Eliseo_M", isDanny: true,
+  };
+}
+
 function pickTown() {
   const [town, dist] = LOCAL_TOWNS[Math.floor(Math.random() * LOCAL_TOWNS.length)];
   // Add a little jitter so distances feel natural (±3 mi)

@@ -283,7 +283,11 @@ const Detail = {
       return;
     }
     State.buy({ ...l, price });
-    Feed.remove(l.id);
+    if (l.isDanny && typeof Feed !== "undefined") {
+      Feed.refreshDanny();
+    } else {
+      Feed.remove(l.id);
+    }
     this.close();
     UI.refreshCash();
     UI.toast(`Bought the ${l.brand} ${l.model} for ${money(price)}`);

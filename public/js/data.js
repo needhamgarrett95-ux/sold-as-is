@@ -77,45 +77,21 @@ const SELLERS = ["mike_rides", "2stroke_dan", "barnfind_betty", "moped_mike", "s
   "garage_greg", "alpen_amy", "dolce_dan", "vostok_vic", "kestrel_kyle", "rusty_rides",
   "clean_clara", "deal_dave", "moto_maria", "spareparts_sam", "og_rider_88"];
 
-const LOCATIONS = ["Portland, OR", "Austin, TX", "Chicago, IL", "Denver, CO", "Seattle, WA",
-  "Nashville, TN", "Phoenix, AZ", "Columbus, OH", "Minneapolis, MN", "Sacramento, CA"];
+// Real Olympic Peninsula towns with road distances from Port Angeles, WA
+const LOCAL_TOWNS = [
+  ["Port Angeles, WA", 0], ["Agnew, WA", 8], ["Carlsborg, WA", 12],
+  ["Joyce, WA", 15], ["Sequim, WA", 17], ["Blyn, WA", 20],
+  ["Diamond Point, WA", 25], ["Chimacum, WA", 28], ["Port Hadlock, WA", 30],
+  ["Gardiner, WA", 32], ["Port Townsend, WA", 35], ["Nordland, WA", 36],
+  ["Beaver, WA", 40], ["Marrowstone, WA", 41], ["Sappho, WA", 45],
+  ["Quilcene, WA", 46], ["Clallam Bay, WA", 50], ["Forks, WA", 55],
+  ["Brinnon, WA", 57], ["Sekiu, WA", 62], ["Poulsbo, WA", 63],
+  ["Silverdale, WA", 66], ["La Push, WA", 70], ["Neah Bay, WA", 72],
+  ["Bremerton, WA", 75], ["Hoodsport, WA", 78], ["Port Orchard, WA", 82],
+  ["Shelton, WA", 90], ["Olympia, WA", 108], ["Tacoma, WA", 112],
+];
 
-// Player location (opt-in, never stored or sent anywhere — memory only)
-const PlayerLoc = {
-  lat: null, lng: null, enabled: false,
-  init() {
-    try {
-      const p = JSON.parse(localStorage.getItem("soldasis_loc_pref") || "{}");
-      this.enabled = !!p.enabled;
-    } catch (e) {}
-  },
-  savePref() {
-    localStorage.setItem("soldasis_loc_pref", JSON.stringify({ enabled: this.enabled }));
-  },
-  request(cb) {
-    if (!navigator.geolocation) { cb(false); return; }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.lat = pos.coords.latitude;
-        this.lng = pos.coords.longitude;
-        this.enabled = true;
-        this.savePref();
-        cb(true);
-      },
-      () => { this.enabled = false; this.savePref(); cb(false); },
-      { timeout: 10000 }
-    );
-  },
-  disable() {
-    this.lat = null; this.lng = null; this.enabled = false;
-    this.savePref();
-  },
-  // Random distance 2-50 mi from player (feels local without reverse geocoding)
-  localMiles() {
-    if (this.lat == null) return null;
-    return Math.floor(Math.random() * 48) + 2;
-  },
-};
+
 
 const PARTS = [
   { key: "engine",      label: "Engine" },
@@ -311,12 +287,18 @@ function makeListing(id) {
     ])} ${pick(["Clean title in hand.", "Bill of sale only.", "Title in hand.", "Lost title, BOS only."])}`,
     seller: pick(SELLERS),
     sellerRating: (3.5 + Math.random() * 1.5).toFixed(1),
-    location: PlayerLoc.lat != null ? "Near you" : pick(LOCATIONS),
-    miles: (PlayerLoc.lat != null ? PlayerLoc.localMiles() : Math.floor(Math.random() * 40)) + " mi away",
+    ...(() => { const t = pickTown(); return { location: t.town, miles: t.miles }; })(),
     postedAgo: minsAgo < 60 ? `${minsAgo}m ago` : `${Math.floor(minsAgo / 60)}h ago`,
     fresh: minsAgo < 30,
     photos: 1 + Math.floor(Math.random() * 4),
   };
+}
+
+function pickTown() {
+  const [town, dist] = LOCAL_TOWNS[Math.floor(Math.random() * LOCAL_TOWNS.length)];
+  // Add a little jitter so distances feel natural (±3 mi)
+  const jittered = Math.max(1, dist + Math.floor(Math.random() * 7) - 3);
+  return { town, miles: jittered + " mi" };
 }
 
 function genListings(n, startId = 0, prevBikeId = null) {

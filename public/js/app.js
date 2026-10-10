@@ -23,47 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
         menu.classList.add("hidden");
       }
     });
-    // EASTER EGG: tap the logo 5x to toggle "local sellers" mode
-    // (uses real location, memory-only, never stored or sent anywhere)
-    if (typeof PlayerLoc !== "undefined") {
-      PlayerLoc.init();
-      if (PlayerLoc.enabled && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => { PlayerLoc.lat = pos.coords.latitude; PlayerLoc.lng = pos.coords.longitude; },
-          () => { PlayerLoc.enabled = false; PlayerLoc.savePref(); },
-          { timeout: 8000 }
-        );
-      }
-      let eggTaps = 0, eggTimer = null;
-      const logoEls = document.querySelectorAll("#logo-main, #logo-boneyard");
-      logoEls.forEach(logoEl => {
-        logoEl.addEventListener("click", () => {
-          eggTaps++;
-          clearTimeout(eggTimer);
-          eggTimer = setTimeout(() => { eggTaps = 0; }, 2000);
-          if (eggTaps >= 5) {
-            eggTaps = 0;
-            if (PlayerLoc.enabled) {
-              PlayerLoc.disable();
-              UI.toast("🥚 Local sellers off");
-            } else {
-              UI.toast("🥚 Requesting location…");
-              PlayerLoc.request((ok) => {
-                if (ok) {
-                  UI.toast("🥚 Local sellers on — check the marketplace");
-                  if (typeof Feed !== "undefined" && Feed.listings) {
-                    Feed.cooldownUntil = 0;
-                    Feed.refresh();
-                  }
-                } else {
-                  UI.toast("🥚 Location unavailable");
-                }
-              });
-            }
-          }
-        });
-      });
-    }
+
     document.getElementById("settings-reset")?.addEventListener("click", () => {
       if (confirm("Start over? This wipes your garage, parts, cash, and skills.")) {
         localStorage.removeItem("soldasis_save_v1");

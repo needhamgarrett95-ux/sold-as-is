@@ -2294,7 +2294,8 @@ const Views = {
             if (tooFarGone) return `<div class="eby-meta" style="color:#f44336">Too far gone to repair</div>`;
             if (left <= 0) return `<div class="eby-meta" style="color:#999">No repairs left</div>`;
             if (!canRepair) return `<div class="eby-meta" style="color:#4caf50">Max condition reached</div>`;
-            return `<button class="eby-repair" data-repair="${i}">${Icon.get('wrench')} Repair — ${money(cost)} (${left} left)</button>`;
+            const risk = [10, 18, 30][Math.min(attempts, 2)];
+            return `<button class="eby-repair" data-repair="${i}">${Icon.get('wrench')} Repair — ${money(cost)} (${left} left, ${risk}% risk)</button>`;
           })()}
           <button class="eby-sell" data-sell-part="${i}">${Icon.get('cash')} Sell This Part</button>
         </div>
@@ -2324,9 +2325,10 @@ const Views = {
     p.repairAttempts = attempts + 1;
     p.repairSpent = (p.repairSpent || 0) + cost; // track for XP cost basis
 
-    // 15% chance: repair goes wrong, part gets significantly worse
+    // Escalating risk: 10% → 18% → 30% fail chance per attempt
+    const failChance = [0.10, 0.18, 0.30][Math.min(attempts, 2)];
     let newPct, improved, worsened = false;
-    if (Math.random() < 0.15) {
+    if (Math.random() < failChance) {
       const damage = 10 + ((Math.random() * 15) | 0); // -10 to -25
       newPct = Math.max(0, pct - damage);
       worsened = true;

@@ -38,6 +38,11 @@ const Tutorial = {
       action: '[data-view="collection"]',
     },
     {
+      title: "Repair Risk",
+      text: "You can repair worn parts — but each attempt is a gamble. The risk climbs every time: 10%, then 18%, then 30%. A failed repair makes the part WORSE. Know when to stop.",
+      action: null,
+    },
+    {
       title: "You're Ready",
       text: "That's the tour. Buy low, flip high, build the ultimate collection. Good luck out there.",
       action: null,

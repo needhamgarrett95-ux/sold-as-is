@@ -23,6 +23,37 @@ document.addEventListener("DOMContentLoaded", () => {
         menu.classList.add("hidden");
       }
     });
+    // Location toggle (opt-in, memory only, never stored/sent)
+    if (typeof PlayerLoc !== "undefined") {
+      PlayerLoc.init();
+      // Coords are memory-only — re-acquire silently if previously enabled
+      if (PlayerLoc.enabled && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => { PlayerLoc.lat = pos.coords.latitude; PlayerLoc.lng = pos.coords.longitude; },
+          () => { PlayerLoc.enabled = false; PlayerLoc.savePref(); },
+          { timeout: 8000 }
+        );
+      }
+    }
+    const locSub = document.getElementById("settings-location-sub");
+    const refreshLocSub = () => { if (locSub) locSub.textContent = (typeof PlayerLoc !== "undefined" && PlayerLoc.enabled) ? "on" : "off"; };
+    refreshLocSub();
+    document.getElementById("settings-location")?.addEventListener("click", () => {
+      if (typeof PlayerLoc === "undefined") return;
+      menu.classList.add("hidden");
+      if (PlayerLoc.enabled) {
+        PlayerLoc.disable();
+        refreshLocSub();
+        UI.toast("Location off — back to random towns");
+      } else {
+        UI.toast("Requesting location…");
+        PlayerLoc.request((ok) => {
+          refreshLocSub();
+          UI.toast(ok ? "Location on — sellers are near you now" : "Location unavailable");
+          if (ok) location.reload();
+        });
+      }
+    });
     document.getElementById("settings-reset")?.addEventListener("click", () => {
       if (confirm("Start over? This wipes your garage, parts, cash, and skills.")) {
         localStorage.removeItem("soldasis_save_v1");

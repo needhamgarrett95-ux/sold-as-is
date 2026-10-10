@@ -80,6 +80,43 @@ const SELLERS = ["mike_rides", "2stroke_dan", "barnfind_betty", "moped_mike", "s
 const LOCATIONS = ["Portland, OR", "Austin, TX", "Chicago, IL", "Denver, CO", "Seattle, WA",
   "Nashville, TN", "Phoenix, AZ", "Columbus, OH", "Minneapolis, MN", "Sacramento, CA"];
 
+// Player location (opt-in, never stored or sent anywhere — memory only)
+const PlayerLoc = {
+  lat: null, lng: null, enabled: false,
+  init() {
+    try {
+      const p = JSON.parse(localStorage.getItem("soldasis_loc_pref") || "{}");
+      this.enabled = !!p.enabled;
+    } catch (e) {}
+  },
+  savePref() {
+    localStorage.setItem("soldasis_loc_pref", JSON.stringify({ enabled: this.enabled }));
+  },
+  request(cb) {
+    if (!navigator.geolocation) { cb(false); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.lat = pos.coords.latitude;
+        this.lng = pos.coords.longitude;
+        this.enabled = true;
+        this.savePref();
+        cb(true);
+      },
+      () => { this.enabled = false; this.savePref(); cb(false); },
+      { timeout: 10000 }
+    );
+  },
+  disable() {
+    this.lat = null; this.lng = null; this.enabled = false;
+    this.savePref();
+  },
+  // Random distance 2-50 mi from player (feels local without reverse geocoding)
+  localMiles() {
+    if (this.lat == null) return null;
+    return Math.floor(Math.random() * 48) + 2;
+  },
+};
+
 const PARTS = [
   { key: "engine",      label: "Engine" },
   { key: "exhaust",     label: "Exhaust" },
@@ -275,7 +312,7 @@ function makeListing(id) {
     seller: pick(SELLERS),
     sellerRating: (3.5 + Math.random() * 1.5).toFixed(1),
     location: pick(LOCATIONS),
-    miles: Math.floor(Math.random() * 40) + " mi",
+    miles: (PlayerLoc.lat != null ? PlayerLoc.localMiles() : Math.floor(Math.random() * 40)) + " mi",
     postedAgo: minsAgo < 60 ? `${minsAgo}m ago` : `${Math.floor(minsAgo / 60)}h ago`,
     fresh: minsAgo < 30,
     photos: 1 + Math.floor(Math.random() * 4),

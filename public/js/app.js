@@ -14,14 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   // Clickable logos: reset to default view of each section
   document.getElementById("logo-main").addEventListener("click", () => {
-    Views.show("market");
     Views.marketTab = "browse";
-    Views.renderMarketFeed();
+    Views.show("market");
   });
   document.getElementById("logo-boneyard").addEventListener("click", () => {
-    Views.show("parts");
     Views.boneyardTab = "buy";
-    Views.renderParts();
+    Views.show("parts");
   });
   // URL bar refresh button: market uses cooldown refresh, others reload their view
   const refreshBtn = document.getElementById("refresh-btn");

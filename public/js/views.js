@@ -164,7 +164,7 @@ const Views = {
     el.innerHTML = `
       <div class="eby-typefilter market-tabs">
         <button class="eby-type${this.marketTab === "browse" ? " active" : ""}" data-mtab="browse">Browse</button>
-        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${this.myBikeListings.length ? ` (${this.myBikeListings.length})` : ""}${this.myBikeListings.some(l => l.offer) && this.marketTab !== "mine" ? `<span class="tab-dot"></span>` : ""}</button>
+        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${(() => { const n = this.myBikeListings.filter(l => !l.sold).length; return n ? ` (${n})` : ""; })()}${this.myBikeListings.some(l => l.offer) && this.marketTab !== "mine" ? `<span class="tab-dot"></span>` : ""}</button>
       </div>`;
     el.querySelectorAll("[data-mtab]").forEach(t =>
       t.addEventListener("click", () => {
@@ -1088,7 +1088,7 @@ const Views = {
     const btabHtml = `
       <div class="eby-typefilter">
         <button class="eby-type${this.boneyardTab === "buy" ? " active" : ""}" data-btab="buy">Buy Parts</button>
-        <button class="eby-type${this.boneyardTab === "sell" ? " active" : ""}" data-btab="sell">My Listings${this.myPartListings.length ? ` (${this.myPartListings.length})` : ""}</button>
+        <button class="eby-type${this.boneyardTab === "sell" ? " active" : ""}" data-btab="sell">My Listings${(() => { const n = this.myPartListings.filter(l => !l.sold).length; return n ? ` (${n})` : ""; })()}</button>
       </div>`;
     if (this.boneyardTab === "sell") {
       el.innerHTML = `

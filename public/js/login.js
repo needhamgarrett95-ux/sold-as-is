@@ -8,22 +8,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const btn = document.getElementById("login-btn");
   const pw = document.getElementById("password");
-  // 140 wpm ≈ 11.67 chars/sec → ~86ms per asterisk
-  const PER_ASTERISK_MS = 60000 / (140 * 5);
-
   const doLogin = () => {
     if (btn.disabled) return;
     btn.disabled = true;
     btn.textContent = "Signing in...";
     // Note: no pw.focus() — iOS would pop the keyboard during auto-type
     let n = 0;
-    const timer = setInterval(() => {
+    // Natural typing rhythm: base ~90ms with human variation,
+    // occasional slightly longer pause (like thinking between chars)
+    const typeNext = () => {
       n++;
       pw.value = "*".repeat(n);
-      // One tick per asterisk, synced to the visual
+      // Tick plays at the exact moment the asterisk renders
       if (typeof AudioEngine !== "undefined") AudioEngine.playTyping();
       if (n >= 7) {
-        clearInterval(timer);
         setTimeout(() => {
           loginScreen.classList.add("hidden");
           // Start tutorial on first run (after login)
@@ -31,8 +29,16 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => Tutorial.start(), 800);
           }
         }, 450);
+        return;
       }
-    }, PER_ASTERISK_MS);
+      // Human variation: 70-110ms base, 15% chance of a 180-250ms "think" pause
+      const delay = Math.random() < 0.15
+        ? 180 + Math.random() * 70
+        : 70 + Math.random() * 40;
+      setTimeout(typeNext, delay);
+    };
+    // Small delay before typing starts (like reaching for the keyboard)
+    setTimeout(typeNext, 300);
   };
 
   btn.addEventListener("click", doLogin);

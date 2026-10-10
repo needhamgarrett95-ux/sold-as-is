@@ -11,8 +11,8 @@ jobs:
         run: |
           # Delete old Firebase Hosting versions to stay under quota (keep latest 5)
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/sa.json
-          npm install -g google-auth-library 2>/dev/null || true
-          node << 'NODEEOF'
+          cd /tmp && npm init -y > /dev/null 2>&1 && npm install google-auth-library > /dev/null 2>&1
+          NODE_PATH=/tmp/node_modules node << 'NODEEOF'
           const { GoogleAuth } = require('google-auth-library');
           const auth = new GoogleAuth({
             keyFile: '/tmp/sa.json',

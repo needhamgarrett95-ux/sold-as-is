@@ -18,6 +18,11 @@ const Tutorial = {
       action: "#d-back",
     },
     {
+      title: "Make It Count",
+      text: "Every deal is permanent — no take-backs, no refunds. Make too many bad deals and you'll have to reset your save and start over. Think before you buy.",
+      action: null,
+    },
+    {
       title: "Your Garage",
       text: "Bikes you buy live here. Restore them, strip them for parts, or flip them. Take a look.",
       action: '[data-view="garage"]',

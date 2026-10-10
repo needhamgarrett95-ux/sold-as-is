@@ -207,9 +207,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 /* ---------- garage ---------- */
 .g-tabs { display: flex; gap: 8px; padding: 12px; background: var(--card);
   border-bottom: 1px solid var(--line); }
-.g-tab { flex: 1; padding: 10px 0; border: 1.5px solid var(--line); border-radius: 8px;
-  background: var(--paper); color: var(--dim); font-size: .85rem; font-weight: 700;
-  cursor: pointer; }
+.g-tab { flex: 1; padding: 10px 4px; border: 1.5px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--dim); font-size: .8rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 6px; white-space: nowrap; }
 .g-tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
 .pane-head { padding: 16px 12px 8px; }
 .pane-head h2 { font-size: 1.3rem; font-weight: 800; color: var(--ink); margin: 0 0 4px; }
@@ -283,7 +284,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .tab-icon svg { width: 100%; height: 100%; }
 .wtab svg { width: 18px; height: 18px; }
 .eby-title svg { width: 22px; height: 22px; vertical-align: -5px; margin-right: 4px; }
-.g-tab svg { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
+.g-tab svg { width: 18px; height: 18px; flex-shrink: 0; }
 .haggle-close svg { width: 20px; height: 20px; }
 .eby-cancel svg { width: 14px; height: 14px; }
 button svg { vertical-align: -3px; }

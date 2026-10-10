@@ -361,7 +361,7 @@ const Views = {
       State.sold.push({ ...listing, soldFor: askPrice, soldAt: Date.now() });
       UI.refreshCash();
       Save.save();
-      UI.toast(`${buyerName} bought your ${listing.brand} ${listing.model} for ${money(askPrice)}`, "marketplace");
+      UI.toast(`${buyerName} bought your ${listing.brand} ${listing.model} at listing price (${money(askPrice)})`, "marketplace");
       if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
       return;
     }

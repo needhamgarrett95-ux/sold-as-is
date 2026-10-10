@@ -2443,7 +2443,7 @@ const Views = {
       <div class="set-row">
         <div class="set-name">${s.brand} — ${s.owned}/${s.total}</div>
         <div class="set-slots">${Array.from({ length: s.total }, (_, i) =>
-          `<div class="slot ${i < s.owned ? "filled" : ""}">${i < s.owned ? "${Icon.get('check')}" : "?"}</div>`).join("")}
+          `<div class="slot ${i < s.owned ? "filled" : ""}">${i < s.owned ? Icon.get('check') : "?"}</div>`).join("")}
         </div>
       </div>`).join("");
   },

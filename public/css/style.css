@@ -752,6 +752,27 @@ button.settings-item:active { background: #faf6f1; }
   z-index: 1000;
   overflow: hidden;
 }
+.activity-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 8px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+.activity-tab {
+  flex: 1;
+  padding: 8px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #888;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.activity-tab.active {
+  color: #fff;
+  border-bottom-color: #d4a017;
+}
 .activity-list {
   max-height: 350px;
   overflow-y: auto;

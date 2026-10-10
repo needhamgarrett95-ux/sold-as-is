@@ -554,32 +554,48 @@ const UI = {
   },
   _toastQueue: [],
   _toastShowing: false,
-  toast(msg) {
+  toast(msg, category) {
     this._toastQueue.push(msg);
     this._showNextToast();
-    // Log to activity feed
+    // Log to activity feed (auto-detect category if not given)
     try {
+      if (!category) {
+        const m = msg.toLowerCase();
+        category = (m.includes("part") || m.includes("boneyard")) ? "boneyard" : "marketplace";
+      }
       const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-      feed.unshift({ msg, at: Date.now() });
+      feed.unshift({ msg, at: Date.now(), cat: category });
       if (feed.length > 50) feed.length = 50;
       localStorage.setItem("soldasis_activity", JSON.stringify(feed));
     } catch (e) {}
   },
-  showActivity() {
+  _activityTab: "marketplace",
+  showActivity(tab) {
     const popup = document.getElementById("activity-popup");
     const list = document.getElementById("activity-list");
     if (!popup || !list) return;
+    if (tab) this._activityTab = tab;
+    const cur = this._activityTab;
     let feed = [];
     try { feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]"); } catch (e) {}
-    if (!feed.length) {
-      list.innerHTML = '<div class="activity-empty">No activity yet.</div>';
+    const filtered = feed.filter(a => (a.cat || "marketplace") === cur);
+    const tabsHTML = `
+      <div class="activity-tabs">
+        <button class="activity-tab${cur === "marketplace" ? " active" : ""}" data-atab="marketplace">Marketplace</button>
+        <button class="activity-tab${cur === "boneyard" ? " active" : ""}" data-atab="boneyard">Boneyard</button>
+      </div>`;
+    if (!filtered.length) {
+      list.innerHTML = tabsHTML + '<div class="activity-empty">No activity yet.</div>';
     } else {
-      list.innerHTML = feed.map(a => {
+      list.innerHTML = tabsHTML + filtered.map(a => {
         const d = new Date(a.at);
         const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
         return `<div class="activity-item"><span class="activity-time">${time}</span><span>${a.msg}</span></div>`;
       }).join("");
     }
+    list.querySelectorAll("[data-atab]").forEach(b => {
+      b.addEventListener("click", (e) => { e.stopPropagation(); this.showActivity(b.dataset.atab); });
+    });
     // Close other popups
     document.getElementById("music-popup")?.classList.add("hidden");
     document.getElementById("settings-menu")?.classList.add("hidden");

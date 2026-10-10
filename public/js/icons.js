@@ -55,6 +55,12 @@ const Icon = (() => {
     // Pointing hand — tutorial tap indicator
     tap: S(`<path d="M9 11.5V5.5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10.5V4.5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10.5V6a1.5 1.5 0 0 1 3 0v7c0 4-2.5 7-6.5 7S7 18.5 5.5 15.5l-1.7-3.4a1.5 1.5 0 0 1 2.6-1.4L8 13.5"/>`),
 
+    // Missing part — empty dashed slot with X, matches UI
+    missing: S(`<rect x="4" y="4" width="16" height="16" rx="2" stroke-dasharray="4 3"/><path d="M9 9l6 6M15 9l-6 6"/>`),
+
+    // Hidden part — unknown, matches UI
+    hidden: S(`<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.7c0 1.6-2.4 2.1-2.4 3.3"/><path d="M12 17h.01"/>`),
+
     // Close X
     close: S(`<path d="M6 6l12 12M18 6L6 18"/>`),
 

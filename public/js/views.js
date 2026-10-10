@@ -2094,7 +2094,7 @@ const Views = {
               const missing = (b.missingParts || []).includes(p.key);
               if (missing) {
                 return `<div class="part-cell state-missing" data-inspect-part="${p.key}">
-                  <div class="part-missing-x">✕</div>
+                  <div class="part-missing-x">${Icon.get('missing')}</div>
                   <div class="part-label">${p.label}</div>
                   <div class="part-state" style="color:#999">stripped</div>
                 </div>`;
@@ -2353,7 +2353,7 @@ const Views = {
         const count = parts.filter(sp => sp.bikeSprite === r.sprite && sp.partKey === p.key).length;
         const active = pickKey === p.key ? " picker-open" : "";
         return `<div class="part-cell state-missing${active}" data-pick-slot="${p.key}">
-          <div class="part-missing-x">✕</div>
+          <div class="part-missing-x">${Icon.get('missing')}</div>
           <div class="part-label">${p.label}</div>
           ${count
             ? `<button class="eby-buy roller-choose-btn">Choose part (${count})</button>`

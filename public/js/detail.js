@@ -357,7 +357,7 @@ const Detail = {
               const imgSrc = (!isRev || st === "missing") ? null : partImg(l.sprite, p.key, st);
               const imgHtml = imgSrc
                 ? `<img src="${imgSrc}" alt="${p.label}" loading="lazy">`
-                : (isRev && st === "missing" ? `<div class="part-missing">✕</div>` : `<div class="part-hidden">?</div>`);
+                : (isRev && st === "missing" ? `<div class="part-missing">${Icon.get('missing')}</div>` : `<div class="part-hidden">${Icon.get('hidden')}</div>`);
               return `<div class="part-cell state-${!isRev ? "hidden" : st}">
                 ${imgHtml}
                 <div class="part-label">${p.label}</div>

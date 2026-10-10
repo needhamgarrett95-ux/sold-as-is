@@ -725,3 +725,14 @@ button.settings-item:active { background: #faf6f1; }
   border-radius: 8px;
   position: relative; z-index: 9998;
 }
+
+/* Milestones */
+.milestones { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.milestone {
+  display: flex; gap: 12px; align-items: center;
+  padding: 10px 12px; background: var(--card);
+  border: 1.5px solid var(--line); border-radius: 8px;
+}
+.milestone.done { border-color: var(--gold, #c9a227); background: #fffdf5; }
+.milestone-icon { font-size: 1.4rem; width: 32px; text-align: center; }
+.milestone-desc { font-size: 0.85rem; color: var(--dim); }

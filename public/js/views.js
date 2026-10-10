@@ -2686,6 +2686,22 @@ const Views = {
         <div class="set-slots">${Array.from({ length: s.total }, (_, i) =>
           `<div class="slot ${i < s.owned ? "filled" : ""}">${i < s.owned ? Icon.get('check') : "?"}</div>`).join("")}
         </div>
-      </div>`).join("");
+      </div>`).join("") +
+      this.renderMilestones();
+  },
+
+  renderMilestones() {
+    if (typeof Milestones === "undefined") return "";
+    const done = new Set(Milestones.completed());
+    const items = Milestones.defs.map(d => {
+      const isDone = done.has(d.id);
+      return `<div class="milestone ${isDone ? "done" : ""}">
+        <div class="milestone-icon">${isDone ? "🏆" : "○"}</div>
+        <div><strong>${d.name}</strong><div class="milestone-desc">${d.desc}</div></div>
+      </div>`;
+    }).join("");
+    return `<h2 style="margin-top:24px">Milestones</h2>
+      <div class="sub">${done.size} of ${Milestones.defs.length} completed</div>
+      <div class="milestones">${items}</div>`;
   },
 };

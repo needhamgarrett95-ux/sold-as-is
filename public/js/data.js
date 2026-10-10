@@ -116,6 +116,46 @@ const PART_DIST = {
   "Parts bike": [0.00, 0.05, 0.35, 0.40, 0.20],
 };
 const PART_STATES = ["pristine", "used_good", "used_bad", "totaled", "missing"];
+
+// Calculate a bike's overall condition from its individual part states.
+// Critical parts (engine) weigh heavily — a shot engine caps the bike at Non-runner.
+function calcBikeCondition(partStates, sprite) {
+  if (!partStates) return "Good";
+  const weights = {
+    engine: 4, wheel_front: 2, wheel_rear: 2, exhaust: 1.5,
+    fuel_tank: 1, headlight: 0.5, handlebars: 1, turn_signals: 0.5,
+  };
+  const scores = { pristine: 100, used_good: 75, used_bad: 40, totaled: 10, missing: 0 };
+  let totalWeight = 0, weightedSum = 0;
+  let worstCritical = 100;
+
+  const parts = sprite ? availableParts(sprite) : Object.keys(partStates).map(k => ({ key: k }));
+  for (const p of parts) {
+    const key = p.key || p;
+    const st = partStates[key] || "pristine";
+    const w = weights[key] || 1;
+    const score = scores[st] ?? 50;
+    weightedSum += score * w;
+    totalWeight += w;
+    // Engine is critical — track its worst state
+    if (key === "engine" && score < worstCritical) worstCritical = score;
+  }
+
+  if (totalWeight === 0) return "Good";
+  let avg = weightedSum / totalWeight;
+
+  // Critical part caps: shot/missing engine drags the whole bike down
+  if (worstCritical <= 10) avg = Math.min(avg, 25);  // totaled/missing engine
+  else if (worstCritical <= 40) avg = Math.min(avg, 45); // worn engine
+
+  if (avg >= 90) return "Mint";
+  if (avg >= 75) return "Clean";
+  if (avg >= 60) return "Good";
+  if (avg >= 40) return "Fair";
+  if (avg >= 20) return "Rough";
+  if (avg >= 10) return "Non-runner";
+  return "Parts bike";
+}
 const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot", missing: "Missing" };
 
 // Condition % → state mapping (0-100)
@@ -273,14 +313,17 @@ function makeListing(id) {
     .replace("{cond}", cond.name.toLowerCase()).replace("{tag}", tag);
   const minsAgo = Math.floor(Math.random() * 600) + 2;
   const partStates = rollPartStates(cond.name, bike.sprite);
+  // Recalculate true condition from parts (may differ from rolled condition)
+  const trueCond = calcBikeCondition(partStates, bike.sprite);
+  const trueCondObj = CONDITIONS.find(c => c.name === trueCond) || cond;
   // Each missing part knocks ~8% off fair value
   const missingCount = Object.values(partStates).filter(s => s === "missing").length;
-  const fairValue = Math.round(bike.base * cond.mult * Math.pow(0.92, missingCount) / 10) * 10;
+  const fairValue = Math.round(bike.base * trueCondObj.mult * Math.pow(0.92, missingCount) / 10) * 10;
   return {
     id, bikeId: bike.id, brand: bike.brand, model: bike.name,
     sprite: bike.sprite,
     baseValue: bike.base, rarity: bike.rarity,
-    condition: cond.name, price,
+    condition: trueCond, price,
     partStates,
     // fair value estimate (what inspection would reveal)
     fairValue,

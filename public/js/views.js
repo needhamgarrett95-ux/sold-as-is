@@ -2493,6 +2493,12 @@ const Views = {
     const parts = State.parts || [];
     const part = parts[invIdx];
     if (!r || !part) return;
+    // Recalculate condition after install (at end of function)
+    const _recalc = () => {
+      if (typeof calcBikeCondition !== "undefined") {
+        r.condition = calcBikeCondition(r.partStates, r.sprite);
+      }
+    };
     if (part.bikeSprite !== r.sprite || !(r.missingParts || []).includes(part.partKey)) {
       UI.toast("That part doesn't fit this slot");
       return;
@@ -2507,6 +2513,7 @@ const Views = {
     // Track install cost for XP basis
     r.installedCost = (r.installedCost || 0) + (part.paidPrice || 0);
     Save.save();
+        _recalc();
     this.renderGarage();
     UI.toast(`${part.partLabel} installed — value ${money(this.rollerValue(r))}`);
   },
@@ -2788,6 +2795,9 @@ const Views = {
       UI.toast("Already stripped");
       return;
     }
+    // Mark as missing in partStates too
+    bike.partStates = bike.partStates || {};
+    bike.partStates[partKey] = "missing";
     const avail = availableParts(bike.sprite);
     const pDef = avail.find(p => p.key === partKey);
     if (!pDef) return;
@@ -2805,6 +2815,10 @@ const Views = {
     bike.missingParts.push(partKey);
     // Remove from revealed (it's gone)
     if (bike.revealedParts) bike.revealedParts = bike.revealedParts.filter(k => k !== partKey);
+        // Recalculate overall condition from parts
+    if (typeof calcBikeCondition !== "undefined") {
+      bike.condition = calcBikeCondition(bike.partStates, bike.sprite);
+    }
     Save.save();
     this.renderGarage();
     UI.toast(`${pDef.label} stripped to inventory`);

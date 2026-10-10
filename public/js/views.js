@@ -2091,15 +2091,15 @@ const Views = {
           <div class="sub" style="margin-bottom:8px">Tap a part to reveal its condition. <button class="link-btn" id="strip-toggle">Strip parts instead</button></div>
           <div class="parts-grid" id="inspect-grid">
             ${availableParts(b.sprite).map(p => {
-              const missing = (b.missingParts || []).includes(p.key);
-              if (missing) {
+              const st = (b.partStates && b.partStates[p.key]) || "pristine";
+              const isMissing = st === "missing" || (b.missingParts || []).includes(p.key);
+              if (isMissing) {
                 return `<div class="part-cell state-missing" data-inspect-part="${p.key}">
                   <div class="part-missing-x">${Icon.get('missing')}</div>
                   <div class="part-label">${p.label}</div>
-                  <div class="part-state" style="color:#999">stripped</div>
+                  <div class="part-state">Missing</div>
                 </div>`;
               }
-              const st = (b.partStates && b.partStates[p.key]) || "pristine";
               const revealed = (b.revealedParts || []).includes(p.key);
               const label = revealed ? PART_STATE_LABEL[st] : `<span class="cond-hidden">???</span>`;
               return `<div class="part-cell state-${revealed ? st : "hidden"}${this.stripMode ? " strip-mode" : ""}" data-inspect-part="${p.key}">

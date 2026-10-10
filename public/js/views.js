@@ -1964,16 +1964,48 @@ const Views = {
       }).join("") + `</div>`;
   },
 
-  // Roller detail: install matching parts
+  // Which missing slot is expanded for part picking
+  rollerPickSlot: null,
+
+  // Roller detail: install matching parts (player picks which owned part)
   rollerDetailHTML(idx) {
     const r = (State.rollers || [])[idx];
     if (!r) return "";
     const avail = availableParts(r.sprite);
     const parts = State.parts || [];
-    return `<div class="pane-head"><button class="back-btn" id="roller-back">← Back</button>
+    const pickKey = this.rollerPickSlot;
+    let html = `<div class="pane-head"><button class="back-btn" id="roller-back">← Back</button>
       <h2>${r.brand} ${r.model} — Roller</h2>
-      <div class="sub">Est. value: ${money(this.rollerValue(r))}</div></div>
-      <div class="parts-grid">` +
+      <div class="sub">Est. value: ${money(this.rollerValue(r))}</div></div>`;
+    // Part picker drawer (expanded slot)
+    if (pickKey) {
+      const pDef = avail.find(p => p.key === pickKey);
+      const matches = parts
+        .map((sp, i) => ({ ...sp, invIdx: i }))
+        .filter(sp => sp.bikeSprite === r.sprite && sp.partKey === pickKey)
+        .sort((a, b) => (b.conditionPct || 0) - (a.conditionPct || 0));
+      html += `<div class="roller-picker">
+        <div class="roller-picker-head">
+          <strong>Pick a ${pDef ? pDef.label : pickKey}</strong>
+          <button class="back-btn" id="roller-picker-close">✕</button>
+        </div>`;
+      if (!matches.length) {
+        html += `<div class="empty" style="padding:16px"><strong>None in inventory</strong>Buy or strip a ${pDef ? pDef.label.toLowerCase() : "part"} that fits this bike.</div>`;
+      } else {
+        html += `<div class="roller-picker-list">` + matches.map(m => `
+          <div class="roller-pick-row" data-pick-part="${m.invIdx}" data-roller="${idx}">
+            <img src="${m.img}" alt="${m.partLabel}" loading="lazy">
+            <div class="roller-pick-info">
+              <div class="roller-pick-name">${m.partLabel}</div>
+              <div class="roller-pick-cond state-${m.state}">${m.stateLabel} · ${m.conditionPct || "?"}%</div>
+            </div>
+            <button class="eby-buy roller-pick-btn">Install</button>
+          </div>`).join("") + `</div>`;
+      }
+      html += `</div>`;
+    }
+    // Parts grid
+    html += `<div class="parts-grid">` +
       avail.map(p => {
         const missing = (r.missingParts || []).includes(p.key);
         if (!missing) {
@@ -1984,37 +2016,36 @@ const Views = {
             <div class="part-state">${PART_STATE_LABEL[st]}</div>
           </div>`;
         }
-        // Find matching parts in inventory
-        const matches = parts.filter(sp => sp.bikeSprite === r.sprite && sp.partKey === p.key);
-        const best = matches.sort((a, b) => (b.conditionPct || 0) - (a.conditionPct || 0))[0];
-        return `<div class="part-cell state-missing">
+        const count = parts.filter(sp => sp.bikeSprite === r.sprite && sp.partKey === p.key).length;
+        const active = pickKey === p.key ? " picker-open" : "";
+        return `<div class="part-cell state-missing${active}" data-pick-slot="${p.key}">
           <div class="part-missing-x">✕</div>
           <div class="part-label">${p.label}</div>
-          ${best
-            ? `<button class="eby-buy" style="margin-top:6px;padding:6px 10px;font-size:.75rem" data-install-part="${p.key}" data-roller="${idx}">Install ${best.stateLabel} (${best.conditionPct}%)</button>`
-            : `<div class="part-state" style="color:#999">no part in inventory</div>`}
+          ${count
+            ? `<button class="eby-buy roller-choose-btn">Choose part (${count})</button>`
+            : `<div class="part-state" style="color:#999">none owned</div>`}
         </div>`;
       }).join("") + `</div>
       <div style="padding:12px"><button class="eby-buy" id="roller-to-garage" ${r.missingParts.length ? "disabled style='opacity:.4'" : ""}>${r.missingParts.length ? `Missing ${r.missingParts.length} part${r.missingParts.length === 1 ? "" : "s"}` : "Move to Garage"}</button></div>`;
+    return html;
   },
 
-  installPartOnRoller(rollerIdx, partKey) {
+  installPartOnRoller(rollerIdx, invIdx) {
     const r = (State.rollers || [])[rollerIdx];
-    if (!r || !(r.missingParts || []).includes(partKey)) return;
     const parts = State.parts || [];
-    // Pick the best-condition matching part
-    let bestIdx = -1, bestPct = -1;
-    parts.forEach((sp, i) => {
-      if (sp.bikeSprite === r.sprite && sp.partKey === partKey && (sp.conditionPct || 0) > bestPct) {
-        bestPct = sp.conditionPct || 0; bestIdx = i;
-      }
-    });
-    if (bestIdx < 0) { UI.toast("No matching part in inventory"); return; }
-    const part = parts.splice(bestIdx, 1)[0];
+    const part = parts[invIdx];
+    if (!r || !part) return;
+    if (part.bikeSprite !== r.sprite || !(r.missingParts || []).includes(part.partKey)) {
+      UI.toast("That part doesn't fit this slot");
+      return;
+    }
+    parts.splice(invIdx, 1);
     // Install: set condition, remove from missing
+    const partKey = part.partKey;
     r.partStates = r.partStates || {};
     r.partStates[partKey] = part.state || "used_good";
     r.missingParts = r.missingParts.filter(k => k !== partKey);
+    this.rollerPickSlot = null;
     // Track install cost for XP basis
     r.installedCost = (r.installedCost || 0) + (part.paidPrice || 0);
     Save.save();
@@ -2093,14 +2124,34 @@ const Views = {
     const rollerBack = el.querySelector("#roller-back");
     if (rollerBack) rollerBack.addEventListener("click", () => {
       this.rollerDetailIdx = -1;
+      this.rollerPickSlot = null;
       this.renderGarage();
     });
-    // Roller detail: install part buttons
-    el.querySelectorAll("[data-install-part]").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.installPartOnRoller(+btn.dataset.roller, btn.dataset.installPart);
+    // Roller detail: tap a missing slot to open the part picker
+    el.querySelectorAll("[data-pick-slot]").forEach(cell => {
+      cell.addEventListener("click", (e) => {
+        if (e.target.closest(".roller-choose-btn") || !e.target.closest("button")) {
+          const key = cell.dataset.pickSlot;
+          this.rollerPickSlot = this.rollerPickSlot === key ? null : key;
+          this.renderGarage();
+        }
       });
+    });
+    // Roller detail: close picker
+    const pickerClose = el.querySelector("#roller-picker-close");
+    if (pickerClose) pickerClose.addEventListener("click", () => {
+      this.rollerPickSlot = null;
+      this.renderGarage();
+    });
+    // Roller detail: pick a specific part to install
+    el.querySelectorAll("[data-pick-part]").forEach(row => {
+      const btn = row.querySelector(".roller-pick-btn");
+      const doInstall = (e) => {
+        e.stopPropagation();
+        this.installPartOnRoller(+row.dataset.roller, +row.dataset.pickPart);
+      };
+      if (btn) btn.addEventListener("click", doInstall);
+      row.addEventListener("click", doInstall);
     });
     // Roller detail: move to garage
     const toGarage = el.querySelector("#roller-to-garage");

@@ -65,8 +65,10 @@ const Detail = {
       this.render();
       return;
     }
-    // Bad faith: trying to go lower AFTER a deal was on the table
-    const agreedPrice = this.haggleResponse && this.haggleResponse.price;
+    // Bad faith: trying to go lower AFTER explicitly accepting a deal
+    // (a seller counter is NOT an agreement — only a prior accept counts)
+    const wasAccepted = this.haggleResponse && this.haggleResponse.accepted;
+    const agreedPrice = wasAccepted && this.haggleResponse.price;
     if (agreedPrice && offerPrice < agreedPrice) {
       const angry = [
         `"Are you fucking kidding me? We HAD a deal at ${money(agreedPrice)}."`,

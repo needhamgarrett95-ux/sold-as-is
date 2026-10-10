@@ -341,7 +341,7 @@ const Views = {
       : 0.80 + Math.random() * 0.15;
     // Smooth Talker: buyers open higher and stretch further
     const stBonus = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
-    // Well-written honest copy earns buyers' trust (sell score 0-2 → up to +6%)
+    // Good copy earns buyers' trust (sell score 0-3 → up to +9%, capped by fair value)
     const sellScore = this.descSellScore(listing.desc || "");
     const sellBonus = sellScore * 0.03;
     const boostedOffer = Math.round((offerAmount * (1 + stBonus + sellBonus)) / 5) * 5;
@@ -1915,10 +1915,31 @@ const Views = {
         { t: "Mechanic's special. Know what you're getting into.", sell: 2 },
       ],
     };
+    // Tier 3 Smooth Talker: unlocks "salesman" copy — stretches the truth, but
+    // buyer caps (1.5x fair value) keep it fun without breaking the economy
+    const salesman = {
+      top: [
+        { t: "Head-turner. Gets compliments at every stoplight.", sell: 3 },
+        { t: "Investment-grade. These only go up in value.", sell: 3 },
+      ],
+      mid: [
+        { t: "One-owner garage queen. Babied its whole life.", sell: 3 },
+        { t: "Priced to move but worth every penny. Won't last.", sell: 3 },
+      ],
+      rough: [
+        { t: "Diamond in the rough. Someone's gonna steal this.", sell: 3 },
+        { t: "All the hard-to-find parts are here. Rest is easy.", sell: 3 },
+      ],
+    };
     const pool = top.includes(cond) ? copy.top : mid.includes(cond) ? copy.mid : copy.rough;
-    // Tier 0 sees first 3, tier 1 sees first 5, tier 2+ sees all 7
+    // Tier 0 sees first 3, tier 1 sees first 5, tier 2 sees all 7, tier 3 adds salesman copy
     const count = tier >= 2 ? 7 : tier >= 1 ? 5 : 3;
-    return pool.slice(0, count);
+    let out = pool.slice(0, count);
+    if (tier >= 3) {
+      const sm = top.includes(cond) ? salesman.top : mid.includes(cond) ? salesman.mid : salesman.rough;
+      out = out.concat(sm);
+    }
+    return out;
   },
 
   // Fun condition-matching blurb for Boneyard part listings
@@ -1949,7 +1970,7 @@ const Views = {
     return arr[(Math.random() * arr.length) | 0];
   },
 
-  // Sell score of a listing's description (0-2), drives buyer trust
+  // Sell score of a listing's description (0-3), drives buyer trust
   descSellScore(desc) {
     const all = this.descPresets("Mint").concat(this.descPresets("Good")).concat(this.descPresets("Rough"));
     const found = all.find(p => p.t === desc);

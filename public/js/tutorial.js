@@ -60,6 +60,15 @@ const Tutorial = {
     const step = this.steps[this.current];
     if (!step) { this.finish(); return; }
 
+    // Smart skip: if already in detail view on the "inspect" step, move on
+    if (step.action === "#feed .card" && document.getElementById("detail") &&
+        !document.getElementById("detail").classList.contains("hidden") &&
+        document.querySelector("#detail .d-photo")) {
+      this.current++;
+      setTimeout(() => this.showStep(), 100);
+      return;
+    }
+
     // Clear old highlight and listener
     this.unbind();
     document.querySelectorAll(".tutorial-highlight").forEach(el =>
@@ -102,6 +111,8 @@ const Tutorial = {
           this.boundEl = el;
           this._handler = () => this.next();
           el.addEventListener("click", this._handler, { once: true, capture: true });
+          // iOS fires touchend instead of click for cards
+          el.addEventListener("touchend", this._handler, { once: true, capture: true });
         } else if (tries++ < 20) {
           setTimeout(tryBind, 250);
         }
@@ -113,6 +124,7 @@ const Tutorial = {
   unbind() {
     if (this.boundEl && this._handler) {
       this.boundEl.removeEventListener("click", this._handler, { capture: true });
+      this.boundEl.removeEventListener("touchend", this._handler, { capture: true });
     }
     this.boundEl = null;
     this._handler = null;

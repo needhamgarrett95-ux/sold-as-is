@@ -2360,7 +2360,7 @@ const Views = {
             : `<div class="part-state" style="color:#999">none owned</div>`}
         </div>`;
       }).join("") + `</div>
-      <div style="padding:12px"><button class="eby-buy" id="roller-to-garage" ${r.missingParts.length ? "disabled style='opacity:.4'" : ""}>${r.missingParts.length ? `Missing ${r.missingParts.length} part${r.missingParts.length === 1 ? "" : "s"}` : "Move to Garage"}</button></div>`;
+      <div style="padding:12px"><button class="eby-buy" id="roller-to-garage">${(r.missingParts || []).length ? `Move to Garage (missing ${(r.missingParts || []).length})` : "Move to Garage"}</button></div>`;
     return html;
   },
 
@@ -2389,18 +2389,26 @@ const Views = {
 
   rollerToGarage(idx) {
     const r = (State.rollers || [])[idx];
-    if (!r || (r.missingParts || []).length) return;
-    // Complete bike goes back to garage
+    if (!r) return;
+    const missing = (r.missingParts || []).length;
+    // Bike goes back to garage (may have missing parts — value reflects it)
     r.isRoller = false;
-    r.condition = "Good";
+    // Mark missing parts in partStates so they show in listings
+    r.partStates = r.partStates || {};
+    (r.missingParts || []).forEach(k => { r.partStates[k] = "missing"; });
+    r.condition = missing > 0 ? "Rough" : "Good";
     r.fairValue = this.rollerValue(r);
+    // Clear the missing list since it's now encoded in partStates
+    r.missingParts = [];
     State.garage.push(r);
     State.rollers.splice(idx, 1);
     this.rollerDetailIdx = -1;
     this.garageTab = "bikes";
     Save.save();
     this.renderGarage();
-    UI.toast(`${r.brand} ${r.model} rebuilt and moved to garage!`);
+    UI.toast(missing > 0
+      ? `${r.brand} ${r.model} moved to garage (missing ${missing} part${missing === 1 ? "" : "s"})`
+      : `${r.brand} ${r.model} rebuilt and moved to garage!`);
   },
 
   rollerDetailIdx: -1,

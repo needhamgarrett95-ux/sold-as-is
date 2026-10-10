@@ -335,13 +335,14 @@ const Detail = {
               } else if (gh === 1) {
                 stateLabel = PART_STATE_LABEL[st];
               } else {
-                const pctMap = { pristine: 95, used_good: 60, used_bad: 35, totaled: 10 };
-                const pct = pctMap[st] || 50;
-                stateLabel = PART_STATE_LABEL[st];
-                pctLabel = ` · ${pct}%`;
+                const pctMap = { pristine: 95, used_good: 60, used_bad: 35, totaled: 10, missing: 0 };
+                const pct = pctMap[st] ?? 50;
+                stateLabel = PART_STATE_LABEL[st] || st;
+                pctLabel = st === "missing" ? "" : ` · ${pct}%`;
               }
+              const imgSrc = (gh === 0 || st === "missing") ? null : partImg(l.sprite, p.key, st);
               return `<div class="part-cell state-${gh === 0 ? "hidden" : st}">
-                <img src="${partImg(l.sprite, p.key, gh === 0 ? "pristine" : st)}" alt="${p.label}" loading="lazy">
+                ${imgSrc ? `<img src="${imgSrc}" alt="${p.label}" loading="lazy">` : `<div class="part-missing">✕</div>`}
                 <div class="part-label">${p.label}</div>
                 <div class="part-state">${stateLabel}${pctLabel}</div>
               </div>`;

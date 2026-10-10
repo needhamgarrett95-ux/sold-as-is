@@ -106,17 +106,17 @@ const PARTS = [
 
 // Probability of each part state given the bike's overall condition
 const PART_DIST = {
-  // [pristine, used_good, used_bad, totaled] — pristine is rare
-  "Mint":       [0.15, 0.50, 0.30, 0.05],
-  "Clean":      [0.10, 0.45, 0.35, 0.10],
-  "Good":       [0.05, 0.40, 0.40, 0.15],
-  "Fair":       [0.03, 0.30, 0.47, 0.20],
-  "Rough":      [0.01, 0.15, 0.54, 0.30],
-  "Non-runner": [0.00, 0.10, 0.50, 0.40],
-  "Parts bike": [0.00, 0.05, 0.35, 0.60],
+  // [pristine, used_good, used_bad, totaled, missing] — pristine is rare, rough bikes lose parts
+  "Mint":       [0.15, 0.50, 0.30, 0.05, 0.00],
+  "Clean":      [0.10, 0.45, 0.35, 0.10, 0.00],
+  "Good":       [0.05, 0.40, 0.40, 0.13, 0.02],
+  "Fair":       [0.03, 0.30, 0.47, 0.15, 0.05],
+  "Rough":      [0.01, 0.15, 0.54, 0.20, 0.10],
+  "Non-runner": [0.00, 0.10, 0.50, 0.25, 0.15],
+  "Parts bike": [0.00, 0.05, 0.35, 0.40, 0.20],
 };
-const PART_STATES = ["pristine", "used_good", "used_bad", "totaled"];
-const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot" };
+const PART_STATES = ["pristine", "used_good", "used_bad", "totaled", "missing"];
+const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot", missing: "Missing" };
 
 // Condition % → state mapping (0-100)
 function pctToState(pct) {
@@ -177,13 +177,14 @@ function rollPartStates(condition, sprite) {
   for (const p of parts) {
     const r = Math.random();
     let acc = 0, state = "pristine";
-    for (let i = 0; i < 4; i++) { acc += dist[i]; if (r <= acc) { state = PART_STATES[i]; break; } }
+    for (let i = 0; i < 5; i++) { acc += dist[i]; if (r <= acc) { state = PART_STATES[i]; break; } }
     states[p.key] = state;
   }
   return states;
 }
 
 function partImg(sprite, partKey, state) {
+  if (state === "missing") return null; // no image — part isn't there
   // Map game sprite names to parts folder names (zuma uses underscore)
   const folder = sprite.replace(/-/g, "_");
   const suffix = state === "pristine" ? "" : "_" + state;
@@ -271,14 +272,18 @@ function makeListing(id) {
   const title = pick(TITLES).replace("{bike}", `${bike.brand} ${bike.name}`)
     .replace("{cond}", cond.name.toLowerCase()).replace("{tag}", tag);
   const minsAgo = Math.floor(Math.random() * 600) + 2;
+  const partStates = rollPartStates(cond.name, bike.sprite);
+  // Each missing part knocks ~8% off fair value
+  const missingCount = Object.values(partStates).filter(s => s === "missing").length;
+  const fairValue = Math.round(bike.base * cond.mult * Math.pow(0.92, missingCount) / 10) * 10;
   return {
     id, bikeId: bike.id, brand: bike.brand, model: bike.name,
     sprite: bike.sprite,
     baseValue: bike.base, rarity: bike.rarity,
     condition: cond.name, price,
-    partStates: rollPartStates(cond.name, bike.sprite),
+    partStates,
     // fair value estimate (what inspection would reveal)
-    fairValue: Math.round(bike.base * cond.mult / 10) * 10,
+    fairValue,
     title,
     description: `${bike.desc} ${pick([
       "Starts right up, idles smooth.", "Could use a tune but solid bones.",

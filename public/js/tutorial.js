@@ -87,7 +87,7 @@ const Tutorial = {
         <div class="tutorial-progress">Step ${this.current + 1} of ${this.steps.length}</div>
         <h3>${step.title}</h3>
         <p>${step.text}</p>
-        ${!step.action ? `<button class="tutorial-btn primary" id="tut-gotit">${isLast ? "Let's go!" : "Got it"}</button>` : `<div class="tutorial-hint">👆 Tap the highlighted area to continue</div>`}
+        ${!step.action ? `<button class="tutorial-btn primary" id="tut-gotit">${isLast ? "Let's go!" : "Got it"}</button>` : `<div class="tutorial-hint">${(typeof Icon !== "undefined" ? Icon.get('tap') : "")} Tap the highlighted area to continue</div>`}
       </div>`;
     card.classList.add("visible");
 

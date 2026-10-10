@@ -52,6 +52,8 @@ const Icon = (() => {
 
     // Chat bubble — haggle
     chat: S(`<path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 12h.01M12.5 12h.01M16 12h.01"/>`),
+    // Pointing hand — tutorial tap indicator
+    tap: S(`<path d="M9 11.5V5.5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10.5V4.5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10.5V6a1.5 1.5 0 0 1 3 0v7c0 4-2.5 7-6.5 7S7 18.5 5.5 15.5l-1.7-3.4a1.5 1.5 0 0 1 2.6-1.4L8 13.5"/>`),
 
     // Close X
     close: S(`<path d="M6 6l12 12M18 6L6 18"/>`),

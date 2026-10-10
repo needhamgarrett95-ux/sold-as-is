@@ -879,6 +879,8 @@ const Views = {
     for (let i = this.myBikeListings.length - 1; i >= 0; i--) {
       const l = this.myBikeListings[i];
       if (l.sold) continue;
+      // Never auto-sell a listing with a pending buyer offer
+      if (l.offer) continue;
       // Don't auto-sell a listing the player is actively haggling on
       if (Detail.current && Detail.current.id === l.id) continue;
       const fairness = (l.fairValue || l.boughtFor || 500) / Math.max(1, l.askPrice);

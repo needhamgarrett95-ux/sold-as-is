@@ -1391,10 +1391,10 @@ const Views = {
       const acceptBtn = document.getElementById("pd-accept-offer");
       if (acceptBtn) acceptBtn.addEventListener("click", () => {
         const price = this.partDetailOffer.price;
+        const idx = this.partDetailIdx; // read BEFORE closing (close resets to -1)
+        const part = this.partsShop[idx];
         this.closePartDetail();
         // Buy at the agreed price
-        const idx = this.partDetailIdx;
-        const part = this.partsShop[idx];
         if (part && State.canAfford(price)) {
           State.cash -= price;
           part.paidPrice = price;
@@ -1405,6 +1405,8 @@ const Views = {
           Save.save();
           UI.toast(`${part.partLabel} bought for ${money(price)}!`);
           this.renderParts();
+        } else if (part) {
+          UI.toast("Not enough cash for that part");
         }
       });
     }

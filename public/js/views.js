@@ -2278,9 +2278,18 @@ const Views = {
         <div class="empty"><strong>No parts yet</strong>Part out a bike or buy from the Boneyard.</div>`;
     }
     return `<div class="pane-head"><h2>Parts Inventory</h2>
-      <div class="sub">${parts.length} part(s) in storage · tap ${Icon.get('wrench')} to repair</div></div>
-      <div class="eby-list">` +
-      parts.map((p, i) => {
+      <div class="sub">${parts.length} part(s) in storage · tap ${Icon.get('wrench')} to repair</div>
+      <input type="text" id="parts-search" class="parts-search" placeholder="Search parts or bikes..." value="${this.partsSearch || ""}"></div>
+      <div class="eby-list" id="parts-list">` +
+      parts.map((p, i) => ({ p, i }))
+      .filter(({ p }) => {
+        if (!this.partsSearch) return true;
+        const q = this.partsSearch.toLowerCase();
+        return (p.partLabel || "").toLowerCase().includes(q) ||
+               (p.bikeName || "").toLowerCase().includes(q) ||
+               (p.partKey || "").toLowerCase().includes(q);
+      })
+      .map(({ p, i }) => {
         const pct = ensurePct(p);
         const state = pctToState(pct);
         const img = partImg(p.bikeSprite, p.partKey, state);
@@ -2520,6 +2529,22 @@ const Views = {
   rollerDetailIdx: -1,
 
   bindGarageActions(el) {
+    // Parts search (debounced, preserves focus)
+    const search = el.querySelector("#parts-search");
+    if (search) {
+      let debounce = null;
+      search.addEventListener("input", (e) => {
+        this.partsSearch = e.target.value;
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+          this.renderGarage();
+          setTimeout(() => {
+            const s2 = document.getElementById("parts-search");
+            if (s2) { s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); }
+          }, 50);
+        }, 300);
+      });
+    }
     // Bike card taps → detail
     el.querySelectorAll("[data-gbike]").forEach(c => {
       const open = (e) => {

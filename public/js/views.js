@@ -206,7 +206,7 @@ const Views = {
     el.innerHTML = `
       <div class="eby-typefilter market-tabs">
         <button class="eby-type${this.marketTab === "browse" ? " active" : ""}" data-mtab="browse">Browse</button>
-        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${(() => { const n = this.myBikeListings.filter(l => !l.sold).length; return n ? ` (${n})` : ""; })()}${this.myBikeListings.some(l => l.offer && !l.offer.seen) ? `<span class="tab-dot"></span>` : ""}</button>
+        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${(() => { const n = this.myBikeListings.filter(l => !l.sold).length; return n ? ` (${n})` : ""; })()}</button>
       </div>`;
     el.querySelectorAll("[data-mtab]").forEach(t =>
       t.addEventListener("click", () => {
@@ -267,7 +267,7 @@ const Views = {
       <article class="card" data-bike-offer="${i}">
         <div class="photo">
           <div class="just-listed">${l.sold ? "SOLD" : "Your Listing"}</div>
-          ${l.offer && !l.sold ? `<div class="offer-badge">1</div>` : ""}
+
           <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false"${Feed.spriteNudge.has(l.sprite) ? ' class="nudged"' : ""}>
           <div class="card-cond">${l.condition}</div>
         </div>

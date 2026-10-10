@@ -361,7 +361,7 @@ const Views = {
       State.sold.push({ ...listing, soldFor: askPrice, soldAt: Date.now() });
       UI.refreshCash();
       Save.save();
-      UI.toast(`${buyerName} bought your ${listing.brand} ${listing.model} for ${money(askPrice)}!`, "marketplace");
+      UI.toast(`${buyerName} bought your ${listing.brand} ${listing.model} for ${money(askPrice)}`, "marketplace");
       if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
       return;
     }
@@ -400,7 +400,7 @@ const Views = {
     // Only toast if not on the listings screen (badge handles it there)
     const onListings = (this.current === "market" && this.marketTab === "mine") ||
                        (this.current === "parts" && this.boneyardTab === "sell");
-    if (!onListings) UI.toast(`${buyerName} made an offer!`);
+    if (!onListings) UI.toast(`${buyerName} offered ${money(boostedOffer)} for your ${listing.brand} ${listing.model}`, "marketplace");
     this.updateNavBadges();
     // Refresh the relevant view
     if (this.current === "market" && this.marketTab === "mine") {
@@ -908,6 +908,7 @@ const Views = {
       const chance = Math.min(0.30, 0.08 * fairness);
       if (Math.random() < chance) {
         l.sold = true; l.soldFor = l.askPrice; l.soldAt = Date.now();
+        l.winner = this.buyerNames[(Math.random() * this.buyerNames.length) | 0];
         this.unseenPartSales++;
         this.updateNavBadges();
         State.cash += l.askPrice;
@@ -919,8 +920,8 @@ const Views = {
           XPPopup.show(partXp.xp, partXp.newPoints);
         }
         Save.save();
-        // Notify: part sold at asking price
-        UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
+        // Notify: part sold at asking price (boneyard tab shows winner + price)
+        UI.toast(`${l.winner || "Buyer"} won your ${l.partLabel} for ${money(l.askPrice)}`, "boneyard");
         if (this.current === "parts" && this.boneyardTab === "sell") {
           this.renderParts();
         }

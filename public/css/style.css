@@ -499,3 +499,47 @@ button:focus { outline: none !important; box-shadow: none !important; }
 /* clickable logos */
 .logo-clickable { cursor: pointer; }
 .logo-clickable:active { opacity: .7; }
+
+/* ============ RESPONSIVE: landscape + tablet ============ */
+
+/* Base: constrain content width on large screens */
+@media (min-width: 768px) {
+  body { max-width: 900px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,.1); }
+  #feed { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Landscape phones: 3 columns, tighter header */
+@media (orientation: landscape) and (max-height: 500px) {
+  #feed { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 6px; }
+  .wtab { padding: 8px 4px; font-size: .8rem; }
+  .pd-modal, .cart-modal { max-height: 94vh; border-radius: 16px; }
+  #part-detail, #cart-view, #seller-haggle { align-items: center; }
+}
+
+/* iPad portrait and larger */
+@media (min-width: 768px) and (orientation: portrait) {
+  #feed { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .eby-item { padding: 14px; }
+  .eby-thumb { width: 120px; height: 120px; }
+}
+
+/* iPad landscape and desktop */
+@media (min-width: 1024px) {
+  body { max-width: 1100px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,.1); }
+  #feed { grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 14px; }
+  /* Center modals instead of bottom sheets */
+  #part-detail, #cart-view, #seller-haggle { align-items: center; padding: 20px; }
+  .pd-modal, .cart-modal { border-radius: 16px; max-height: 90vh; max-width: 560px; }
+  /* Two-column boneyard rows get more breathing room */
+  .eby-list { max-width: 800px; margin: 0 auto; }
+  /* Larger touch targets for tablet */
+  .wtab { font-size: .95rem; padding: 14px 8px; }
+  .eby-buy, .pd-btn-primary { font-size: 1.05rem; }
+}
+
+/* Ensure modals don't overflow on short landscape */
+@media (max-height: 500px) {
+  .pd-photo { height: 140px; }
+  .pd-photo img { max-height: 120px; }
+  .pd-body { padding: 12px; }
+}

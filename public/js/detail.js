@@ -599,7 +599,12 @@ const UI = {
     // Close other popups
     document.getElementById("music-popup")?.classList.add("hidden");
     document.getElementById("settings-menu")?.classList.add("hidden");
-    popup.classList.toggle("hidden");
+    // Only toggle when opening from bell (no tab arg); tab switches keep it open
+    if (!tab) {
+      popup.classList.toggle("hidden");
+    } else {
+      popup.classList.remove("hidden");
+    }
   },
   _showNextToast() {
     if (this._toastShowing || !this._toastQueue.length) return;

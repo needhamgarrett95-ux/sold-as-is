@@ -7,6 +7,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Clean up old Hosting versions
+        run: |
+          # Delete old Firebase Hosting versions to stay under quota (keep latest 5)
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/sa.json
+          npm install -g google-auth-library 2>/dev/null || true
+          node << 'NODEEOF'
+          const { GoogleAuth } = require('google-auth-library');
+          const auth = new GoogleAuth({
+            keyFile: '/tmp/sa.json',
+            scopes: ['https://www.googleapis.com/auth/firebase.hosting'],
+          });
+          (async () => {
+            const client = await auth.getClient();
+            const token = (await client.getAccessToken()).token;
+            const listRes = await fetch(
+              'https://firebasehosting.googleapis.com/v1beta1/projects/sold-as-is/sites/sold-as-is/versions?pageSize=50',
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const data = await listRes.json();
+            const versions = (data.versions || [])
+              .filter(v => v.status === 'FINALIZED')
+              .map(v => v.name);
+            console.log(`Found ${versions.length} finalized versions, keeping 5`);
+            for (const v of versions.slice(5)) {
+              console.log(`Deleting ${v}`);
+              await fetch(`https://firebasehosting.googleapis.com/v1beta1/${v}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+            }
+          })();
+          NODEEOF
+          rm /tmp/sa.json
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

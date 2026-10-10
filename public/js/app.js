@@ -35,21 +35,33 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof AudioEngine !== "undefined") {
     AudioEngine.init();
     AudioEngine.renderPlayer();
-    // Touch tap on every button (touchstart for zero delay, except music bar, login button)
+    // Touch tap on all webpage UI interactions (not nav tabs, music, or login)
+    // Catches buttons, listing cards, part cells, and other tappable divs
+    const shouldTap = (el) => {
+      if (!el) return false;
+      // Skip nav tabs
+      if (el.closest(".wtab")) return false;
+      // Skip music popup, login, music note
+      if (el.closest("#music-popup") || el.id === "login-btn" || el.id === "music-note") return false;
+      // Skip the tab bar container itself
+      if (el.closest("#wtab-bar") || el.closest(".tab-bar")) return false;
+      // Play for buttons and tappable elements
+      return el.closest("button") ||
+             el.closest("[data-pick-slot]") ||
+             el.closest("[data-inspect-part]") ||
+             el.closest("[data-roller-part]") ||
+             el.closest(".listing-card") ||
+             el.closest(".feed-card") ||
+             el.closest("[data-listing]") ||
+             el.closest("a");
+    };
     document.addEventListener("touchstart", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-      if (btn.closest("#music-popup") || btn.id === "login-btn" || btn.id === "music-note") return;
-      AudioEngine.playTouch();
+      if (shouldTap(e.target)) AudioEngine.playTouch();
     }, { passive: true, capture: true });
-    // Fallback for non-touch (desktop)
+    // Fallback for non-touch (desktop) — avoid double-fire from touch
     document.addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-      if (btn.closest("#music-popup") || btn.id === "login-btn" || btn.id === "music-note") return;
-      // Only if not already handled by touchstart
-      if (e.detail === 0) return;
-      AudioEngine.playTouch();
+      if (e.detail === 0) return; // already handled by touchstart
+      if (shouldTap(e.target)) AudioEngine.playTouch();
     }, true);
   }
   // Hydrate custom icons

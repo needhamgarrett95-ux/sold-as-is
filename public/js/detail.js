@@ -36,6 +36,14 @@ const Detail = {
       return;
     }
     const offerPrice = parseInt(digits, 10);
+    // Easter egg: the 67 meme
+    if (offerPrice === 67) {
+      this.thread = this.thread || [];
+      this.thread.push({ from: "you", text: money(offerPrice) });
+      this.thread.push({ from: "seller", text: `"Are you serious, that meme is dead bro"` });
+      this.render();
+      return;
+    }
     if (offerPrice <= 0) {
       this.haggleResponse = { response: `"Very funny."`, accepted: false, price: null };
       this.render();

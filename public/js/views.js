@@ -1367,6 +1367,7 @@ const Views = {
           return;
         }
         input.blur();
+        if (val === 67) UI.toast("Are you serious, that meme is dead bro");
         this.placePartBid(this.partDetailIdx, val);
         this.renderPartDetail(); // refresh
       });
@@ -1421,6 +1422,12 @@ const Views = {
   sendPartOffer(offerAmount) {
     const p = this.partsShop[this.partDetailIdx];
     if (!p) return;
+    // Easter egg: the 67 meme
+    if (offerAmount === 67) {
+      this.partDetailOffer = { response: `"Are you serious, that meme is dead bro"`, accepted: false, price: null };
+      this.renderPartDetail();
+      return;
+    }
     // Smooth Talker: discount boosts effective offer ratio
     const stDisc = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
     const ratio = (offerAmount * (1 + stDisc)) / p.price;

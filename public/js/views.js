@@ -2144,7 +2144,11 @@ const Views = {
     return `<div class="pane-head"><h2>Pending Listings</h2>
       <div class="sub">${State.garage.length} bike(s) · tap to manage</div></div>
       <div class="feed-grid">` +
-      State.garage.map((b, i) => `
+      State.garage.map((b, i) => {
+        const profit = (b.fairValue || b.boughtFor || 0) - (b.boughtFor || 0);
+        const profitCls = profit > 0 ? "profit-up" : profit < 0 ? "profit-down" : "profit-flat";
+        const profitTxt = profit > 0 ? `+${money(profit)}` : profit < 0 ? `-${money(-profit)}` : "—";
+        return `
       <article class="card" data-gbike="${i}">
         <div class="photo">
           ${b.listed ? '<div class="just-listed">Listed</div>' : ""}
@@ -2153,9 +2157,9 @@ const Views = {
         </div>
         <div class="card-info">
           <div class="card-price-name"><strong>${money(b.boughtFor)}</strong> &middot; ${b.brand} ${b.model}</div>
-          <div class="card-loc">${b.kept ? "${Icon.get('star')} In collection" : "Pending"}</div>
+          <div class="card-loc">${b.kept ? "${Icon.get('star')} In collection" : "Pending"} <span class="${profitCls}">${profitTxt}</span></div>
         </div>
-      </article>`).join("") + `</div>`;
+      </article>`; }).join("") + `</div>`;
   },
 
   garageDetailHTML() {

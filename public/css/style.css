@@ -738,6 +738,10 @@ button.settings-item:active { background: #faf6f1; }
 .milestone-icon { font-size: 1.4rem; width: 32px; text-align: center; }
 .milestone-desc { font-size: 0.85rem; color: var(--dim); }
 
+/* Profit indicator on garage cards */
+.profit-up { color: #4caf50; font-weight: 600; }
+.profit-down { color: #f44336; font-weight: 600; }
+.profit-flat { color: #999; }
 /* Missing part indicator — custom icon, matches UI */
 .part-missing, .part-missing-x {
   width: 100%; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;

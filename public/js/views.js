@@ -443,6 +443,13 @@ const Views = {
     UI.toast(`Sold for ${money(amount)}!`);
     // XP: profit = sale price - cost basis (purchase + repairs)
     const costBasis = (l.boughtFor || l.paidPrice || 0) + (l.repairSpent || 0);
+    const profit = amount - costBasis;
+    if (profit > 0) {
+      State.stats.totalProfit += profit;
+      State.stats.bikesSoldForProfit++;
+    }
+    State.stats.successfulHaggles++;
+    if (typeof Milestones !== "undefined") Milestones.check(State.stats);
     const xpResult = Skills.awardForSale(amount, costBasis);
     if (xpResult.xp > 0) XPPopup.show(xpResult.xp, xpResult.newPoints);
     this.closeSellerHaggle();
@@ -1190,6 +1197,8 @@ const Views = {
         State.parts = State.parts || [];
         State.parts.push(p);
         if (i >= 0) this.partsShop.splice(i, 1);
+        State.stats.auctionsWon++;
+        if (typeof Milestones !== "undefined") Milestones.check(State.stats);
         UI.refreshCash();
         UI.toast(`Won the ${p.partLabel} for ${money(p.currentBid)}!`);
       } else if (i >= 0) {
@@ -2515,6 +2524,17 @@ const Views = {
         }
       }
       bike.kept = !bike.kept;
+      if (bike.kept) {
+        State.stats.collected++;
+        // Check brand set completion
+        const brandBikes = State.garage.filter(b => b.kept && b.brand === bike.brand);
+        // Count unique models for this brand in collection
+        const brandModels = new Set(brandBikes.map(b => b.model));
+        // Check if this completes a brand (need to know brand size — approximate)
+        if (typeof Milestones !== "undefined") Milestones.check(State.stats);
+      } else {
+        State.stats.collected = Math.max(0, State.stats.collected - 1);
+      }
       UI.toast(bike.kept
         ? `${bike.brand} ${bike.model} added to your collection`
         : `${bike.brand} ${bike.model} removed from collection`);

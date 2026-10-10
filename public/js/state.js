@@ -8,6 +8,11 @@ const State = {
   rollers: [],      // stripped bike rollers in Assemble
   sold: [],         // flip history
   rep: 3.0,         // seller reputation 1-5
+  stats: {          // milestone tracking
+    bikesBought: 0, bikesSoldForProfit: 0, totalProfit: 0,
+    collected: 0, brandSetsCompleted: 0, auctionsWon: 0,
+    successfulHaggles: 0, bikesRestored: 0,
+  },
 
   canAfford(price) { return this.cash >= price; },
 
@@ -15,6 +20,8 @@ const State = {
     if (!this.canAfford(listing.price)) return false;
     this.cash -= listing.price;
     this.garage.push({ ...listing, boughtFor: listing.price, boughtAt: Date.now() });
+    this.stats.bikesBought++;
+    if (typeof Milestones !== "undefined") Milestones.check(this.stats);
     Save.save();
     return true;
   },
@@ -35,6 +42,7 @@ const Save = {
         rollers: State.rollers,
         sold: State.sold,
         rep: State.rep,
+        stats: State.stats,
         myBikeListings: Views.myBikeListings || [],
         myPartListings: Views.myPartListings || [],
         cart: Views.cart || [],
@@ -59,6 +67,7 @@ const Save = {
       State.rollers = data.rollers || [];
       State.sold = data.sold || [];
       State.rep = data.rep ?? 3.0;
+      if (data.stats) Object.assign(State.stats, data.stats);
 
       // Restore listings, resolving time-based state
       const now = Date.now();

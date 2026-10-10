@@ -697,3 +697,31 @@ button.settings-item:active { background: #faf6f1; }
 .music-note-btn svg { width: 18px; height: 18px; stroke-width: 2.6; }
 .music-note-icon { display: inline-flex; color: #febc2e; }
 .music-note-icon svg { width: 20px; height: 20px; }
+
+/* Tutorial */
+#tutorial-card {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+  transform: translateY(100%); transition: transform 0.3s ease;
+  pointer-events: none;
+}
+#tutorial-card.visible { transform: translateY(0); pointer-events: auto; }
+.tutorial-inner {
+  background: var(--card); border-top: 2px solid var(--blue);
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  max-width: 600px; margin: 0 auto;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+}
+.tutorial-progress { font-size: 0.75rem; color: var(--dim); margin-bottom: 4px; }
+.tutorial-inner h3 { margin: 0 0 8px; font-size: 1.1rem; }
+.tutorial-inner p { margin: 0 0 12px; color: var(--ink); line-height: 1.4; }
+.tutorial-btns { display: flex; gap: 8px; align-items: center; }
+.tutorial-btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; }
+.tutorial-btn.primary { background: var(--blue); color: #fff; }
+.tutorial-btn.secondary { background: var(--paper); color: var(--ink); border: 1.5px solid var(--line); }
+.tutorial-btn.text { background: none; color: var(--dim); padding: 10px 8px; }
+.tutorial-highlight {
+  outline: 3px solid var(--blue) !important;
+  outline-offset: 2px;
+  border-radius: 8px;
+  position: relative; z-index: 9998;
+}

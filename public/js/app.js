@@ -49,6 +49,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const hadSave = Save.load();
   Feed.init();
   UI.refreshCash();
+  // Start tutorial on first run
+  if (typeof Tutorial !== "undefined") {
+    setTimeout(() => Tutorial.start(), 800);
+  }
   Views.initPartsFilter();
   // Auto-save every 30s and when app goes to background
   setInterval(() => Save.save(), 30000);

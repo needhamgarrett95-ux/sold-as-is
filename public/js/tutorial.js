@@ -10,7 +10,7 @@ const Tutorial = {
     {
       title: "Inspect a Bike",
       text: "Every listing has a price, condition, and seller. Tap any bike to see its full details.",
-      action: ".feed-grid .card",
+      action: "#feed .card",
     },
     {
       title: "Haggling",
@@ -85,6 +85,13 @@ const Tutorial = {
     if (!step.action) {
       document.getElementById("tut-gotit").onclick = () => this.next();
     } else {
+      // On the haggle step, scroll the detail view to the message box
+      if (step.action === "#d-back") {
+        setTimeout(() => {
+          const msgBox = document.querySelector(".msg-seller-card");
+          if (msgBox) msgBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 400);
+      }
       // Wait for the user to tap the highlighted element
       // Poll briefly in case the element isn't rendered yet
       let tries = 0;

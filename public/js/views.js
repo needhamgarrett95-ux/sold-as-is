@@ -2682,8 +2682,6 @@ const Views = {
           bike.revealedParts.push(key);
           Save.save();
           this.renderGarage();
-          const st = (bike.partStates && bike.partStates[key]) || "pristine";
-          UI.toast(`${cell.querySelector(".part-label").textContent}: ${PART_STATE_LABEL[st]}`);
         }
       });
     });

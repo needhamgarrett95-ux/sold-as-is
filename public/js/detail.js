@@ -8,6 +8,7 @@ const Detail = {
     if (!l) return;
     this.current = l;
     this.offer = null;
+    this._lastCounter = null; // fresh negotiation
     this.thread = [];
     this.haggleResponse = null;
     this.blocked = false;
@@ -196,8 +197,11 @@ const Detail = {
       ]);
       accepted = true; price = offerPrice;
     } else if (ratio >= 0.70) {
-      // Counter: meet in the middle, rounded to nearest $10 (Smooth Talker discount applied)
-      const counter = Math.round(((offerPrice + l.price) / 2) * (1 - stDiscount) / 10) * 10;
+      // Counter: meet in the middle between offer and seller's last position
+      // (never higher than previous counter — seller only moves down)
+      const sellerAnchor = this._lastCounter && this._lastCounter < l.price ? this._lastCounter : l.price;
+      const counter = Math.round(((offerPrice + sellerAnchor) / 2) * (1 - stDiscount) / 10) * 10;
+      this._lastCounter = counter;
       response = this.pickReply([
         `"${money(offerPrice)}? I could do ${money(counter)}. Meet me there and it's yours."`,
         `"Nah, but I'll meet you at ${money(counter)}."`,
@@ -248,8 +252,10 @@ const Detail = {
       ]);
       price = counter; // buy button updates to counter
     } else if (ratio >= 0.50) {
-      // Firm counter at 90% (Smooth Talker discount applied)
-      const counter = Math.round(l.price * 0.9 * (1 - stDiscount) / 10) * 10;
+      // Firm counter at 90% (Smooth Talker discount applied), never above last counter
+      let counter = Math.round(l.price * 0.9 * (1 - stDiscount) / 10) * 10;
+      if (this._lastCounter && counter > this._lastCounter) counter = this._lastCounter;
+      this._lastCounter = counter;
       response = this.pickReply([
         `"${money(offerPrice)}? Come on. ${money(counter)} and we got a deal."`,
         `"${money(offerPrice)} is insulting. ${money(counter)}, not a penny less."`,

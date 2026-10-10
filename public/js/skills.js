@@ -27,9 +27,9 @@ const SKILL_DEFS = [
     icon: "gear",
     desc: "See through a seller's lies. Reveals part conditions on marketplace listings — otherwise they're hidden until you buy and inspect in your garage.",
     tiers: [
-      "Listings show condition labels (Poor / Fair / Good / Mint).",
-      "Listings show exact condition percentage.",
-      "Spot underpriced parts: listings flag when a part is a steal.",
+      "Reveal 3 random parts per listing.",
+      "Reveal 60% of parts per listing.",
+      "Reveal all parts and conditions.",
     ],
   },
   {

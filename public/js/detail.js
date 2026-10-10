@@ -326,27 +326,45 @@ const Detail = {
           <h3>Condition Report</h3>
           ${((typeof Skills !== "undefined") && Skills.tier("gearhead") > 0) ? "" : `<div class="cond-locked-note">${Icon.get('lock')} Train <strong>Gear Head</strong> to see part conditions before buying — or buy it and inspect in your garage.</div>`}
           <div class="parts-grid">
-            ${availableParts(l.sprite).map(p => {
-              const st = (l.partStates && l.partStates[p.key]) || "pristine";
+            ${(() => {
+              const parts = availableParts(l.sprite);
               const gh = (typeof Skills !== "undefined") ? Skills.tier("gearhead") : 0;
+              // Which parts are revealed (seeded by listing ID so it's consistent)
+              const revealed = new Set();
+              if (gh >= 3) {
+                parts.forEach(p => revealed.add(p.key));
+              } else if (gh > 0) {
+                const seed = (l.id || 0) * 9301 + 49297;
+                const scored = parts.map(p => ({
+                  p,
+                  h: (seed * (p.key.charCodeAt(0) * 7 + p.key.length)) % 1000
+                })).sort((a, b) => a.h - b.h);
+                const count = gh === 1 ? 3 : Math.ceil(parts.length * 0.6);
+                scored.slice(0, count).forEach(x => revealed.add(x.p.key));
+              }
+              return parts.map(p => {
+              const st = (l.partStates && l.partStates[p.key]) || "pristine";
+              const isRev = revealed.has(p.key);
               let stateLabel, pctLabel = "";
-              if (gh === 0) {
+              if (!isRev) {
                 stateLabel = `<span class="cond-hidden">???</span>`;
-              } else if (gh === 1) {
-                stateLabel = PART_STATE_LABEL[st];
               } else {
                 const pctMap = { pristine: 95, used_good: 60, used_bad: 35, totaled: 10, missing: 0 };
                 const pct = pctMap[st] ?? 50;
                 stateLabel = PART_STATE_LABEL[st] || st;
                 pctLabel = st === "missing" ? "" : ` · ${pct}%`;
               }
-              const imgSrc = (gh === 0 || st === "missing") ? null : partImg(l.sprite, p.key, st);
-              return `<div class="part-cell state-${gh === 0 ? "hidden" : st}">
-                ${imgSrc ? `<img src="${imgSrc}" alt="${p.label}" loading="lazy">` : `<div class="part-missing">✕</div>`}
+              const imgSrc = (!isRev || st === "missing") ? null : partImg(l.sprite, p.key, st);
+              const imgHtml = imgSrc
+                ? `<img src="${imgSrc}" alt="${p.label}" loading="lazy">`
+                : (isRev && st === "missing" ? `<div class="part-missing">✕</div>` : `<div class="part-hidden">?</div>`);
+              return `<div class="part-cell state-${!isRev ? "hidden" : st}">
+                ${imgHtml}
                 <div class="part-label">${p.label}</div>
                 <div class="part-state">${stateLabel}${pctLabel}</div>
               </div>`;
-            }).join("")}
+              }).join("");
+            })()}
           </div>
         </div>
         ${this.thread && this.thread.length ? `<div class="msg-thread">` +

@@ -1,53 +1,53 @@
-// Sold As-Is — progressive tutorial & milestones
+// Sold As-Is — mandatory interactive tutorial & milestones
 const Tutorial = {
-  // Tutorial steps shown in order on first play
+  // Each step: info steps need a "Got it" tap, action steps need the highlighted element tapped
   steps: [
     {
       title: "Welcome to Sold As-Is",
-      text: "Buy low, flip high. No warranties, no take-backs. Let's show you the ropes.",
-      highlight: null,
+      text: "Buy low, flip high. No warranties, no take-backs. Tap below to start learning the ropes.",
+      action: null, // info step — tap Got it
     },
     {
       title: "The Marketplace",
-      text: "This is where it all happens. Bikes for sale from sellers around Port Angeles. Tap any listing to see details.",
-      highlight: '[data-view="market"]',
+      text: "This is where it all happens. Tap the Sold As-Is tab to see bikes for sale.",
+      action: '[data-view="market"]',
+    },
+    {
+      title: "Browse Listings",
+      text: "These are real listings from sellers around Port Angeles. Tap any bike to see its details.",
+      action: ".feed-grid .card",
     },
     {
       title: "Haggle",
-      text: "Don't pay asking price like a sucker. Make an offer — sellers respond. Some accept, some counter, some will block you for lowballing.",
-      highlight: null,
+      text: "Don't pay asking price. Type an offer and hit Send — sellers respond. Some accept, some counter, some block lowballers. Go back when you're done looking.",
+      action: "#d-back",
     },
     {
       title: "Your Garage",
-      text: "Bikes you buy land here. Restore them, strip them for parts, or flip them as-is.",
-      highlight: '[data-view="garage"]',
+      text: "Bikes you buy land here. Tap the Garage tab to see it.",
+      action: '[data-view="garage"]',
     },
     {
       title: "The Boneyard",
-      text: "Need parts? The Boneyard has them — Buy It Now, make offers, or win auctions. Watch for deals.",
-      highlight: '[data-view="parts"]',
+      text: "Need parts? Tap the Boneyard tab — Buy It Now, make offers, or win auctions.",
+      action: '[data-view="parts"]',
     },
     {
       title: "The Collection",
-      text: "The real game. Restore bikes to pristine condition and add them to your Collection. Complete all 8 brands — 28 bikes total.",
-      highlight: '[data-view="collection"]',
+      text: "The real game. Tap the Collection tab — restore bikes to pristine and complete all 8 brands.",
+      action: '[data-view="collection"]',
     },
     {
-      title: "Skills",
-      text: "Every dollar of profit earns XP. Spend skill points on Gear Head, Smooth Talker, and Browser Extension to get better deals.",
-      highlight: null,
-    },
-    {
-      title: "You're on your own",
-      text: "That's the basics. Buy low, flip high, build the ultimate collection. Good luck out there.",
-      highlight: null,
+      title: "Skills & Milestones",
+      text: "Every dollar of profit earns XP. Check the Collection tab anytime to see your milestones. You're ready — good luck out there.",
+      action: null,
     },
   ],
 
   current: 0,
   active: false,
+  boundEl: null,
 
-  // Check if tutorial should run (first time)
   shouldRun() {
     try {
       return !localStorage.getItem("soldasis_tutorial_done");
@@ -65,15 +65,10 @@ const Tutorial = {
     const step = this.steps[this.current];
     if (!step) { this.finish(); return; }
 
-    // Remove old highlight
+    // Clear old highlight and listener
+    this.unbind();
     document.querySelectorAll(".tutorial-highlight").forEach(el =>
       el.classList.remove("tutorial-highlight"));
-
-    // Highlight target if specified
-    if (step.highlight) {
-      const el = document.querySelector(step.highlight);
-      if (el) el.classList.add("tutorial-highlight");
-    }
 
     // Show the tutorial card
     let card = document.getElementById("tutorial-card");
@@ -83,39 +78,56 @@ const Tutorial = {
       document.body.appendChild(card);
     }
     const isLast = this.current === this.steps.length - 1;
-    const isFirst = this.current === 0;
     card.innerHTML = `
       <div class="tutorial-inner">
-        <div class="tutorial-progress">${this.current + 1} / ${this.steps.length}</div>
+        <div class="tutorial-progress">Step ${this.current + 1} of ${this.steps.length}</div>
         <h3>${step.title}</h3>
         <p>${step.text}</p>
-        <div class="tutorial-btns">
-          ${!isFirst ? `<button class="tutorial-btn secondary" id="tut-back">Back</button>` : ""}
-          <button class="tutorial-btn primary" id="tut-next">${isLast ? "Let's go" : "Next"}</button>
-          <button class="tutorial-btn text" id="tut-skip">Skip</button>
-        </div>
+        ${!step.action ? `<button class="tutorial-btn primary" id="tut-gotit">${isLast ? "Let's go!" : "Got it"}</button>` : `<div class="tutorial-hint">👆 Tap the highlighted area to continue</div>`}
       </div>`;
     card.classList.add("visible");
 
-    document.getElementById("tut-next").onclick = () => this.next();
-    const back = document.getElementById("tut-back");
-    if (back) back.onclick = () => this.back();
-    document.getElementById("tut-skip").onclick = () => this.finish();
-  },
-
-  next() {
-    this.current++;
-    this.showStep();
-  },
-
-  back() {
-    if (this.current > 0) {
-      this.current--;
-      this.showStep();
+    if (!step.action) {
+      document.getElementById("tut-gotit").onclick = () => this.next();
+    } else {
+      // Wait for the user to tap the highlighted element
+      // Poll briefly in case the element isn't rendered yet
+      let tries = 0;
+      const tryBind = () => {
+        const el = document.querySelector(step.action);
+        if (el) {
+          el.classList.add("tutorial-highlight");
+          this.boundEl = el;
+          this._handler = () => this.next();
+          el.addEventListener("click", this._handler, { once: true, capture: true });
+        } else if (tries++ < 20) {
+          setTimeout(tryBind, 250);
+        }
+      };
+      tryBind();
     }
   },
 
+  unbind() {
+    if (this.boundEl && this._handler) {
+      this.boundEl.removeEventListener("click", this._handler, { capture: true });
+    }
+    this.boundEl = null;
+    this._handler = null;
+  },
+
+  next() {
+    this.unbind();
+    // Clear highlight
+    document.querySelectorAll(".tutorial-highlight").forEach(el =>
+      el.classList.remove("tutorial-highlight"));
+    this.current++;
+    // Small delay so the tapped view can render before we look for the next target
+    setTimeout(() => this.showStep(), 300);
+  },
+
   finish() {
+    this.unbind();
     this.active = false;
     document.querySelectorAll(".tutorial-highlight").forEach(el =>
       el.classList.remove("tutorial-highlight"));
@@ -124,12 +136,6 @@ const Tutorial = {
     try {
       localStorage.setItem("soldasis_tutorial_done", "1");
     } catch (e) {}
-  },
-
-  // Replay tutorial from settings
-  replay() {
-    try { localStorage.removeItem("soldasis_tutorial_done"); } catch (e) {}
-    this.start();
   },
 };
 
@@ -152,7 +158,6 @@ const Milestones = {
     { id: "restore_1", name: "Wrench Turner", desc: "Restore your first bike", check: (s) => s.stats.bikesRestored >= 1 },
   ],
 
-  // Check and award any newly completed milestones
   check(stats) {
     let completed = [];
     try {
@@ -175,7 +180,6 @@ const Milestones = {
     }
   },
 
-  // Get completed milestone IDs
   completed() {
     try {
       return JSON.parse(localStorage.getItem("soldasis_milestones") || "[]");

@@ -717,8 +717,8 @@ button.settings-item:active { background: #faf6f1; }
 .tutorial-btns { display: flex; gap: 8px; align-items: center; }
 .tutorial-btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; }
 .tutorial-btn.primary { background: var(--blue); color: #fff; }
-.tutorial-btn.secondary { background: var(--paper); color: var(--ink); border: 1.5px solid var(--line); }
-.tutorial-btn.text { background: none; color: var(--dim); padding: 10px 8px; }
+.tutorial-hint { font-size: 0.9rem; color: var(--blue); font-weight: 700; text-align: center; padding: 8px; animation: tutorial-pulse 1.5s ease-in-out infinite; }
+@keyframes tutorial-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 .tutorial-highlight {
   outline: 3px solid var(--blue) !important;
   outline-offset: 2px;

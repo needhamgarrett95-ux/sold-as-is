@@ -4,42 +4,37 @@ const Tutorial = {
   steps: [
     {
       title: "Welcome to Sold As-Is",
-      text: "Buy low, flip high. No warranties, no take-backs. Tap below to start learning the ropes.",
-      action: null, // info step — tap Got it
+      text: "Buy low, flip high. No warranties, no take-backs. This is the marketplace — let's take a quick tour.",
+      action: null,
     },
     {
-      title: "The Marketplace",
-      text: "This is where it all happens. Tap the Sold As-Is tab to see bikes for sale.",
-      action: '[data-view="market"]',
-    },
-    {
-      title: "Browse Listings",
-      text: "These are real listings from sellers around Port Angeles. Tap any bike to see its details.",
+      title: "Inspect a Bike",
+      text: "Every listing has a price, condition, and seller. Tap any bike to see its full details.",
       action: ".feed-grid .card",
     },
     {
-      title: "Haggle",
-      text: "Don't pay asking price. Type an offer and hit Send — sellers respond. Some accept, some counter, some block lowballers. Go back when you're done looking.",
+      title: "Haggling",
+      text: "See the message box? Type an offer and hit Send. Sellers accept, counter, or block lowballers. Tap back to return to the listings.",
       action: "#d-back",
     },
     {
       title: "Your Garage",
-      text: "Bikes you buy land here. Tap the Garage tab to see it.",
+      text: "Bikes you buy live here. Restore them, strip them for parts, or flip them. Take a look.",
       action: '[data-view="garage"]',
     },
     {
       title: "The Boneyard",
-      text: "Need parts? Tap the Boneyard tab — Buy It Now, make offers, or win auctions.",
+      text: "This is the parts shop. Buy It Now, make offers, or bid in auctions. Take a look.",
       action: '[data-view="parts"]',
     },
     {
-      title: "The Collection",
-      text: "The real game. Tap the Collection tab — restore bikes to pristine and complete all 8 brands.",
+      title: "Your Collection",
+      text: "The endgame. Restore bikes to pristine condition and fill all 8 brand sets — 28 bikes total. Your milestones live here too. Take a look.",
       action: '[data-view="collection"]',
     },
     {
-      title: "Skills & Milestones",
-      text: "Every dollar of profit earns XP. Check the Collection tab anytime to see your milestones. You're ready — good luck out there.",
+      title: "You're Ready",
+      text: "That's the tour. Buy low, flip high, build the ultimate collection. Good luck out there.",
       action: null,
     },
   ],

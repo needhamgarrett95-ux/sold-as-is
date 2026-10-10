@@ -118,33 +118,34 @@ const AudioEngine = {
   },
 
   renderPlayer() {
-    if (document.getElementById("music-bar")) return;
-    const bar = document.createElement("div");
-    bar.id = "music-bar";
-    bar.innerHTML =
-      '<button id="music-prev" aria-label="Previous track">⏮</button>' +
-      '<button id="music-toggle" aria-label="Play/Pause">⏸</button>' +
-      '<button id="music-next" aria-label="Next track">⏭</button>' +
-      '<div class="music-info"><span class="music-note">♪</span><span id="music-track-name">' +
-        this.tracks[this.currentTrack].name + "</span></div>" +
-      '<button id="music-sfx" aria-label="Toggle sound effects" title="Sound effects">🔔</button>';
-    document.getElementById("browser").appendChild(bar);
-    bar.querySelector("#music-prev").addEventListener("click", (e) => { e.stopPropagation(); this.prevTrack(); });
-    bar.querySelector("#music-toggle").addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.toggleMusic();
-    });
-    bar.querySelector("#music-next").addEventListener("click", (e) => { e.stopPropagation(); this.nextTrack(); });
-    const sfxBtn = bar.querySelector("#music-sfx");
-    sfxBtn.addEventListener("click", (e) => {
+    // Wire up the popup player (in index.html)
+    const popup = document.getElementById("music-popup");
+    if (!popup || popup.dataset.wired) return;
+    popup.dataset.wired = "1";
+    document.getElementById("music-prev")?.addEventListener("click", (e) => { e.stopPropagation(); this.prevTrack(); });
+    document.getElementById("music-toggle")?.addEventListener("click", (e) => { e.stopPropagation(); this.toggleMusic(); });
+    document.getElementById("music-next")?.addEventListener("click", (e) => { e.stopPropagation(); this.nextTrack(); });
+    document.getElementById("music-sfx-toggle")?.addEventListener("click", (e) => {
       e.stopPropagation();
       this.toggleSfx();
-      sfxBtn.textContent = this.sfxOn ? "🔔" : "🔕";
-      sfxBtn.style.opacity = this.sfxOn ? "1" : "0.4";
+      const sub = document.getElementById("music-sfx-sub");
+      if (sub) sub.textContent = this.sfxOn ? "on" : "off";
     });
-    if (!this.sfxOn) { sfxBtn.textContent = "🔕"; sfxBtn.style.opacity = "0.4"; }
-    // Tapping the bar (not buttons) toggles music too
-    bar.addEventListener("click", () => this.toggleMusic());
+    const sub = document.getElementById("music-sfx-sub");
+    if (sub) sub.textContent = this.sfxOn ? "on" : "off";
+    // Music note toggles the popup
+    document.getElementById("music-note")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.getElementById("settings-menu")?.classList.add("hidden");
+      popup.classList.toggle("hidden");
+    });
+    // Close popup when tapping elsewhere
+    document.addEventListener("click", (e) => {
+      if (!popup.classList.contains("hidden") && !popup.contains(e.target) &&
+          !e.target.closest("#music-note")) {
+        popup.classList.add("hidden");
+      }
+    });
     this.updatePlayerUI();
   },
 };

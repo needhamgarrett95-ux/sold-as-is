@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("click", (e) => {
       const btn = e.target.closest("button");
       if (!btn) return;
-      if (btn.closest("#music-bar") || btn.id === "login-btn") return;
+      if (btn.closest("#music-popup") || btn.id === "login-btn" || btn.id === "music-note") return;
       AudioEngine.playTouch();
     }, true);
   }

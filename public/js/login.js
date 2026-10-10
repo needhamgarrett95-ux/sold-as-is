@@ -26,6 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
         clearInterval(timer);
         setTimeout(() => {
           loginScreen.classList.add("hidden");
+          // Start tutorial on first run (after login)
+          if (typeof Tutorial !== "undefined") {
+            setTimeout(() => Tutorial.start(), 800);
+          }
         }, 450);
       }
     }, PER_ASTERISK_MS);

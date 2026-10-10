@@ -111,7 +111,7 @@ const AudioEngine = {
         const src = this._actx.createBufferSource();
         src.buffer = this._tickBuffer;
         const g = this._actx.createGain();
-        g.gain.value = 0.8 * (this.sfxVolume || 1);
+        g.gain.value = 0.5 * (this.sfxVolume || 1);
         src.connect(g); g.connect(this._actx.destination);
         src.start(0);
         return;
@@ -130,7 +130,7 @@ const AudioEngine = {
         const src = this._actx.createBufferSource();
         src.buffer = this._tapBuffer;
         const g = this._actx.createGain();
-        g.gain.value = 0.6 * (this.sfxVolume || 1);
+        g.gain.value = 0.4 * (this.sfxVolume || 1);
         src.connect(g); g.connect(this._actx.destination);
         src.start(0);
         return;
@@ -138,7 +138,7 @@ const AudioEngine = {
     }
     if (!this.sfxTouch) return;
     const a = this.sfxTouch.cloneNode();
-    a.volume = 0.6;
+    a.volume = 0.4;
     a.play().catch(() => {});
   },
 

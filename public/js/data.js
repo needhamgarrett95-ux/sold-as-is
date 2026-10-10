@@ -185,9 +185,9 @@ const REPAIR_BASE = {
 function repairCost(part) {
   const pct = ensurePct(part);
   const base = REPAIR_BASE[part.partKey] || 20;
-  // Worse condition = more expensive: 1.6x at 25% → 0.9x at 69%
-  const mult = 1.6 - (pct / 100);
-  return Math.max(5, Math.round(base * mult));
+  // Worse condition = more expensive, but cheaper overall: 0.8x at 25% → 0.45x at 69%
+  const mult = 0.8 - (pct / 200);
+  return Math.max(3, Math.round(base * mult));
 }
 // Attempt a repair: returns { newPct, improved }
 // Cannot repair below 25%. Max result 70%. Chance-based.

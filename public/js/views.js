@@ -2324,10 +2324,10 @@ const Views = {
     p.repairAttempts = attempts + 1;
     p.repairSpent = (p.repairSpent || 0) + cost; // track for XP cost basis
 
-    // Very rare (5%): repair goes wrong, part gets worse
+    // 15% chance: repair goes wrong, part gets significantly worse
     let newPct, improved, worsened = false;
-    if (Math.random() < 0.05) {
-      const damage = 5 + ((Math.random() * 10) | 0); // -5 to -15
+    if (Math.random() < 0.15) {
+      const damage = 10 + ((Math.random() * 15) | 0); // -10 to -25
       newPct = Math.max(0, pct - damage);
       worsened = true;
       improved = false;

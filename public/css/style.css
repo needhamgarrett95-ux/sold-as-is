@@ -739,6 +739,7 @@ button.settings-item:active { background: #faf6f1; }
 .milestone-desc { font-size: 0.85rem; color: var(--dim); }
 
 /* Activity feed */
+.activity-popup.hidden { display: none; }
 .activity-popup {
   position: fixed;
   top: 50px;

@@ -338,11 +338,6 @@ const Views = {
     const sellBonus = sellScore * 0.03;
     const boostedOffer = Math.round((offerAmount * (1 + stBonus + sellBonus)) / 5) * 5;
     const boostedMax = Math.round((askPrice * maxPct * (1 + stBonus)) / 5) * 5;
-    const opener = style === "eager"
-      ? `Hi! I love this bike. Would you take ${money(offerAmount)}? I can pick up today.`
-      : style === "haggler"
-      ? `Hey, interested. What's your bottom dollar? I could do ${money(offerAmount)}.`
-      : `Hi, is this still available? Would ${money(offerAmount)} work?`;
     listing.offer = {
       amount: offerAmount,
       buyerName,
@@ -350,7 +345,7 @@ const Views = {
       rounds: 0,
       maxAmount: boostedMax,
       type,
-      thread: [{ from: "buyer", text: opener.replace(money(offerAmount), money(boostedOffer)) }],
+      thread: [{ from: "buyer", text: this.randomOpener(style, boostedOffer) }],
     };
     listing.offer.amount = boostedOffer;
     UI.toast(`${buyerName} made an offer!`);
@@ -533,64 +528,180 @@ const Views = {
     }
   },
 
+  // Buyer reply picker — never repeats the last one
+  _lastBuyerReply: null,
+  pickBuyerReply(options) {
+    let pool = options.filter(o => o !== this._lastBuyerReply);
+    if (!pool.length) pool = options;
+    const pick = pool[(Math.random() * pool.length) | 0];
+    this._lastBuyerReply = pick;
+    return pick;
+  },
+
+  randomOpener(style, amount) {
+    if (style === "eager") return this.pickBuyerReply([
+      `Hi! I love this bike. Would you take ${money(amount)}? I can pick up today.`,
+      `This is exactly what I've been looking for! Is ${money(amount)} fair?`,
+      `Hey! I'll take it for ${money(amount)} — cash in hand, can come now.`,
+      `OMG yes. ${money(amount)}? Please say yes.`,
+      `I've been hunting for one of these forever. ${money(amount)} work for you?`,
+      `Hi there! Very interested. I can do ${money(amount)} and pick up this weekend.`,
+      `This looks perfect. Would ${money(amount)} get it done?`,
+      `Hey, I'm serious about buying. ${money(amount)} — I can Venmo a deposit right now.`,
+    ]);
+    if (style === "flaky") return this.pickBuyerReply([
+      `Hi, is this still available? Would ${money(amount)} work?`,
+      `hey is this avail?? i got ${money(amount)}`,
+      `Interested... maybe. ${money(amount)}?`,
+      `Hi! Might be interested. What's the lowest you'd go? I was thinking ${money(amount)}.`,
+      `yo still got this? ${money(amount)} cash`,
+      `Hello, I am interested in your moped. I can offer ${money(amount)}.`,
+      `Is this still for sale? Lmk, I have ${money(amount)}.`,
+      `Hii! Do you still have it?? I could do like ${money(amount)}?`,
+    ]);
+    return this.pickBuyerReply([
+      `Hey, interested. What's your bottom dollar? I could do ${money(amount)}.`,
+      `Nice bike. I'm looking at a few — ${money(amount)} is where I'm at.`,
+      `Hey there. I know what these go for. ${money(amount)}, cash today.`,
+      `Interested buyer here. My offer is ${money(amount)} — firm.`,
+      `Good looking bike. I'll give you ${money(amount)} for it right now.`,
+      `Hey, I'll be straight with you: ${money(amount)} is my max.`,
+      `I've bought a few of these. ${money(amount)} is a fair price.`,
+      `Morning. ${money(amount)} cash, no hassle, no tire-kickers.`,
+    ]);
+  },
+
   randomAcceptResponse() {
-    return [
+    return this.pickBuyerReply([
       "Awesome, thanks!",
       "Perfect! When can I pick it up?",
       "Great, deal!",
       "Sweet, I'll take it!",
-    ][(Math.random() * 4) | 0];
+      "Amazing! I'll bring cash. What time works?",
+      "Yes! So excited for this.",
+      "Deal! You're the best.",
+      "Perfect. I'll see you soon!",
+      "Let's do it! Sending you my number.",
+      "Awesome! This made my week.",
+      "Great! I'll bring a truck.",
+      "Done deal! Thank you!",
+    ]);
   },
 
   randomDeclineResponse() {
-    return [
+    return this.pickBuyerReply([
       "No worries, thanks anyway.",
       "Alright, let me know if you change your mind.",
       "Ok, good luck with the sale!",
-    ][(Math.random() * 3) | 0];
+      "Thanks for getting back to me. I'll keep looking.",
+      "No problem! Hope you sell it soon.",
+      "Understood. Good luck!",
+      "Appreciate the reply. Maybe next time.",
+      "Got it, thanks! I'll keep hunting.",
+      "Fair enough. Good luck with the sale!",
+      "No hard feelings. Thanks!",
+    ]);
   },
 
   randomCounterAcceptResponse(amount, style) {
-    if (style === "eager") return [
+    if (style === "eager") return this.pickBuyerReply([
       `Yes! ${money(amount)} — I'll take it!`,
       `Deal! ${money(amount)}. When can I come get it?`,
-    ][(Math.random() * 2) | 0];
-    if (style === "flaky") return [
+      `${money(amount)}? YES. I'm on my way.`,
+      `Absolutely! ${money(amount)} works. Thank you!`,
+      `${money(amount)} — done! I'll bring cash.`,
+      `Yes yes yes! ${money(amount)}. See you soon!`,
+      `${money(amount)}? Deal! I'm so excited.`,
+      `Perfect! ${money(amount)}. I'll pick up today if that works.`,
+    ]);
+    if (style === "flaky") return this.pickBuyerReply([
       `Ugh, fine. ${money(amount)}.`,
       `Alright alright, ${money(amount)}.`,
-    ][(Math.random() * 2) | 0];
-    return [
+      `...okay. ${money(amount)}. I guess.`,
+      `Fine. ${money(amount)}. When can I get it?`,
+      `Ehh. ${money(amount)}. Sure.`,
+      `OK ${money(amount)}. Don't make me regret this lol`,
+      `${money(amount)}. Yeah okay.`,
+      `Whatever, ${money(amount)}. It's fine.`,
+    ]);
+    return this.pickBuyerReply([
       `Hmm... ${money(amount)}. Yeah, I can do that.`,
       `Alright, ${money(amount)} works for me.`,
       `You drive a hard bargain. ${money(amount)} it is.`,
-    ][(Math.random() * 3) | 0];
+      `${money(amount)}? Deal. You've got yourself a buyer.`,
+      `Okay, ${money(amount)}. I can live with that.`,
+      `Fine — ${money(amount)}. Let's get this done.`,
+      `${money(amount)}. Agreed. When's good for pickup?`,
+      `Alright, I'll do ${money(amount)}. Good negotiating.`,
+      `${money(amount)}... yeah. Okay, I'm in.`,
+      `Deal at ${money(amount)}. I respect the hustle.`,
+    ]);
   },
 
   randomCounterBackResponse(amount, style) {
-    if (style === "eager") return [
+    if (style === "eager") return this.pickBuyerReply([
       `I can stretch to ${money(amount)} — that's really my limit.`,
-    ][0];
-    if (style === "flaky") return [
+      `${money(amount)} is the absolute most I can do. Please?`,
+      `Okay what about ${money(amount)}? That's everything I have.`,
+      `I could go ${money(amount)}... that's my ceiling though.`,
+      `${money(amount)}? I'm already over budget but I want this bike.`,
+      `Best I can do is ${money(amount)}. I really hope that's enough.`,
+      `${money(amount)} — I'm scraping together everything I've got.`,
+      `Could you do ${money(amount)}? I'd be so grateful.`,
+    ]);
+    if (style === "flaky") return this.pickBuyerReply([
       `Meh, ${money(amount)} is all I'd do.`,
       `${money(amount)}? Take it or I'm out.`,
-    ][(Math.random() * 2) | 0];
-    return [
+      `idk, ${money(amount)} max. lmk`,
+      `${money(amount)}. that's it. no more.`,
+      `I guess I could do ${money(amount)}? Maybe?`,
+      `${money(amount)} or I'm gonna look at the other one.`,
+      `Ehh ${money(amount)}. Final. Probably.`,
+      `${money(amount)}? I'll think about it. Actually yeah, ${money(amount)}.`,
+    ]);
+    return this.pickBuyerReply([
       `That's a bit steep for me. How about ${money(amount)}?`,
       `I can't go that high. ${money(amount)} is my best.`,
       `Meet me at ${money(amount)}?`,
-    ][(Math.random() * 3) | 0];
+      `I hear you, but ${money(amount)} is where I land.`,
+      `What about ${money(amount)}? I'm trying to stay in budget.`,
+      `${money(amount)} is my max. I wish I could go higher.`,
+      `Could we do ${money(amount)}? That's a stretch for me already.`,
+      `I'd love to say yes, but ${money(amount)} is all I've got.`,
+      `${money(amount)}. That's me meeting you in the middle.`,
+      `How's ${money(amount)}? I think that's fair for both of us.`,
+    ]);
   },
 
   randomWalkAwayResponse(style) {
-    if (style === "flaky") return [
+    if (style === "flaky") return this.pickBuyerReply([
       "lol no. bye.",
       "Yeah I'm out.",
-    ][(Math.random() * 2) | 0];
-    return [
+      "nvm lol",
+      "nah I'm good",
+      "lol okay bye",
+      "yeah no thanks",
+      "I'm gonna pass lol",
+      "meh. bye!",
+    ]);
+    if (style === "eager") return this.pickBuyerReply([
+      "Ah man, I really wanted this. Good luck!",
+      "Dang. Okay, thanks anyway. If it doesn't sell, lmk?",
+      "I can't swing that. Really bummed. Good luck!",
+      "That's out of my range. Hope you find a buyer!",
+      "Man... okay. Thanks for your time!",
+      "I wish I could. Good luck with the sale!",
+    ]);
+    return this.pickBuyerReply([
       "Yeah that's too rich for my blood. Good luck!",
       "Can't do that. I'll keep looking.",
       "No way. Thanks anyway.",
-    ][(Math.random() * 3) | 0];
+      "That's above market. I'll pass.",
+      "Appreciate it, but I'll have to walk.",
+      "Too steep for me. Good luck selling!",
+      "I'll keep shopping around. Thanks!",
+      "Not at that price. Best of luck!",
+    ]);
   },
 
   tickBikeSales() {

@@ -30,8 +30,8 @@ const Icon = (() => {
     // Money bag / cash — sell
     cash: S(`<circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c-.7-1-1.8-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 2.9 6 1.4 6 4.3 0 1.3-1.3 2.2-3 2.2-1.2 0-2.3-.5-3-1.5"/>`),
 
-    // Gavel — auction
-    gavel: S(`<path d="M9 4l7 7M7 6l7 7M4 20h7"/><path d="M14 9l-4.5 4.5M13 5l6 6"/>`),
+    // Gavel — auction (mallet head + handle + strike base)
+    gavel: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9.5 9.5 19 19"/><path d="M4.2 7.2l6.6-3.4" stroke-width="4.5"/><path d="M3 21h7"/></svg>`,
 
     // Bone — boneyard logo (diagonal dog bone, filled knobs)
     bone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9.5 14.5l5-5" stroke-width="4"/><circle cx="7" cy="7" r="2.4" fill="currentColor" stroke="none"/><circle cx="10.2" cy="4.8" r="2.4" fill="currentColor" stroke="none"/><circle cx="17" cy="17" r="2.4" fill="currentColor" stroke="none"/><circle cx="13.8" cy="19.2" r="2.4" fill="currentColor" stroke="none"/></svg>`,

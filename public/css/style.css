@@ -274,6 +274,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   color: #e04536; padding: 8px; border-radius: 8px; font-size: .82rem;
   font-weight: 700; cursor: pointer; }
 .eby-typechoice:active { background: #fef0ee; }
+.eby-typechoice svg { width: 20px; height: 20px; vertical-align: -4px; margin-right: 4px; }
 .market-tabs { margin: 8px 0; }
 /* custom SVG icons */
 .tab-icon { display: inline-flex; width: 20px; height: 20px; vertical-align: -4px; margin-right: 4px; }
@@ -490,3 +491,8 @@ button svg { vertical-align: -3px; }
 .pane-head .sub svg { width: 16px; height: 16px; vertical-align: -3px; }
 /* part inventory action icons */
 .eby-sell svg { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
+/* kill iOS blue focus glow, use subtle theme-matched focus */
+input, textarea, select, button { -webkit-tap-highlight-color: transparent; }
+input:focus, textarea:focus { outline: none; border-color: #e04536 !important;
+  box-shadow: 0 0 0 2px rgba(224,69,54,.15); }
+button:focus { outline: none; }

@@ -2320,6 +2320,33 @@ const Views = {
       }).join("") + `</div>`;
   },
 
+  showRepairConfirm(i) {
+    const parts = State.parts || [];
+    const p = parts[i];
+    if (!p) return;
+    const cost = repairCost(p);
+    // Remove existing
+    document.getElementById("repair-confirm")?.remove();
+    const div = document.createElement("div");
+    div.id = "repair-confirm";
+    div.className = "repair-confirm-overlay";
+    div.innerHTML = `
+      <div class="repair-confirm-box">
+        <div class="repair-confirm-title">Risky Repair</div>
+        <div class="repair-confirm-text">This is your last attempt at <strong>${p.partLabel || p.partKey}</strong>.<br><br>There's a <strong style="color:#f44336">30% chance</strong> this goes wrong and the part gets worse.<br><br>Cost: ${money(cost)}</div>
+        <div class="repair-confirm-btns">
+          <button class="repair-confirm-cancel" id="repair-cancel">Never Mind</button>
+          <button class="repair-confirm-go" id="repair-go">Risk It</button>
+        </div>
+      </div>`;
+    document.body.appendChild(div);
+    document.getElementById("repair-cancel").addEventListener("click", () => div.remove());
+    document.getElementById("repair-go").addEventListener("click", () => {
+      div.remove();
+      this.repairPart(i);
+    });
+    div.addEventListener("click", (e) => { if (e.target === div) div.remove(); });
+  },
   repairPart(i) {
     const p = (State.parts || [])[i];
     if (!p) return;
@@ -2688,7 +2715,19 @@ const Views = {
       b.addEventListener("click", () => this.assembleBike(b.dataset.assemble)));
     // Repair buttons
     el.querySelectorAll("[data-repair]").forEach(b => {
-      const rep = (e) => { e.preventDefault(); e.stopPropagation(); this.repairPart(+b.dataset.repair); };
+      const rep = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const idx = +b.dataset.repair;
+        const parts = State.parts || [];
+        const part = parts[idx];
+        const attempts = (part && part.repairAttempts) || 0;
+        // 3rd attempt (30% risk): custom confirm
+        if (attempts >= 2) {
+          this.showRepairConfirm(idx);
+        } else {
+          this.repairPart(idx);
+        }
+      };
       b.addEventListener("click", rep);
       let ty = 0, tx = 0;
       b.addEventListener("touchstart", (e) => {

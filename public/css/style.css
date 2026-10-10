@@ -772,6 +772,58 @@ button.settings-item:active { background: #faf6f1; }
   text-align: center;
   color: #888;
 }
+/* Repair confirm */
+.repair-confirm-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.repair-confirm-box {
+  background: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 320px;
+  text-align: center;
+}
+.repair-confirm-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ff9800;
+  margin-bottom: 12px;
+}
+.repair-confirm-text {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.repair-confirm-btns {
+  display: flex;
+  gap: 12px;
+}
+.repair-confirm-cancel, .repair-confirm-go {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.repair-confirm-cancel {
+  background: #333;
+  color: #fff;
+}
+.repair-confirm-go {
+  background: #d32f2f;
+  color: #fff;
+}
 /* Parts search */
 .parts-search {
   width: 100%;

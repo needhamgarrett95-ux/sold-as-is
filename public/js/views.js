@@ -2460,6 +2460,7 @@ const Views = {
       if (typeof calcBikeCondition !== "undefined") {
         r.condition = calcBikeCondition(r.partStates, r.sprite);
       }
+      if (typeof recalcFairValue !== "undefined") recalcFairValue(r);
     };
     if (part.bikeSprite !== r.sprite || !(r.missingParts || []).includes(part.partKey)) {
       return;
@@ -2496,6 +2497,7 @@ const Views = {
     } else {
       r.condition = missing > 0 ? "Rough" : "Good";
     }
+    if (typeof recalcFairValue !== "undefined") recalcFairValue(r);
     r.fairValue = this.rollerValue(r);
     // Clear the missing list since it's now encoded in partStates
     r.missingParts = [];
@@ -2775,6 +2777,7 @@ const Views = {
     if (typeof calcBikeCondition !== "undefined") {
       bike.condition = calcBikeCondition(bike.partStates, bike.sprite);
     }
+    if (typeof recalcFairValue !== "undefined") recalcFairValue(bike);
     Save.save();
     this.renderGarage();
   },

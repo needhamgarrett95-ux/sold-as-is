@@ -117,6 +117,19 @@ const PART_DIST = {
 };
 const PART_STATES = ["pristine", "used_good", "used_bad", "totaled", "missing"];
 
+// Recalculate a bike's fair value from its condition and base value
+function recalcFairValue(bike) {
+  if (!bike || !bike.baseValue) return;
+  const cond = (typeof CONDITIONS !== "undefined")
+    ? CONDITIONS.find(c => c.name === bike.condition)
+    : null;
+  const mult = cond ? cond.mult : 1.0;
+  const missingCount = bike.partStates
+    ? Object.values(bike.partStates).filter(s => s === "missing").length
+    : 0;
+  bike.fairValue = Math.round(bike.baseValue * mult * Math.pow(0.92, missingCount) / 5) * 5;
+}
+
 // Calculate a bike's overall condition from its individual part states.
 // Critical parts (engine) weigh heavily — a shot engine caps the bike at Non-runner.
 function calcBikeCondition(partStates, sprite) {

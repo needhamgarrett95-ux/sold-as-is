@@ -2113,8 +2113,8 @@ const Views = {
         <div class="g-detail-actions">
           <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
           <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
-          <button class="btn-strip" data-gact="partout">${Icon.get('wrench')} Part Out</button>
         </div>
+        <div class="sub" style="margin-top:8px">To strip parts, use "Strip parts instead" above and tap parts individually.</div>
         ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}
       </div>`;
   },
@@ -2341,13 +2341,13 @@ const Views = {
     // Parts grid
     html += `<div class="parts-grid">` +
       avail.map(p => {
-        const missing = (r.missingParts || []).includes(p.key);
-        if (!missing) {
-          const st = (r.partStates && r.partStates[p.key]) || "pristine";
-          return `<div class="part-cell state-${st}">
+        const st = (r.partStates && r.partStates[p.key]) || "pristine";
+        const isMissing = st === "missing" || (r.missingParts || []).includes(p.key);
+        if (!isMissing) {
+          return `<div class="part-cell state-${st}" data-roller-part="${p.key}" data-roller="${idx}" style="cursor:pointer" title="Tap to remove or swap">
             <img src="${partImg(r.sprite, p.key, st)}" alt="${p.label}" loading="lazy">
             <div class="part-label">${p.label}</div>
-            <div class="part-state">${PART_STATE_LABEL[st]}</div>
+            <div class="part-state">${PART_STATE_LABEL[st] || st}</div>
           </div>`;
         }
         const count = parts.filter(sp => sp.bikeSprite === r.sprite && sp.partKey === p.key).length;
@@ -2355,6 +2355,7 @@ const Views = {
         return `<div class="part-cell state-missing${active}" data-pick-slot="${p.key}">
           <div class="part-missing-x">${Icon.get('missing')}</div>
           <div class="part-label">${p.label}</div>
+          <div class="part-state">Missing</div>
           ${count
             ? `<button class="eby-buy roller-choose-btn">Choose part (${count})</button>`
             : `<div class="part-state" style="color:#999">none owned</div>`}
@@ -2476,6 +2477,38 @@ const Views = {
           const key = cell.dataset.pickSlot;
           this.rollerPickSlot = this.rollerPickSlot === key ? null : key;
           this.renderGarage();
+        }
+      });
+    });
+    // Roller detail: tap installed part to remove it (back to inventory)
+    el.querySelectorAll("[data-roller-part]").forEach(cell => {
+      cell.addEventListener("click", () => {
+        const rIdx = +cell.dataset.roller;
+        const key = cell.dataset.rollerPart;
+        const r = (State.rollers || [])[rIdx];
+        if (!r) return;
+        const st = (r.partStates && r.partStates[key]) || "pristine";
+        if (confirm(`Remove ${key}? It'll go back to your parts inventory.`)) {
+          // Remove part, mark slot as missing
+          r.partStates = r.partStates || {};
+          // Add the removed part back to inventory
+          const avail = availableParts(r.sprite);
+          const pDef = avail.find(p => p.key === key);
+          if (pDef) {
+            State.parts = State.parts || [];
+            State.parts.push({
+              bikeSprite: r.sprite, bikeBrand: r.brand, bikeModel: r.model,
+              partKey: key, partLabel: pDef.label, state: st,
+              stateLabel: PART_STATE_LABEL[st] || st,
+              img: partImg(r.sprite, key, st),
+            });
+          }
+          r.partStates[key] = "missing";
+          if (!r.missingParts) r.missingParts = [];
+          if (!r.missingParts.includes(key)) r.missingParts.push(key);
+          Save.save();
+          this.renderGarage();
+          UI.toast(`${pDef ? pDef.label : key} removed`);
         }
       });
     });

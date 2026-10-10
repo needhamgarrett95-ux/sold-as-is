@@ -95,6 +95,15 @@ const Feed = {
     this.render();
   },
 
+  // Seller blocked the player — yank the listing and drop in a fresh one
+  replaceBlocked(id) {
+    this.listings = this.listings.filter(l => l.id !== id);
+    const fresh = genListings(1, this.nextId);
+    this.nextId += 1;
+    this.listings.push(...fresh);
+    this.render();
+  },
+
   photoColor(bikeId) {
     // deterministic hue per bike
     let h = 0;

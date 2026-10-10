@@ -231,6 +231,7 @@ const Detail = {
         this.thread.push({ from: "seller", text: this.pickReply(blocks) });
         this.blocked = true;
         this.haggleResponse = { response: null, accepted: false, price: null };
+        if (typeof Feed !== "undefined" && this.current) Feed.replaceBlocked(this.current.id);
         this.render();
         return;
       }

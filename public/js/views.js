@@ -2611,28 +2611,25 @@ const Views = {
         const r = (State.rollers || [])[rIdx];
         if (!r) return;
         const st = (r.partStates && r.partStates[key]) || "pristine";
-        if (confirm(`Remove ${key}? It'll go back to your parts inventory.`)) {
-          // Remove part, mark slot as missing
-          r.partStates = r.partStates || {};
-          // Add the removed part back to inventory
-          const avail = availableParts(r.sprite);
-          const pDef = avail.find(p => p.key === key);
-          if (pDef) {
-            State.parts = State.parts || [];
-            State.parts.push({
-              bikeSprite: r.sprite, bikeBrand: r.brand, bikeModel: r.model,
-              partKey: key, partLabel: pDef.label, state: st,
-              stateLabel: PART_STATE_LABEL[st] || st,
-              img: partImg(r.sprite, key, st),
-            });
-          }
-          r.partStates[key] = "missing";
-          if (!r.missingParts) r.missingParts = [];
-          if (!r.missingParts.includes(key)) r.missingParts.push(key);
-          Save.save();
-          this.renderGarage();
-          UI.toast(`${pDef ? pDef.label : key} removed`);
+        // Remove part, mark slot as missing (no confirm — just do it)
+        r.partStates = r.partStates || {};
+        const avail = availableParts(r.sprite);
+        const pDef = avail.find(p => p.key === key);
+        if (pDef) {
+          State.parts = State.parts || [];
+          State.parts.push({
+            bikeSprite: r.sprite, bikeBrand: r.brand, bikeModel: r.model,
+            partKey: key, partLabel: pDef.label, state: st,
+            stateLabel: PART_STATE_LABEL[st] || st,
+            img: partImg(r.sprite, key, st),
+          });
         }
+        r.partStates[key] = "missing";
+        if (!r.missingParts) r.missingParts = [];
+        if (!r.missingParts.includes(key)) r.missingParts.push(key);
+        Save.save();
+        this.renderGarage();
+        UI.toast(`${pDef ? pDef.label : key} moved to parts`);
       });
     });
     // Roller detail: close picker

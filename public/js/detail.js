@@ -11,6 +11,7 @@ const Detail = {
     this.thread = [];
     this.haggleResponse = null;
     this.blocked = false;
+    this.retryUsed = false;
     this.notice = null;
     this.render();
     document.getElementById("detail").classList.remove("hidden");
@@ -64,7 +65,10 @@ const Detail = {
       return;
     }
     this.offer = offerPrice;
-    const ratio = offerPrice / l.price;
+    // Smooth Talker: discount boosts effective offer ratio
+    const stDiscount = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
+    const effectiveOffer = offerPrice * (1 + stDiscount);
+    const ratio = effectiveOffer / l.price;
     let response, accepted = false, price = null;
 
     if (ratio >= 0.95) {
@@ -74,13 +78,13 @@ const Detail = {
       response = `"Hmm... ${money(offerPrice)}. Alright, it's yours."`;
       accepted = true; price = offerPrice;
     } else if (ratio >= 0.70) {
-      // Counter: meet in the middle, rounded to nearest $10
-      const counter = Math.round(((offerPrice + l.price) / 2) / 10) * 10;
+      // Counter: meet in the middle, rounded to nearest $10 (Smooth Talker discount applied)
+      const counter = Math.round(((offerPrice + l.price) / 2) * (1 - stDiscount) / 10) * 10;
       response = `"${money(offerPrice)}? I could do ${money(counter)}. Meet me there and it's yours."`;
       price = counter; // buy button updates to counter
     } else if (ratio >= 0.50) {
-      // Firm counter at 90%
-      const counter = Math.round(l.price * 0.9 / 10) * 10;
+      // Firm counter at 90% (Smooth Talker discount applied)
+      const counter = Math.round(l.price * 0.9 * (1 - stDiscount) / 10) * 10;
       response = `"${money(offerPrice)}? Come on. ${money(counter)} and we got a deal."`;
       price = counter;
     } else {
@@ -155,11 +159,13 @@ const Detail = {
         ${this.notice ? `<div class="notice">${this.notice}</div>` : ""}
         <div class="msg-seller-card">
           <div class="msg-seller-head">${Icon.get('chat')} Message seller</div>
+          ${((typeof Skills !== "undefined") && Skills.hasSellerHint()) ? `<div class="seller-hint">Psst — they'll probably take ${money(Math.round(l.price * 0.85))}</div>` : ""}
           <div class="msg-seller-row">
             <input id="offer-input" type="text" inputmode="numeric" pattern="[0-9]*"
               placeholder="Make an offer... ($)" autocomplete="off">
             <button id="offer-send">Send</button>
           </div>
+          ${this.blocked && ((typeof Skills !== "undefined") && Skills.hasRetry() && !this.retryUsed) ? `<button class="retry-btn" id="d-retry">Smooth Talker: Give it one more shot</button>` : ""}
         </div>
         <button class="buy-btn${this.blocked ? " blocked" : ""}" id="d-buy"${this.blocked ? " disabled" : ""}>
           ${this.blocked ? `Seller blocked you` : (hr && hr.price) ? `Buy for ${money(hr.price)}` : `Buy now — ${money(l.price)}`}
@@ -180,6 +186,15 @@ const Detail = {
     offerInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") sendOffer();
     });
+    // Smooth Talker Tier 2: one free retry after being blocked
+    const retryBtn = document.getElementById("d-retry");
+    if (retryBtn) retryBtn.onclick = () => {
+      this.blocked = false;
+      this.retryUsed = true;
+      this.thread.push({ from: "you", text: `"Look, let's start over. No hard feelings?"` });
+      this.thread.push({ from: "seller", text: `"Fine. One more chance. Don't waste it."` });
+      this.render();
+    };
   },
 };
 

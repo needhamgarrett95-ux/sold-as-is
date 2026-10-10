@@ -548,3 +548,77 @@ button:focus { outline: none !important; box-shadow: none !important; }
 @media (min-width: 1600px) {
   #feed { grid-template-columns: repeat(5, 1fr); }
 }
+
+/* === Skill System === */
+.xp-popup {
+  position: fixed; top: 70px; left: 50%; transform: translate(-50%, -20px) scale(.9);
+  background: linear-gradient(135deg, #6a4c93, #4a2d6b); color: #fff;
+  font-weight: 800; font-size: 1.05rem; padding: 10px 20px; border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(106,76,147,.5); z-index: 9999; opacity: 0;
+  transition: all .35s cubic-bezier(.2,.9,.3,1.2); pointer-events: none;
+  white-space: nowrap;
+}
+.xp-popup.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.xp-popup .xp-point { color: #ffd54f; }
+
+.skills-head {
+  background: linear-gradient(135deg, #2b2140, #1a1428); color: #fff;
+  border-radius: 12px; padding: 16px; margin-bottom: 14px;
+}
+.skills-head .xp-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.skills-head .xp-total { font-size: 1.3rem; font-weight: 800; }
+.skills-head .xp-pts { font-size: .95rem; color: #ffd54f; font-weight: 700; }
+.xp-bar { height: 10px; background: rgba(255,255,255,.15); border-radius: 5px; overflow: hidden; margin-bottom: 6px; }
+.xp-bar-fill { height: 100%; background: linear-gradient(90deg, #9d7bff, #6a4c93); border-radius: 5px; transition: width .4s; }
+.xp-next { font-size: .8rem; opacity: .75; }
+
+.skill-card {
+  background: #fff; border: 1.5px solid #e0dcd2; border-radius: 12px;
+  padding: 14px; margin-bottom: 12px;
+}
+.skill-card h3 { margin: 0 0 4px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+.skill-card h3 svg { width: 22px; height: 22px; }
+.skill-card .skill-desc { font-size: .85rem; color: #666; margin-bottom: 10px; }
+.tier-row { display: flex; gap: 8px; }
+.tier-node {
+  flex: 1; border: 2px solid #ddd; border-radius: 10px; padding: 10px 6px;
+  text-align: center; font-size: .75rem; line-height: 1.35; cursor: default;
+  background: #f7f5f0; color: #999; position: relative;
+}
+.tier-node .tier-num { font-weight: 800; font-size: .85rem; display: block; margin-bottom: 4px; }
+.tier-node .tier-cost { display: block; margin-top: 6px; font-weight: 700; font-size: .8rem; }
+.tier-node.locked { opacity: .55; }
+.tier-node.available {
+  border-color: #6a4c93; background: #f3efff; color: #333; cursor: pointer;
+  box-shadow: 0 0 0 1px #6a4c93;
+}
+.tier-node.available:active { transform: scale(.97); }
+.tier-node.available .tier-cost { color: #6a4c93; }
+.tier-node.unlocked { border-color: #4caf50; background: #eef7ee; color: #333; }
+.tier-node.unlocked .tier-cost { color: #4caf50; }
+.tier-node.unlocked::after {
+  content: "✓"; position: absolute; top: 4px; right: 8px; color: #4caf50; font-weight: 800;
+}
+
+/* Gear Head condition reveal */
+.cond-hidden { color: #999; font-style: italic; letter-spacing: 2px; }
+.cond-defects { font-size: .78rem; color: #d32f2f; margin-top: 3px; font-weight: 600; }
+.cond-repair { font-size: .78rem; color: #666; margin-top: 2px; }
+
+/* Browser Extension market tags */
+.mkt-tag { display: inline-block; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin: 4px 0; }
+.mkt-tag.deal { background: #e8f5e9; color: #2e7d32; }
+.mkt-tag.ok { background: #f1f8e9; color: #558b2f; }
+.mkt-tag.fair { background: #f5f5f5; color: #757575; }
+.mkt-tag.over { background: #ffebee; color: #c62828; }
+.price-hist { margin: 10px 0; padding: 10px; background: #f9f8f5; border-radius: 8px; }
+.ph-label { font-size: .75rem; color: #888; margin-bottom: 6px; font-weight: 600; }
+.ph-bars { display: flex; align-items: flex-end; gap: 4px; height: 44px; }
+.ph-bar { flex: 1; background: #b5651d; border-radius: 2px 2px 0 0; min-width: 12px; opacity: .8; }
+.ph-bar:last-child { background: #e04536; opacity: 1; }
+
+/* Smooth Talker */
+.seller-hint { font-size: .8rem; color: #6a4c93; background: #f3efff; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; font-weight: 600; }
+.retry-btn { width: 100%; margin-top: 8px; padding: 10px; border-radius: 8px; border: 2px solid #6a4c93; background: #f3efff; color: #6a4c93; font-weight: 800; cursor: pointer; }
+.retry-btn:active { transform: scale(.98); }
+.cart-disc { font-size: .82rem; color: #2e7d32; font-weight: 700; margin-bottom: 4px; }

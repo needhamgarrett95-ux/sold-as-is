@@ -87,6 +87,17 @@ const Views = {
     this.partsShop = genPartsShop(16);
     // Reset filters on fresh stock
     this.renderParts();
+    // Browser Extension Tier 3: deal alerts
+    if (typeof Skills !== "undefined" && Skills.hasPriceAlerts()) {
+      const deals = this.partsShop.filter(p => {
+        const avg = Skills.marketAverage(p);
+        return avg > 0 && p.price < avg * 0.8;
+      });
+      if (deals.length) {
+        const best = deals.reduce((a, b) => (a.price / Skills.marketAverage(a) < b.price / Skills.marketAverage(b) ? a : b));
+        setTimeout(() => UI.toast(`🔥 Deal alert: ${best.partLabel} ${Math.round((1 - best.price / Skills.marketAverage(best)) * 100)}% below market!`), 600);
+      }
+    }
     UI.toast(`New parts listings (${this.partsRefreshesLeft} free refreshes left)`);
     if (this.partsRefreshesLeft <= 0) {
       this.partsCooldownUntil = Date.now() + 30 * 1000;
@@ -320,6 +331,10 @@ const Views = {
     const maxPct = style === "eager" ? 0.95 + Math.random() * 0.10
       : style === "haggler" ? 0.85 + Math.random() * 0.12
       : 0.80 + Math.random() * 0.15;
+    // Smooth Talker: buyers open higher and stretch further
+    const stBonus = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
+    const boostedOffer = Math.round((offerAmount * (1 + stBonus)) / 5) * 5;
+    const boostedMax = Math.round((askPrice * maxPct * (1 + stBonus)) / 5) * 5;
     const opener = style === "eager"
       ? `Hi! I love this bike. Would you take ${money(offerAmount)}? I can pick up today.`
       : style === "haggler"
@@ -330,10 +345,11 @@ const Views = {
       buyerName,
       style,
       rounds: 0,
-      maxAmount: Math.round((askPrice * maxPct) / 5) * 5,
+      maxAmount: boostedMax,
       type,
-      thread: [{ from: "buyer", text: opener }],
+      thread: [{ from: "buyer", text: opener.replace(money(offerAmount), money(boostedOffer)) }],
     };
+    listing.offer.amount = boostedOffer;
     UI.toast(`${buyerName} made an offer!`);
     this.updateNavBadges();
     // Refresh the relevant view
@@ -425,6 +441,10 @@ const Views = {
     offer.thread.push({ from: "you", text: `Deal! ${money(amount)} it is.` });
     offer.thread.push({ from: "buyer", text: this.randomAcceptResponse() });
     UI.toast(`Sold for ${money(amount)}!`);
+    // XP: profit = sale price - cost basis (purchase + repairs)
+    const costBasis = (l.boughtFor || l.paidPrice || 0) + (l.repairSpent || 0);
+    const xpResult = Skills.awardForSale(amount, costBasis);
+    if (xpResult.xp > 0) XPPopup.show(xpResult.xp, xpResult.newPoints);
     this.closeSellerHaggle();
     // Refresh views
     if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
@@ -614,6 +634,12 @@ const Views = {
         this.updateNavBadges();
         State.cash += l.askPrice;
         UI.refreshCash();
+        // XP for part sale profit
+        const partCostBasis = (l.paidPrice || 0) + (l.repairSpent || 0);
+        const partXp = Skills.awardForSale(l.askPrice, partCostBasis);
+        if (partXp.xp > 0 && !(this.current === "parts" && this.boneyardTab === "sell")) {
+          XPPopup.show(partXp.xp, partXp.newPoints);
+        }
         Save.save();
         if (!(this.current === "parts" && this.boneyardTab === "sell")) {
           UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
@@ -765,6 +791,12 @@ const Views = {
           this.unseenPartSales++;
           this.updateNavBadges();
           UI.refreshCash();
+          // XP for auction sale profit
+          const aucCostBasis = (l.paidPrice || 0) + (l.repairSpent || 0);
+          const aucXp = Skills.awardForSale(l.currentBid, aucCostBasis);
+          if (aucXp.xp > 0 && !(this.current === "parts" && this.boneyardTab === "sell")) {
+            XPPopup.show(aucXp.xp, aucXp.newPoints);
+          }
           Save.save();
           if (!(this.current === "parts" && this.boneyardTab === "sell")) {
             UI.toast(`Auction sold! ${l.partLabel} went for ${money(l.currentBid)} to ${l.highBidder}`);
@@ -1123,7 +1155,8 @@ const Views = {
         </div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
-          <div class="eby-cond">${p.stateLabel} · Auction</div>
+          <div class="eby-cond">${Skills.condDisplay(p)} · Auction</div>
+          ${Skills.marketTag(p)}
           <div class="eby-price-row">
             <span class="eby-price" data-auc-price="${p.idx}">${money(p.currentBid)}</span>
             <span class="eby-bids" data-auc-bids="${p.idx}">${p.highBidder ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`) : "No bids yet"}</span>
@@ -1140,7 +1173,8 @@ const Views = {
         <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy"></div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
-          <div class="eby-cond">${p.stateLabel}</div>
+          <div class="eby-cond">${Skills.condDisplay(p)}</div>
+          ${Skills.marketTag(p)}
           <div class="eby-price-row">
             <span class="eby-price">${money(p.price)}</span>
             ${p.wasPrice ? `<span class="eby-was">${money(p.wasPrice)}</span>` : ""}
@@ -1303,11 +1337,13 @@ const Views = {
           </div>
           <div class="pd-ship">Free shipping</div>
           <div class="pd-ship">Free delivery</div>
-          <div class="pd-cond-row">Condition <strong>${p.stateLabel}</strong></div>
+          <div class="pd-cond-row">Condition <strong>${Skills.condDisplay(p)}</strong></div>
+          ${Skills.marketTag(p)}
+          ${Skills.priceHistoryHTML(p)}
           <div class="pd-actions">${actionHtml}</div>
           <div class="pd-about">
             <div class="pd-about-head">About this item</div>
-            <div class="pd-spec"><span>Condition</span><span>${p.stateLabel}</span></div>
+            <div class="pd-spec"><span>Condition</span><span>${Skills.condDisplay(p)}</span></div>
             <div class="pd-spec"><span>Fits</span><span>${p.bikeBrand} ${p.bikeModel}</span></div>
             <div class="pd-spec"><span>Part</span><span>${p.partLabel}</span></div>
           </div>
@@ -1452,10 +1488,13 @@ const Views = {
   },
 
   cartTotal() {
-    return this.cart.reduce((sum, idx) => {
+    const subtotal = this.cart.reduce((sum, idx) => {
       const p = this.partsShop[idx];
       return sum + (p ? p.price : 0);
     }, 0);
+    // Browser Extension: discount on parts purchases
+    const discount = (typeof Skills !== "undefined") ? Skills.partsDiscount() : 0;
+    return Math.round(subtotal * (1 - discount));
   },
 
   updateCartBadge() {
@@ -1511,6 +1550,7 @@ const Views = {
             }).join("") +
           `</div>
           <div class="cart-foot">
+            ${(() => { const d = (typeof Skills !== "undefined") ? Skills.partsDiscount() : 0; return d > 0 ? `<div class="cart-disc">Browser Extension: ${Math.round(d * 100)}% off applied!</div>` : ""; })()}
             <div class="cart-total">Total: <strong>${money(total)}</strong></div>
             <button class="pd-btn-primary" id="cart-checkout">Checkout — ${money(total)}</button>
           </div>
@@ -1556,18 +1596,21 @@ const Views = {
   buyPart(i) {
     const p = this.partsShop[i];
     if (!p) return;
-    if (State.cash < p.price) {
+    // Browser Extension discount
+    const discount = (typeof Skills !== "undefined") ? Skills.partsDiscount() : 0;
+    const price = Math.round(p.price * (1 - discount));
+    if (State.cash < price) {
       UI.toast("Not enough cash for that part");
       return;
     }
-    State.cash -= p.price;
+    State.cash -= price;
     State.parts = State.parts || [];
-    p.paidPrice = p.price; // track what we paid
+    p.paidPrice = price; // track what we paid (after discount)
     State.parts.push(p);
     this.partsShop.splice(i, 1);
     UI.refreshCash();
     Save.save();
-    UI.toast(`${p.partLabel} (${p.bikeBrand} ${p.bikeModel}) bought`);
+    UI.toast(`${p.partLabel} (${p.bikeBrand} ${p.bikeModel}) bought${discount > 0 ? ` — ${Math.round(discount * 100)}% off!` : ""}`);
     this.renderParts();
   },
 
@@ -1603,11 +1646,15 @@ const Views = {
         <button class="g-tab${this.garageTab === "bikes" ? " active" : ""}" data-gtab="bikes">${Icon.get('moped')} Bikes${State.garage.length ? ` (${State.garage.length})` : ""}</button>
         <button class="g-tab${this.garageTab === "parts" ? " active" : ""}" data-gtab="parts">${Icon.get('gear')} Parts${State.parts && State.parts.length ? ` (${State.parts.length})` : ""}</button>
         <button class="g-tab${this.garageTab === "assemble" ? " active" : ""}" data-gtab="assemble">${Icon.get('wrench')} Assemble</button>
+        <button class="g-tab${this.garageTab === "skills" ? " active" : ""}" data-gtab="skills">${Icon.get('trophy')} Skills${Skills.unspentPoints() ? ` (${Skills.unspentPoints()})` : ""}</button>
       </div>`;
     if (this.garageTab === "parts") {
       el.innerHTML = tabs + this.partsInventoryHTML();
     } else if (this.garageTab === "assemble") {
       el.innerHTML = tabs + this.assembleHTML();
+    } else if (this.garageTab === "skills") {
+      el.innerHTML = tabs + this.skillsHTML();
+      this.bindSkills(el);
     } else if (this.garageDetailIdx >= 0) {
       el.innerHTML = tabs + this.garageDetailHTML();
     } else {
@@ -1676,9 +1723,62 @@ const Views = {
       </div>`;
   },
 
+
+  skillsHTML() {
+    const prog = Skills.xpProgress();
+    const unspent = Skills.unspentPoints();
+    const head = `<div class="skills-head">
+      <div class="xp-row">
+        <span class="xp-total">${Skills.totalXP.toLocaleString()} XP</span>
+        <span class="xp-pts">${unspent} skill point${unspent === 1 ? "" : "s"}</span>
+      </div>
+      <div class="xp-bar"><div class="xp-bar-fill" style="width:${prog.pct}%"></div></div>
+      <div class="xp-next">${prog.current.toLocaleString()} / ${prog.needed.toLocaleString()} XP to next point</div>
+    </div>`;
+    const cards = SKILL_DEFS.map(def => {
+      const cur = Skills.tier(def.id);
+      const tiers = [1, 2, 3].map(t => {
+        const cost = Skills.tierCost(t);
+        let cls, label;
+        if (t <= cur) { cls = "unlocked"; label = "Unlocked"; }
+        else if (t === cur + 1 && unspent >= cost) { cls = "available"; label = `${cost} pt${cost > 1 ? "s" : ""}`; }
+        else { cls = "locked"; label = `${cost} pt${cost > 1 ? "s" : ""}`; }
+        return `<div class="tier-node ${cls}" data-skill="${def.id}" data-tier="${t}">
+          <span class="tier-num">Tier ${t}</span>${def.tiers[t - 1]}
+          <span class="tier-cost">${label}</span>
+        </div>`;
+      }).join("");
+      return `<div class="skill-card">
+        <h3>${Icon.get(def.icon)} ${def.name}</h3>
+        <div class="skill-desc">${def.desc}</div>
+        <div class="tier-row">${tiers}</div>
+      </div>`;
+    }).join("");
+    return `<div class="pane-head"><h2>Skills</h2>
+      <div class="sub">Earn XP from profitable sales. Spend points to get better.</div></div>`
+      + head + cards;
+  },
+
+  bindSkills(el) {
+    el.querySelectorAll(".tier-node.available").forEach(node => {
+      node.addEventListener("click", () => {
+        const skillId = node.dataset.skill;
+        const tier = parseInt(node.dataset.tier, 10);
+        const def = SKILL_DEFS.find(d => d.id === skillId);
+        const cost = Skills.tierCost(tier);
+        if (!confirm(`Unlock ${def.name} Tier ${tier} for ${cost} skill point${cost > 1 ? "s" : ""}?\n\n${def.tiers[tier - 1]}`)) return;
+        if (Skills.unlockTier(skillId)) {
+          UI.toast(`${def.name} Tier ${tier} unlocked!`);
+          this.renderGarage();
+        } else {
+          UI.toast("Not enough skill points");
+        }
+      });
+    });
+  },
+
   partsInventoryHTML() {
-    const parts = State.parts || [];
-    if (!parts.length) {
+    const parts = State.parts || [];    if (!parts.length) {
       return `<div class="pane-head"><h2>Parts Inventory</h2>
         <div class="sub">Stripped parts and Boneyard purchases live here.</div></div>
         <div class="empty"><strong>No parts yet</strong>Part out a bike or buy from the Boneyard.</div>`;
@@ -1740,6 +1840,7 @@ const Views = {
     }
     State.cash -= cost;
     p.repairAttempts = attempts + 1;
+    p.repairSpent = (p.repairSpent || 0) + cost; // track for XP cost basis
 
     // Very rare (5%): repair goes wrong, part gets worse
     let newPct, improved, worsened = false;

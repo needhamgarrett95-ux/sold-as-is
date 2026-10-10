@@ -36,6 +36,7 @@ const Save = {
         myBikeListings: Views.myBikeListings || [],
         myPartListings: Views.myPartListings || [],
         cart: Views.cart || [],
+        skills: (typeof Skills !== "undefined") ? Skills.toJSON() : undefined,
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -63,6 +64,7 @@ const Save = {
         return true;
       });
       Views.cart = (data.cart || []).filter(idx => typeof idx === "number");
+      if (typeof Skills !== "undefined") Skills.init(data.skills);
       Views.myPartListings = (data.myPartListings || []).map(l => {
         // Resolve auctions that ended while away
         if (l.listingType === "auction" && !l.sold && l.listedAt) {

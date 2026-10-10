@@ -2786,7 +2786,6 @@ const Views = {
     const bike = State.garage[idx];
     if (!bike) return;
     const stripped = (bike.missingParts || []).length;
-    if (!confirm(`Move the ${bike.brand} ${bike.model} to Assemble?${stripped ? ` (${stripped} part${stripped === 1 ? "" : "s"} already stripped)` : ""}`)) return;
     // Move as-is — already-stripped parts stay stripped, rest stay installed
     // (parts were stripped piece-by-piece in the bikes tab)
     State.rollers = State.rollers || [];
@@ -2795,6 +2794,9 @@ const Views = {
     State.garage.splice(idx, 1);
     this.garageDetailIdx = -1;
     this.stripMode = false;
+    Save.save();
+    this.renderGarage();
+    UI.toast(`${bike.brand} ${bike.model} moved to Assemble`);
     this.garageTab = "assemble";
     Save.save();
     this.renderGarage();

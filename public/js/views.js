@@ -1155,7 +1155,7 @@ const Views = {
         </div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
-          <div class="eby-cond">${Skills.condDisplay(p)} · Auction</div>
+          <div class="eby-cond">${p.stateLabel} · Auction</div>
           ${Skills.marketTag(p)}
           <div class="eby-price-row">
             <span class="eby-price" data-auc-price="${p.idx}">${money(p.currentBid)}</span>
@@ -1173,7 +1173,7 @@ const Views = {
         <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy"></div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
-          <div class="eby-cond">${Skills.condDisplay(p)}</div>
+          <div class="eby-cond">${p.stateLabel}</div>
           ${Skills.marketTag(p)}
           <div class="eby-price-row">
             <span class="eby-price">${money(p.price)}</span>
@@ -1337,13 +1337,13 @@ const Views = {
           </div>
           <div class="pd-ship">Free shipping</div>
           <div class="pd-ship">Free delivery</div>
-          <div class="pd-cond-row">Condition <strong>${Skills.condDisplay(p)}</strong></div>
+          <div class="pd-cond-row">Condition <strong>${p.stateLabel}</strong></div>
           ${Skills.marketTag(p)}
           ${Skills.priceHistoryHTML(p)}
           <div class="pd-actions">${actionHtml}</div>
           <div class="pd-about">
             <div class="pd-about-head">About this item</div>
-            <div class="pd-spec"><span>Condition</span><span>${Skills.condDisplay(p)}</span></div>
+            <div class="pd-spec"><span>Condition</span><span>${p.stateLabel}</span></div>
             <div class="pd-spec"><span>Fits</span><span>${p.bikeBrand} ${p.bikeModel}</span></div>
             <div class="pd-spec"><span>Part</span><span>${p.partLabel}</span></div>
           </div>
@@ -1414,7 +1414,9 @@ const Views = {
   sendPartOffer(offerAmount) {
     const p = this.partsShop[this.partDetailIdx];
     if (!p) return;
-    const ratio = offerAmount / p.price;
+    // Smooth Talker: discount boosts effective offer ratio
+    const stDisc = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
+    const ratio = (offerAmount * (1 + stDisc)) / p.price;
     let response, accepted = false, price = null;
 
     if (ratio >= 0.95) {
@@ -1424,11 +1426,11 @@ const Views = {
       response = `"Hmm... ${money(offerAmount)}. Alright, it's yours."`;
       accepted = true; price = offerAmount;
     } else if (ratio >= 0.70) {
-      const counter = Math.round(((offerAmount + p.price) / 2) / 5) * 5;
+      const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
       response = `"Can't do ${money(offerAmount)}. How about ${money(counter)}?"`;
       price = counter;
     } else if (ratio >= 0.50) {
-      const counter = Math.round((p.price * 0.9) / 5) * 5;
+      const counter = Math.round((p.price * 0.9) * (1 - stDisc) / 5) * 5;
       response = `"${money(offerAmount)}? That's insulting. ${money(counter)} and not a penny less."`;
       price = counter;
     } else {

@@ -557,6 +557,33 @@ const UI = {
   toast(msg) {
     this._toastQueue.push(msg);
     this._showNextToast();
+    // Log to activity feed
+    try {
+      const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+      feed.unshift({ msg, at: Date.now() });
+      if (feed.length > 50) feed.length = 50;
+      localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+    } catch (e) {}
+  },
+  showActivity() {
+    const popup = document.getElementById("activity-popup");
+    const list = document.getElementById("activity-list");
+    if (!popup || !list) return;
+    let feed = [];
+    try { feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]"); } catch (e) {}
+    if (!feed.length) {
+      list.innerHTML = '<div class="activity-empty">No activity yet.</div>';
+    } else {
+      list.innerHTML = feed.map(a => {
+        const d = new Date(a.at);
+        const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        return `<div class="activity-item"><span class="activity-time">${time}</span><span>${a.msg}</span></div>`;
+      }).join("");
+    }
+    // Close other popups
+    document.getElementById("music-popup")?.classList.add("hidden");
+    document.getElementById("settings-menu")?.classList.add("hidden");
+    popup.classList.toggle("hidden");
   },
   _showNextToast() {
     if (this._toastShowing || !this._toastQueue.length) return;

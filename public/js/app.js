@@ -10,6 +10,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     UI.refreshCash();
   }
+  // Activity bell
+  const bell = document.getElementById("activity-bell");
+  if (bell) {
+    bell.addEventListener("click", (e) => {
+      e.stopPropagation();
+      UI.showActivity();
+    });
+    document.addEventListener("click", (e) => {
+      const popup = document.getElementById("activity-popup");
+      if (popup && !popup.classList.contains("hidden") && !popup.contains(e.target) && !e.target.closest("#activity-bell")) {
+        popup.classList.add("hidden");
+      }
+    });
+  }
   // Settings menu
   const cog = document.getElementById("settings-cog");
   const menu = document.getElementById("settings-menu");

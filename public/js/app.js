@@ -1,5 +1,15 @@
 // Sold As-Is — app entry point
 document.addEventListener("DOMContentLoaded", () => {
+  // Debug/testing: ?godmode=1 unlocks all perks + max cash
+  if (new URLSearchParams(location.search).get("godmode") === "1") {
+    State.cash = 999999;
+    if (typeof Skills !== "undefined") {
+      Skills.pointsEarned = 99;
+      Skills.unlocked = { gearhead: 3, smoothtalker: 3, browserext: 3 };
+      Save.save();
+    }
+    UI.refreshCash();
+  }
   // Hydrate custom icons
   Icon.hydrate();
   // Load saved progress (after Views is defined)

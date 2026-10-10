@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btn.disabled) return;
     btn.disabled = true;
     btn.textContent = "Signing in...";
+    // Typing SFX fires with the asterisk animation (7 ticks @ 86ms)
+    if (typeof AudioEngine !== "undefined") AudioEngine.playTyping();
     // Note: no pw.focus() — iOS would pop the keyboard during auto-type
     let n = 0;
     const timer = setInterval(() => {

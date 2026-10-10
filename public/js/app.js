@@ -30,6 +30,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+  // Audio: music player + SFX
+  if (typeof AudioEngine !== "undefined") {
+    AudioEngine.init();
+    AudioEngine.renderPlayer();
+    // Touch click on every button tap (except music bar, login button)
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      if (btn.closest("#music-bar") || btn.id === "login-btn") return;
+      AudioEngine.playTouch();
+    }, true);
+  }
   // Hydrate custom icons
   Icon.hydrate();
   // Load saved progress (after Views is defined)

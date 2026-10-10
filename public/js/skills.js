@@ -29,7 +29,7 @@ const SKILL_DEFS = [
     tiers: [
       "Listings show condition labels (Poor / Fair / Good / Mint).",
       "Listings show exact condition percentage.",
-      "Also flags parts worth a closer look in the garage.",
+      "Spot underpriced parts: listings flag when a part is a steal.",
     ],
   },
   {

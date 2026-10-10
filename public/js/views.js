@@ -1159,6 +1159,7 @@ const Views = {
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
           <div class="eby-cond">${p.stateLabel} · Auction</div>
+          <div class="eby-blurb">${this.partBlurb(p.state)}</div>
           ${Skills.marketTag(p)}
           <div class="eby-price-row">
             <span class="eby-price" data-auc-price="${p.idx}">${money(p.currentBid)}</span>
@@ -1177,6 +1178,7 @@ const Views = {
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
           <div class="eby-cond">${p.stateLabel}</div>
+          <div class="eby-blurb">${this.partBlurb(p.state)}</div>
           ${Skills.marketTag(p)}
           <div class="eby-price-row">
             <span class="eby-price">${money(p.price)}</span>
@@ -1666,6 +1668,34 @@ const Views = {
       if (unlocks[t]) out = out.concat(unlocks[t]);
     }
     return out;
+  },
+
+  // Fun condition-matching blurb for Boneyard part listings
+  partBlurb(state) {
+    const blurbs = {
+      pristine: [
+        "Pulled from a garage queen. Barely a fingerprint on it.",
+        "NOS vibes. This thing has never seen rain.",
+        "So clean you'd eat off it. Don't, though.",
+      ],
+      used_good: [
+        "Honest wear, plenty of life left.",
+        "Broke in, not broken down.",
+        "A few scuffs, zero regrets.",
+      ],
+      used_bad: [
+        "It's seen things. It'll still send it.",
+        "Rough around the edges, cheap for a reason.",
+        "Patina is just character. Lots of character.",
+      ],
+      totaled: [
+        "For parts or art projects. Maybe both.",
+        "Technically a part. Spiritually a paperweight.",
+        "Sold as-is. No, really. As-is.",
+      ],
+    };
+    const arr = blurbs[state] || blurbs.used_good;
+    return arr[(Math.random() * arr.length) | 0];
   },
 
   // Sell score of a listing's description (0-3), drives buyer generosity

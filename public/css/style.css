@@ -661,3 +661,6 @@ button:focus { outline: none !important; box-shadow: none !important; }
 .roller-pick-row .eby-buy { margin: 0; }
 .roller-choose-btn { margin-top: 6px; padding: 7px 12px; font-size: .75rem; }
 .part-cell.picker-open { border-color: #6a4c93; box-shadow: 0 0 0 2px rgba(106,76,147,.25); }
+
+/* Part condition blurb */
+.eby-blurb { font-size: .78rem; color: #7a6a5f; font-style: italic; margin: 2px 0 6px; line-height: 1.3; }

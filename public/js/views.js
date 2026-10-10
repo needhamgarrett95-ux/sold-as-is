@@ -206,7 +206,7 @@ const Views = {
     el.innerHTML = `
       <div class="eby-typefilter market-tabs">
         <button class="eby-type${this.marketTab === "browse" ? " active" : ""}" data-mtab="browse">Browse</button>
-        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${(() => { const n = this.myBikeListings.filter(l => !l.sold).length; return n ? ` (${n})` : ""; })()}${this.myBikeListings.some(l => l.offer) && this.marketTab !== "mine" ? `<span class="tab-dot"></span>` : ""}</button>
+        <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${(() => { const n = this.myBikeListings.filter(l => !l.sold).length; return n ? ` (${n})` : ""; })()}${this.myBikeListings.some(l => l.offer && !l.offer.seen) ? `<span class="tab-dot"></span>` : ""}</button>
       </div>`;
     el.querySelectorAll("[data-mtab]").forEach(t =>
       t.addEventListener("click", () => {
@@ -403,6 +403,9 @@ const Views = {
   openSellerHaggle(listingsArray, idx) {
     const l = listingsArray[idx];
     if (!l || !l.offer) return;
+    // Mark as seen — clears the notification dot
+    l.offer.seen = true;
+    this.renderMarketTabs();
     this.haggleListing = l;
     this.haggleListingsArray = listingsArray;
     this.haggleIdx = idx;

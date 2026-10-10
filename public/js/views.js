@@ -2141,10 +2141,23 @@ const Views = {
         <div class="sub">Bikes you own, waiting to be listed.</div></div>
         <div class="empty"><strong>Empty garage</strong>Hit the market and buy your first flip.</div>`;
     }
+    const sortMode = this.garageSort || "recent";
+    const sorted = [...State.garage.map((b, i) => ({ b, i }))].sort((x, y) => {
+      if (sortMode === "value") return (y.b.fairValue || 0) - (x.b.fairValue || 0);
+      if (sortMode === "profit") return ((y.b.fairValue || 0) - (y.b.boughtFor || 0)) - ((x.b.fairValue || 0) - (x.b.boughtFor || 0));
+      if (sortMode === "brand") return (x.b.brand || "").localeCompare(y.b.brand || "");
+      return y.i - x.i; // recent (default)
+    });
     return `<div class="pane-head"><h2>Pending Listings</h2>
-      <div class="sub">${State.garage.length} bike(s) · tap to manage</div></div>
+      <div class="sub">${State.garage.length} bike(s) · tap to manage</div>
+      <select id="garage-sort" class="garage-sort">
+        <option value="recent"${sortMode === "recent" ? " selected" : ""}>Recently added</option>
+        <option value="value"${sortMode === "value" ? " selected" : ""}>Highest value</option>
+        <option value="profit"${sortMode === "profit" ? " selected" : ""}>Best profit</option>
+        <option value="brand"${sortMode === "brand" ? " selected" : ""}>Brand A-Z</option>
+      </select></div>
       <div class="feed-grid">` +
-      State.garage.map((b, i) => {
+      sorted.map(({ b, i }) => {
         const profit = (b.fairValue || b.boughtFor || 0) - (b.boughtFor || 0);
         const profitCls = profit > 0 ? "profit-up" : profit < 0 ? "profit-down" : "profit-flat";
         const profitTxt = profit > 0 ? `+${money(profit)}` : profit < 0 ? `-${money(-profit)}` : "—";
@@ -2556,6 +2569,14 @@ const Views = {
   rollerDetailIdx: -1,
 
   bindGarageActions(el) {
+    // Garage sort
+    const sortSel = el.querySelector("#garage-sort");
+    if (sortSel) {
+      sortSel.addEventListener("change", (e) => {
+        this.garageSort = e.target.value;
+        this.renderGarage();
+      });
+    }
     // Parts search (debounced, preserves focus)
     const search = el.querySelector("#parts-search");
     if (search) {

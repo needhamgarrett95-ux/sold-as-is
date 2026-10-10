@@ -1960,7 +1960,7 @@ const Views = {
       ],
       rough: [
         { t: "Diamond in the rough. Someone's gonna steal this.", sell: 3 },
-        { t: "All the hard-to-find parts are here. Rest is easy.", sell: 3 },
+        { t: "Needs a few parts but the bones are solid. Priced to reflect it.", sell: 3 },
       ],
     };
     const pool = top.includes(cond) ? copy.top : mid.includes(cond) ? copy.mid : copy.rough;

@@ -2281,10 +2281,23 @@ const Views = {
         if (input) input.focus();
       }
     } else if (act === "keep") {
+      if (!bike.kept) {
+        // Collection requires ALL pristine parts
+        const avail = availableParts(bike.sprite);
+        const bad = avail.filter(p => {
+          if ((bike.missingParts || []).includes(p.key)) return true;
+          return ((bike.partStates && bike.partStates[p.key]) || "pristine") !== "pristine";
+        });
+        if (bad.length) {
+          UI.toast(`Not collection-worthy — ${bad.length} part${bad.length === 1 ? "" : "s"} not pristine (${bad.slice(0, 3).map(p => p.label).join(", ")}${bad.length > 3 ? "…" : ""})`);
+          return;
+        }
+      }
       bike.kept = !bike.kept;
       UI.toast(bike.kept
         ? `${bike.brand} ${bike.model} added to your collection`
         : `${bike.brand} ${bike.model} removed from collection`);
+      Save.save();
       this.renderGarage();
     } else if (act === "partout") {
       this.partOutBike(this.garageDetailIdx);

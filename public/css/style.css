@@ -493,6 +493,6 @@ button svg { vertical-align: -3px; }
 .eby-sell svg { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
 /* kill iOS blue focus glow, use subtle theme-matched focus */
 input, textarea, select, button { -webkit-tap-highlight-color: transparent; }
-input:focus, textarea:focus { outline: none; border-color: #e04536 !important;
-  box-shadow: 0 0 0 2px rgba(224,69,54,.15); }
-button:focus { outline: none; }
+input:focus, textarea:focus, select:focus { outline: none !important; border-color: #e04536 !important;
+  box-shadow: 0 0 0 2px rgba(224,69,54,.15) !important; -webkit-box-shadow: 0 0 0 2px rgba(224,69,54,.15) !important; }
+button:focus { outline: none !important; box-shadow: none !important; }

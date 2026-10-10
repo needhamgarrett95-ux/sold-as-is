@@ -633,3 +633,10 @@ button:focus { outline: none !important; box-shadow: none !important; }
 .part-cell.state-hidden img { filter: grayscale(.4) brightness(.96); }
 .part-cell[data-inspect-part] { cursor: pointer; }
 .part-cell[data-inspect-part]:active { transform: scale(.96); }
+
+/* Strip mode */
+.link-btn { background: none; border: none; color: #6a4c93; font-weight: 700; font-size: .82rem; cursor: pointer; text-decoration: underline; padding: 0; }
+.part-cell.state-missing { background: #f5f5f5; border-style: dashed; }
+.part-missing-x { font-size: 2rem; color: #ccc; line-height: 64px; }
+.part-cell.strip-mode { border-color: #e04536; }
+.part-cell.strip-mode:active { transform: scale(.94); background: #ffebee; }

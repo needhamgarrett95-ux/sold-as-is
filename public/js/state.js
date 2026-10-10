@@ -5,6 +5,7 @@ const State = {
   cash: 1500,
   garage: [],       // owned bikes
   parts: [],        // parts inventory
+  rollers: [],      // stripped bike rollers in Assemble
   sold: [],         // flip history
   rep: 3.0,         // seller reputation 1-5
 
@@ -31,6 +32,7 @@ const Save = {
         cash: State.cash,
         garage: State.garage,
         parts: State.parts,
+        rollers: State.rollers,
         sold: State.sold,
         rep: State.rep,
         myBikeListings: Views.myBikeListings || [],
@@ -54,6 +56,7 @@ const Save = {
       State.cash = data.cash ?? 1500;
       State.garage = data.garage || [];
       State.parts = data.parts || [];
+      State.rollers = data.rollers || [];
       State.sold = data.sold || [];
       State.rep = data.rep ?? 3.0;
 

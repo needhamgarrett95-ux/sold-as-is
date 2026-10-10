@@ -36,11 +36,11 @@ const SKILL_DEFS = [
     id: "smoothtalker",
     name: "Smooth Talker",
     icon: "chat",
-    desc: "Talk your way to better deals. Works on both Marketplace and Boneyard haggling — better prices buying, higher offers selling.",
+    desc: "Talk your way to better deals. Better haggle prices both markets, plus sharper listing copy that swindles buyers closer to asking.",
     tiers: [
-      "Up to 5% better haggle prices.",
-      "Up to 10% better prices, plus one free retry after a seller blocks you.",
-      "Up to 15% better prices, plus a hint of the seller's lowest price.",
+      "5% better haggle prices. Unlocks polished listing copy.",
+      "10% better prices, one retry after a block. Unlocks salesy copy.",
+      "15% better prices, seller price hint. Unlocks full swindler copy.",
     ],
   },
   {

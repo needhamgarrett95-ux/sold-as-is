@@ -361,7 +361,15 @@ const Views = {
       State.sold.push({ ...listing, soldFor: askPrice, soldAt: Date.now() });
       UI.refreshCash();
       Save.save();
-      UI.toast(`${buyerName} bought your ${listing.brand} ${listing.model} at listing price (${money(askPrice)})`, "marketplace");
+      // Log to activity only (no toast — bell dot handles it)
+      try {
+        const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+        feed.unshift({ msg: `${buyerName} bought your ${listing.brand} ${listing.model} at listing price (${money(askPrice)})`, at: Date.now(), cat: "marketplace" });
+        if (feed.length > 50) feed.length = 50;
+        localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+      } catch (e) {}
+      UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+      UI.updateBellBadge();
       if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
       return;
     }

@@ -493,6 +493,7 @@ button svg { vertical-align: -3px; }
 .pane-head .sub svg { width: 16px; height: 16px; vertical-align: -3px; }
 /* part inventory action icons */
 .eby-sell svg { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
+.eby-repair svg { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
 /* kill iOS blue focus glow, use subtle theme-matched focus */
 input, textarea, select, button { -webkit-tap-highlight-color: transparent; }
 input:focus, textarea:focus, select:focus { outline: none !important; border-color: #e04536 !important;

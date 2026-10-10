@@ -2113,6 +2113,7 @@ const Views = {
         <div class="g-detail-actions">
           <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
           <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
+          <button class="btn-strip" data-gact="toassemble">${Icon.get('wrench')} Move to Assemble</button>
         </div>
         <div class="sub" style="margin-top:8px">To strip parts, use "Strip parts instead" above and tap parts individually.</div>
         ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}
@@ -2655,8 +2656,8 @@ const Views = {
         : `${bike.brand} ${bike.model} removed from collection`);
       Save.save();
       this.renderGarage();
-    } else if (act === "partout") {
-      this.partOutBike(this.garageDetailIdx);
+    } else if (act === "toassemble") {
+      this.moveBikeToAssemble(this.garageDetailIdx);
     }
   },
 
@@ -2690,33 +2691,15 @@ const Views = {
     UI.toast(`${pDef.label} stripped to inventory`);
   },
 
-  partOutBike(idx) {
+  moveBikeToAssemble(idx) {
     const bike = State.garage[idx];
     if (!bike) return;
-    if (!confirm(`Strip the ${bike.brand} ${bike.model}? Parts go to inventory, roller goes to Assemble.`)) return;
-    const avail = availableParts(bike.sprite);
-    State.parts = State.parts || [];
-    // Each part inherits the bike's part condition
-    const costPerPart = Math.round((bike.boughtFor || 0) / Math.max(1, avail.length));
-    for (const p of avail) {
-      // Skip already-stripped parts
-      if ((bike.missingParts || []).includes(p.key)) continue;
-      const state = (bike.partStates && bike.partStates[p.key]) || "pristine";
-      State.parts.push({
-        partKey: p.key, partLabel: p.label,
-        bikeBrand: bike.brand, bikeModel: bike.model, bikeSprite: bike.sprite,
-        state, stateLabel: PART_STATE_LABEL[state],
-        conditionPct: { pristine: 95, used_good: 60, used_bad: 35, totaled: 10 }[state] || 50,
-        paidPrice: costPerPart,
-        img: partImg(bike.sprite, p.key, state),
-      });
-    }
-    // Roller goes to Assemble (not deleted)
+    const stripped = (bike.missingParts || []).length;
+    if (!confirm(`Move the ${bike.brand} ${bike.model} to Assemble?${stripped ? ` (${stripped} part${stripped === 1 ? "" : "s"} already stripped)` : ""}`)) return;
+    // Move as-is — already-stripped parts stay stripped, rest stay installed
+    // (parts were stripped piece-by-piece in the bikes tab)
     State.rollers = State.rollers || [];
-    const strippedCount = avail.length;
-    bike.missingParts = avail.map(p => p.key); // all parts stripped
     bike.isRoller = true;
-    bike.rollerValue = this.rollerValue(bike); // computed below
     State.rollers.push(bike);
     State.garage.splice(idx, 1);
     this.garageDetailIdx = -1;

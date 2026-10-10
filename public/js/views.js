@@ -884,8 +884,8 @@ const Views = {
         State.sold.push({ ...l, soldFor: l.askPrice, soldAt: Date.now() });
         UI.refreshCash();
         Save.save();
-        if (!(this.current === "market" && this.marketTab === "mine")) {
-        }
+        // Notify: buyer paid full asking price (no haggling)
+        UI.toast(`Sold your ${l.brand} ${l.model} for ${money(l.askPrice)}!`);
         if (this.current === "market") {
           this.renderMarketFeed();
           this.renderMarketTabs();
@@ -920,8 +920,8 @@ const Views = {
           XPPopup.show(partXp.xp, partXp.newPoints);
         }
         Save.save();
-        if (!(this.current === "parts" && this.boneyardTab === "sell")) {
-        }
+        // Notify: part sold at asking price
+        UI.toast(`Sold ${l.partLabel} for ${money(l.askPrice)}!`);
         if (this.current === "parts" && this.boneyardTab === "sell") {
           this.renderParts();
         }

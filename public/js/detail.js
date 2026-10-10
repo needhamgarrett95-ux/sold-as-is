@@ -415,12 +415,28 @@ const UI = {
   refreshCash() {
     document.getElementById("cash").textContent = State.fmtCash();
   },
+  _toastQueue: [],
+  _toastShowing: false,
   toast(msg) {
+    this._toastQueue.push(msg);
+    this._showNextToast();
+  },
+  _showNextToast() {
+    if (this._toastShowing || !this._toastQueue.length) return;
+    this._toastShowing = true;
+    const msg = this._toastQueue.shift();
     const t = document.createElement("div");
     t.className = "toast";
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.classList.add("show"), 10);
-    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 2500);
+    setTimeout(() => {
+      t.classList.remove("show");
+      setTimeout(() => {
+        t.remove();
+        this._toastShowing = false;
+        this._showNextToast();
+      }, 300);
+    }, 2500);
   },
 };

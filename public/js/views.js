@@ -313,7 +313,13 @@ const Views = {
   maybeMakeOffer() {
     // Buyers haggle on bike listings only (parts use fixed/auction)
     for (const l of this.myBikeListings) {
-      if (!l.sold && !l.offer && Math.random() < 0.15) {
+      if (l.sold || l.offer) continue;
+      // Buyers ignore absurdly overpriced listings
+      const fair = l.fairValue || l.boughtFor || 500;
+      const overprice = l.askPrice / Math.max(1, fair);
+      if (overprice > 3) continue; // >3x fair value = no buyers
+      const chance = overprice > 2 ? 0.05 : overprice > 1.5 ? 0.10 : 0.15;
+      if (Math.random() < chance) {
         this.makeBuyerOffer(l, "bike");
       }
     }
@@ -339,7 +345,10 @@ const Views = {
     const sellScore = this.descSellScore(listing.desc || "");
     const sellBonus = sellScore * 0.03;
     const boostedOffer = Math.round((offerAmount * (1 + stBonus + sellBonus)) / 5) * 5;
-    const boostedMax = Math.round((askPrice * maxPct * (1 + stBonus)) / 5) * 5;
+    let boostedMax = Math.round((askPrice * maxPct * (1 + stBonus)) / 5) * 5;
+    // Hard cap: buyers won't pay more than 1.5x fair value, no matter the asking price
+    const fairCap = Math.round(((listing.fairValue || listing.boughtFor || 500) * 1.5) / 5) * 5;
+    boostedMax = Math.min(boostedMax, fairCap);
     listing.offer = {
       amount: offerAmount,
       buyerName,

@@ -14,6 +14,24 @@ const AudioEngine = {
   ],
 
   init() {
+    // Pause music when app goes to background (iOS PWA, tab switch, etc.)
+    const pauseOnHide = () => {
+      if (this.music && !this.music.paused) {
+        this.music.pause();
+        this._wasPlayingOnHide = true;
+      }
+      // Clear media session so iOS doesn't show it in Dynamic Island
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+        navigator.mediaSession.metadata = null;
+      }
+    };
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) pauseOnHide();
+    });
+    window.addEventListener("pagehide", pauseOnHide);
+    // Also handle blur for iOS standalone
+    window.addEventListener("blur", pauseOnHide);
     // Load prefs
     try {
       const p = JSON.parse(localStorage.getItem("soldasis_audio") || "{}");

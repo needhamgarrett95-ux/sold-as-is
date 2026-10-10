@@ -1453,6 +1453,13 @@ const Views = {
         `"${money(offerAmount)} works for me. Shipping tomorrow."`,
         `"You got it. ${money(offerAmount)}, packed with care."`,
         `"${money(offerAmount)} — deal. Check your inbox for tracking."`,
+        `"${money(offerAmount)}? You got it. This part's a good one."`,
+        `"Done at ${money(offerAmount)}. I'll wrap it like it's my own."`,
+        `"${money(offerAmount)} — sold. You'll be happy with this."`,
+        `"Accepted! ${money(offerAmount)}. Ships within 24 hours."`,
+        `"${money(offerAmount)}. Pleasure doing business."`,
+        `"I'll take ${money(offerAmount)}. It's already in a box."`,
+        `"${money(offerAmount)}? That's fair. It's yours."`,
       ]);
       accepted = true; price = offerAmount;
     } else if (ratio >= 0.85) {
@@ -1465,6 +1472,13 @@ const Views = {
         `"${money(offerAmount)}. Sold — but you're not getting another deal like this."`,
         `"Ugh, okay. ${money(offerAmount)}. It's yours."`,
         `"${money(offerAmount)} and we never speak of this discount again."`,
+        `"${money(offerAmount)}? ...Okay. But I'm not happy about it."`,
+        `"Fine, ${money(offerAmount)}. You caught me before coffee."`,
+        `"${money(offerAmount)}. Deal. I need to clear inventory anyway."`,
+        `"Alright, ${money(offerAmount)}. Don't tell the other buyers."`,
+        `"I'll do ${money(offerAmount)}. You're persistent, I'll give you that."`,
+        `"${money(offerAmount)} — okay. But no more haggling after this."`,
+        `"Sold for ${money(offerAmount)}. I hope you appreciate this."`,
       ]);
       accepted = true; price = offerAmount;
     } else if (ratio >= 0.70) {
@@ -1478,6 +1492,13 @@ const Views = {
         `"${money(counter)} — final offer. These don't sit long."`,
         `"Split it with me at ${money(counter)}. Fair?"`,
         `"${money(offerAmount)} won't cover shipping. ${money(counter)} and it's on its way."`,
+        `"I hear you, but ${money(counter)} is where I need to be."`,
+        `"${money(counter)}? I can do that. It's a solid part."`,
+        `"Let's settle at ${money(counter)}. I think that's reasonable."`,
+        `"${money(offerAmount)} is close. ${money(counter)} closes the deal."`,
+        `"I could do ${money(counter)} if you pay today."`,
+        `"${money(counter)} and I'll upgrade you to priority shipping."`,
+        `"How about ${money(counter)}? Meet me there."`,
       ]);
       price = counter;
     } else if (ratio >= 0.50) {
@@ -1491,6 +1512,13 @@ const Views = {
         `"${money(counter)}. That's already below market and you know it."`,
         `"Nope. ${money(counter)}. I don't haggle on the good stuff."`,
         `"${money(offerAmount)}? Cute. ${money(counter)} is the price."`,
+        `"${money(counter)}. I don't budge on parts this clean."`,
+        `"Look, ${money(counter)} is already a deal. Take it."`,
+        `"My price is ${money(counter)}. It's worth it, trust me."`,
+        `"${money(offerAmount)} doesn't work. ${money(counter)} does."`,
+        `"I've sold three of these at ${money(counter)}. That's the number."`,
+        `"${money(counter)}, firm. Good parts aren't cheap."`,
+        `"No can do at ${money(offerAmount)}. ${money(counter)} is my line."`,
       ]);
       price = counter;
     } else {
@@ -1505,6 +1533,15 @@ const Views = {
         `"That's not an offer, that's a typo. Try again."`,
         `"${money(offerAmount)}? The photos alone cost me more in time."`,
         `"I'm going to assume you missed a zero. ${money(offerAmount)}? Really?"`,
+        `"${money(offerAmount)}? This isn't a flea market."`,
+        `"Ha! ${money(offerAmount)}. That's adorable."`,
+        `"${money(offerAmount)} for a part this clean? Absolutely not."`,
+        `"I'd lose money at ${money(offerAmount)}. Hard pass."`,
+        `"${money(offerAmount)}. Did you mean to add another digit?"`,
+        `"That's... no. Just no. ${money(offerAmount)}?"`,
+        `"${money(offerAmount)}? I think you misread the listing."`,
+        `"Come on. ${money(offerAmount)}? Even I can't do that."`,
+        `"${money(offerAmount)}. I'm not even going to counter that."`,
       ]);
     }
 

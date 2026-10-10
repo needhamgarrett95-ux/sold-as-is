@@ -105,6 +105,17 @@ const Detail = {
         `"${money(offerPrice)}. I like your style — no games."`,
         `"Deal at ${money(offerPrice)}. Title's in the drawer, ready to sign."`,
         `"${money(offerPrice)} and she's yours. Good doing business with someone reasonable."`,
+        `"${money(offerPrice)}? Done deal. You're gonna love this bike."`,
+        `"I'll take ${money(offerPrice)}. Honestly, that's more than fair."`,
+        `"${money(offerPrice)} — we have a deal. I'll clean her up before pickup."`,
+        `"Wow, ${money(offerPrice)}? I wasn't expecting that. Sold!"`,
+        `"${money(offerPrice)}. Finally, someone who doesn't waste my time."`,
+        `"Deal. ${money(offerPrice)} cash and she's out of my garage tonight."`,
+        `"${money(offerPrice)}? Absolutely. When do you want to come see her?"`,
+        `"You know what? ${money(offerPrice)} works. I respect a straight shooter."`,
+        `"${money(offerPrice)} — sold to the smartest person in my DMs today."`,
+        `"I'm happy with ${money(offerPrice)}. Let's do this."`,
+        `"${money(offerPrice)}. That's a solid offer from a solid person."`,
       ]);
       accepted = true; price = offerPrice;
     } else if (ratio >= 0.85) {
@@ -121,6 +132,17 @@ const Detail = {
         `"Fine — ${money(offerPrice)}. You caught me on a good day."`,
         `"${money(offerPrice)}. I'm gonna regret this, aren't I."`,
         `"Okay, ${money(offerPrice)}. But you're buying the coffee when you pick it up."`,
+        `"${money(offerPrice)}... alright. But I'm telling everyone I got asking price."`,
+        `"Sigh. ${money(offerPrice)}. Fine. It's yours."`,
+        `"You're good at this. ${money(offerPrice)} — deal."`,
+        `"${money(offerPrice)}? My buddy said don't go below asking. My buddy's wrong."`,
+        `"Okay ${money(offerPrice)}. But if she breaks down in a week, we never met."`,
+        `"${money(offerPrice)}. Deal. I'm too tired to keep listing this thing."`,
+        `"I'll do ${money(offerPrice)}. Mostly because I like your persistence."`,
+        `"${money(offerPrice)} — fine. Just come get it before my landlord sees it."`,
+        `"Alright, ${money(offerPrice)}. You've worn me down. Congrats."`,
+        `"${money(offerPrice)}. That's my 'I want this gone' price. Lucky you."`,
+        `"Deal at ${money(offerPrice)}. Please take care of her, she's been good to me."`,
       ]);
       accepted = true; price = offerPrice;
     } else if (ratio >= 0.70) {
@@ -139,6 +161,17 @@ const Detail = {
         `"${money(offerPrice)} no, ${money(counter)} yes. Your move."`,
         `"Let's land at ${money(counter)}. I think that's fair for both of us."`,
         `"${money(counter)}. I'm not going lower, but I'm not going higher either."`,
+        `"What if we call it ${money(counter)}? I think that's the sweet spot."`,
+        `"${money(offerPrice)} is a stretch. ${money(counter)} I can live with."`,
+        `"I'll go ${money(counter)}. That's me meeting you more than halfway."`,
+        `"${money(counter)} and I'll deliver it within 20 miles. Deal?"`,
+        `"Let's do ${money(counter)}. I want this sold as much as you want it bought."`,
+        `"${money(counter)}? I can feel good about that number."`,
+        `"Okay here's my counter: ${money(counter)}. No games, that's it."`,
+        `"${money(offerPrice)} won't work, but ${money(counter)} will. Thoughts?"`,
+        `"I'm stuck at ${money(counter)}. It's worth every penny, trust me."`,
+        `"${money(counter)} and I'll include the shop manual. Final answer."`,
+        `"Meet at ${money(counter)}? I think we both walk away happy."`,
       ]);
       price = counter; // buy button updates to counter
     } else if (ratio >= 0.50) {
@@ -157,6 +190,17 @@ const Detail = {
         `"I appreciate the offer, but ${money(counter)} is where I'm at."`,
         `"${money(counter)} — and I'm doing you a favor at that price."`,
         `"Nope. ${money(counter)}. I've turned down more than ${money(offerPrice)}."`,
+        `"${money(offerPrice)}? No. ${money(counter)}. I'm not running a charity here."`,
+        `"Listen, ${money(counter)} is already a gift. Take it."`,
+        `"I priced this fairly at asking. ${money(counter)} is me being nice."`,
+        `"${money(counter)}. And honestly, you're lucky I'm even countering."`,
+        `"${money(offerPrice)} tells me you're not serious. ${money(counter)} tells me you are."`,
+        `"My price is ${money(counter)}. It's firm because the bike is worth it."`,
+        `"${money(counter)} or we both move on. Your call."`,
+        `"I can't go below ${money(counter)}. I've got too much into this bike."`,
+        `"${money(counter)}. Ask anyone — that's a fair price for this condition."`,
+        `"${money(offerPrice)} is a no. ${money(counter)} is a yes. Simple math."`,
+        `"Final: ${money(counter)}. I've said it three times now to three people."`,
       ]);
       price = counter;
     } else {
@@ -172,6 +216,13 @@ const Detail = {
           `"I've sold to better lowballers than you. Goodbye."`,
           `"${money(offerPrice)} was your last message. Ever. To me."`,
           `"I'd rather burn it than sell it for ${money(offerPrice)}. Blocked."`,
+          `"${money(offerPrice)}. This is why I hate selling online."`,
+          `"Blocked. ${money(offerPrice)} was the last straw."`,
+          `"I'm reporting ${money(offerPrice)} to the lowball police."`,
+          `"${money(offerPrice)}? Enjoy walking. Blocked."`,
+          `"Three strikes. ${money(offerPrice)} was strike three. Gone."`,
+          `"I showed your ${money(offerPrice)} offer to my dog. Even he's offended."`,
+          `"${money(offerPrice)}. I'm keeping the bike out of spite now."`,
         ];
         this.thread = this.thread || [];
         this.thread.push({ from: "you", text: money(offerPrice) });
@@ -194,6 +245,17 @@ const Detail = {
         `"I'm gonna pretend you didn't send ${money(offerPrice)}."`,
         `"${money(offerPrice)}? What is this, a yard sale?"`,
         `"You can't be serious with ${money(offerPrice)}. Come back with a real number."`,
+        `"${money(offerPrice)}? Are you buying a bike or a sandwich?"`,
+        `"I've seen better offers on free couches. ${money(offerPrice)} — no."`,
+        `"${money(offerPrice)}. Sir, this is a moped, not a lemonade stand."`,
+        `"Wow. ${money(offerPrice)}. I'm framing this message."`,
+        `"${money(offerPrice)}? My kid's piggy bank has more than that."`,
+        `"That's... ${money(offerPrice)}. I'm actually impressed by the audacity."`,
+        `"${money(offerPrice)} wouldn't cover the gas I used taking these photos."`,
+        `"New strategy: offer me a real number. ${money(offerPrice)} ain't it."`,
+        `"${money(offerPrice)}. I'm not mad, I'm just disappointed."`,
+        `"You want it for ${money(offerPrice)}? I'll throw in a firm handshake and nothing else."`,
+        `"${money(offerPrice)}? I think you left a digit off there, champ."`,
       ]);
     }
     // Track the thread

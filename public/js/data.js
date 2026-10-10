@@ -1,50 +1,50 @@
 // Sold As-Is — bike roster & listing generator
 
 const BRANDS = {
-  Yamaha:   { models: [
-    { name: "Zuma Prebug",  base: 1400, rarity: 4, sprite: "yamaha_zuma-prebug", desc: "The bug-eyed legend. Pre-2002." },
-    { name: "QT50 Yamahopper", base: 650, rarity: 2, sprite: "yamaha_qt50", desc: "Shaft-drive oddball. Charming." },
-    { name: "RD50", base: 900, rarity: 3, sprite: "yamaha_rd50", desc: "Two-stroke screamer in a tiny package." },
-    { name: "DT50", base: 750, rarity: 2, sprite: "yamaha_dt50", desc: "Enduro-styled 50. Trail-ready." },
+  Ronin:   { models: [
+    { name: "Wasp",  base: 1400, rarity: 4, sprite: "yamaha_zuma-prebug", desc: "The bug-eyed legend. Pre-2002." },
+    { name: "Hopper", base: 650, rarity: 2, sprite: "yamaha_qt50", desc: "Shaft-drive oddball. Charming." },
+    { name: "Roadster", base: 900, rarity: 3, sprite: "yamaha_rd50", desc: "Two-stroke screamer in a tiny package." },
+    { name: "Trailblazer", base: 750, rarity: 2, sprite: "yamaha_dt50", desc: "Enduro-styled 50. Trail-ready." },
   ]},
-  Honda:    { models: [
-    { name: "MB5",     base: 1600, rarity: 4, sprite: "honda_mb5", desc: "The holy grail. Black/red or nothing." },
-    { name: "Dio",     base: 800, rarity: 2, sprite: "honda_dio", desc: "Scooter scene staple. Tunes easy." },
-    { name: "Express", base: 550, rarity: 2, sprite: "honda_express", desc: "Noped royalty. Everyone's first." },
-    { name: "Cub C70", base: 1100, rarity: 3, sprite: "honda_cub_c70", desc: "Step-through icon. Runs forever." },
+  Kestrel:    { models: [
+    { name: "Firebrand", base: 1600, rarity: 4, sprite: "honda_mb5", desc: "The holy grail. Black/red or nothing." },
+    { name: "Pixie",     base: 800, rarity: 2, sprite: "honda_dio", desc: "Scooter scene staple. Tunes easy." },
+    { name: "Courier",   base: 550, rarity: 2, sprite: "honda_express", desc: "Noped royalty. Everyone's first." },
+    { name: "Cubby",     base: 1100, rarity: 3, sprite: "honda_cub_c70", desc: "Step-through icon. Runs forever." },
   ]},
-  Tomos:    { models: [
-    { name: "Sprint",   base: 450, rarity: 1, sprite: "tomos_sprint", desc: "The workhorse. Parts everywhere." },
-    { name: "Targa LX", base: 550, rarity: 2, sprite: "tomos_targa_lx", desc: "Top-tank Tomos. Clean lines." },
-    { name: "ST",       base: 400, rarity: 1, sprite: "tomos_st", desc: "Basic, honest, cheap." },
-    { name: "Colt",     base: 500, rarity: 2, sprite: "tomos_colt", desc: "Underrated. Snappy A55 motor." },
+  Vostok:    { models: [
+    { name: "Sprinter", base: 450, rarity: 1, sprite: "tomos_sprint", desc: "The workhorse. Parts everywhere." },
+    { name: "Targa",    base: 550, rarity: 2, sprite: "tomos_targa_lx", desc: "Top-tank classic. Clean lines." },
+    { name: "Standard", base: 400, rarity: 1, sprite: "tomos_st", desc: "Basic, honest, cheap." },
+    { name: "Pony",     base: 500, rarity: 2, sprite: "tomos_colt", desc: "Underrated. Snappy motor." },
   ]},
-  Puch:     { models: [
-    { name: "Maxi",    base: 500, rarity: 1, sprite: "puch_maxi", desc: "The people's moped. Millions made." },
-    { name: "Magnum",  base: 1300, rarity: 4, sprite: "puch_magnum", desc: "Top-tank king. Bring money." },
-    { name: "Newport", base: 450, rarity: 1, sprite: "puch_newport", desc: "Maxi's sibling. Same guts." },
-    { name: "Cobra",   base: 700, rarity: 3, sprite: "puch_cobra", desc: "Rare bird. Weird and wonderful." },
+  Alpen:     { models: [
+    { name: "Max",     base: 500, rarity: 1, sprite: "puch_maxi", desc: "The people's moped. Millions made." },
+    { name: "Bigbore", base: 1300, rarity: 4, sprite: "puch_magnum", desc: "Top-tank king. Bring money." },
+    { name: "Harbor",  base: 450, rarity: 1, sprite: "puch_newport", desc: "Max's sibling. Same guts." },
+    { name: "Viper",   base: 700, rarity: 3, sprite: "puch_cobra", desc: "Rare bird. Weird and wonderful." },
   ]},
-  Vespa:    { models: [
-    { name: "Ciao",   base: 600, rarity: 2, sprite: "vespa_ciao", desc: "Italian charm, bicycle pedals." },
-    { name: "Grande", base: 750, rarity: 3, sprite: "vespa_grande", desc: "Big Ciao energy. Variated." },
-    { name: "Bravo",  base: 550, rarity: 2, sprite: "vespa_bravo", desc: "The sporty one. Kinda." },
-    { name: "Si",     base: 650, rarity: 2, sprite: "vespa_si", desc: "Monoshock style. Cool factor high." },
+  Dolce:    { models: [
+    { name: "Bello",  base: 600, rarity: 2, sprite: "vespa_ciao", desc: "Italian charm, bicycle pedals." },
+    { name: "Grosso", base: 750, rarity: 3, sprite: "vespa_grande", desc: "Big Bello energy. Variated." },
+    { name: "Sport",  base: 550, rarity: 2, sprite: "vespa_bravo", desc: "The sporty one. Kinda." },
+    { name: "Mono",   base: 650, rarity: 2, sprite: "vespa_si", desc: "Monoshock style. Cool factor high." },
   ]},
-  Suzuki:   { models: [
-    { name: "FA50 Shuttle", base: 450, rarity: 1, sprite: "suzuki_fa50", desc: "Shaft drive. Weird in a good way." },
-    { name: "JR50",         base: 350, rarity: 1, sprite: "suzuki_jr50", desc: "Kids' dirt bike. Tiny ripper." },
-    { name: "OR50",         base: 500, rarity: 2, sprite: "suzuki_or50", desc: "Moped oddity. Collectors notice." },
+  Hayate:   { models: [
+    { name: "Shuttle", base: 450, rarity: 1, sprite: "suzuki_fa50", desc: "Shaft drive. Weird in a good way." },
+    { name: "Junior",  base: 350, rarity: 1, sprite: "suzuki_jr50", desc: "Kids' dirt bike. Tiny ripper." },
+    { name: "Outback", base: 500, rarity: 2, sprite: "suzuki_or50", desc: "Moped oddity. Collectors notice." },
   ]},
-  Motobecane: { models: [
-    { name: "50V Mobylette", base: 550, rarity: 2, sprite: "motobecane_50v", desc: "French classic. Variator magic." },
-    { name: "AV88",          base: 650, rarity: 3, sprite: "motobecane_av88", desc: "Vintage French. Beautiful rust." },
-    { name: "Moby X",        base: 400, rarity: 1, sprite: "motobecane_moby_x", desc: "Later Moby. Still French." },
+  Citadelle: { models: [
+    { name: "Moby", base: 550, rarity: 2, sprite: "motobecane_50v", desc: "French classic. Variator magic." },
+    { name: "88",   base: 650, rarity: 3, sprite: "motobecane_av88", desc: "Vintage French. Beautiful rust." },
+    { name: "X",    base: 400, rarity: 1, sprite: "motobecane_moby_x", desc: "Later Moby. Still French." },
   ]},
-  Derbi:    { models: [
-    { name: "Variant", base: 600, rarity: 2, sprite: "derbi_variant", desc: "Spanish flair. Reed-valve pep." },
-    { name: "DS50",    base: 500, rarity: 2, sprite: "derbi_ds50", desc: "Sporty 50. Handles great." },
-    { name: "Laguna",  base: 700, rarity: 3, sprite: "derbi_laguna", desc: "Sleek and rare. Head-turner." },
+  Toro:    { models: [
+    { name: "Variante", base: 600, rarity: 2, sprite: "derbi_variant", desc: "Spanish flair. Reed-valve pep." },
+    { name: "Diablo",   base: 500, rarity: 2, sprite: "derbi_ds50", desc: "Sporty 50. Handles great." },
+    { name: "Lagoon",   base: 700, rarity: 3, sprite: "derbi_laguna", desc: "Sleek and rare. Head-turner." },
   ]},
 };
 
@@ -74,7 +74,7 @@ const TAGS = ["runs great", "RUNS GR8", "needs carb work", "barn find", "one own
   "wife says it goes", "too many projects", "ran when parked", "make offer"];
 
 const SELLERS = ["mike_rides", "2stroke_dan", "barnfind_betty", "moped_mike", "scoot_king",
-  "garage_greg", "puch_pete", "vespa_vic", "tomos_tom", "honda_hank", "rusty_rides",
+  "garage_greg", "alpen_amy", "dolce_dan", "vostok_vic", "kestrel_kyle", "rusty_rides",
   "clean_clara", "deal_dave", "moto_maria", "spareparts_sam", "og_rider_88"];
 
 const LOCATIONS = ["Portland, OR", "Austin, TX", "Chicago, IL", "Denver, CO", "Seattle, WA",
@@ -185,7 +185,7 @@ const PART_BASE_PRICE = {
 const PART_COND_MULT = { pristine: 1.0, used_good: 0.55, used_bad: 0.28, totaled: 0.1 };
 
 const BIDDER_NAMES = ["moped_mike", "rusty_rider", "carb_king", "two_stroke_tom",
-  "barnfind_betty", "puch_pete", "vespa_vince", "throttle_jockey", "grease_monkey",
+  "barnfind_betty", "alpen_amy", "dolce_vince", "throttle_jockey", "grease_monkey",
   "scoot_scoot", "wrench_wendy", "piston_paul"];
 
 function genPartsShop(n = 16) {

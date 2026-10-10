@@ -418,6 +418,7 @@ const Views = {
     Save.save();
     // Mark as sold (keep visible)
     l.sold = true; l.soldFor = amount; l.soldAt = Date.now();
+    l.offer = null; // clear pending offer so the notification dot goes away
     if (offer.type === "bike") {
       State.sold.push({ ...l, soldFor: amount, soldAt: Date.now() });
     }

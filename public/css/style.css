@@ -482,3 +482,5 @@ button svg { vertical-align: -3px; }
 .cart-remove svg { width: 16px; height: 16px; }
 .cart-foot { padding: 16px; border-top: 1px solid #eee; }
 .cart-total { font-size: 1.05rem; margin-bottom: 12px; text-align: right; }
+/* garage bike detail button icons */
+.btn-list svg, .btn-keep svg, .btn-strip svg { width: 20px; height: 20px; vertical-align: -4px; margin-right: 6px; }

@@ -772,6 +772,9 @@ const Views = {
           const { listingType, startPrice, currentBid, highBidder, timeLeft, bidders, listedAt, ...part } = l;
           State.parts = State.parts || [];
           State.parts.push(part);
+          // Remove the listing entirely (ended with no sale) — prevents reprocessing
+          this.myPartListings.splice(i, 1);
+          Save.save();
           UI.toast(`No bids on ${l.partLabel} — returned to inventory`);
         }
         // Refresh to show SOLD state
@@ -1665,7 +1668,7 @@ const Views = {
         </div>
         <div class="g-detail-actions">
           <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
-          <button class="btn-keep" data-gact="keep">${b.kept ? "${Icon.get('star')} In Collection" : "${Icon.get('trophy')} Add to Collection"}</button>
+          <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
           <button class="btn-strip" data-gact="partout">${Icon.get('wrench')} Part Out</button>
         </div>
         ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}

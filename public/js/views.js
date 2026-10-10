@@ -876,6 +876,8 @@ const Views = {
     for (let i = this.myBikeListings.length - 1; i >= 0; i--) {
       const l = this.myBikeListings[i];
       if (l.sold) continue;
+      // Don't auto-sell a listing the player is actively haggling on
+      if (Detail.current && Detail.current.id === l.id) continue;
       const fairness = (l.fairValue || l.boughtFor || 500) / Math.max(1, l.askPrice);
       const chance = Math.min(0.20, 0.05 * fairness);
       if (Math.random() < chance) {
@@ -902,6 +904,8 @@ const Views = {
     for (let i = this.myPartListings.length - 1; i >= 0; i--) {
       const l = this.myPartListings[i];
       if (l.sold) continue;
+      // Don't auto-sell a listing the player is actively viewing
+      if (typeof PartDetail !== "undefined" && PartDetail.current && PartDetail.current.id === l.id) continue;
       l.ticksListed = (l.ticksListed || 0) + 1;
       // Base 8% chance per 5s tick, adjusted by price fairness
       const marketPrice = Math.round(PART_BASE_PRICE[l.partKey] * PART_COND_MULT[l.state] || 20);

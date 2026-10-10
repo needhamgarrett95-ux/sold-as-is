@@ -2,6 +2,8 @@
 // Client ID goes here once Garrett creates the Spotify Developer app.
 const SPOTIFY_CLIENT_ID = "0b63ca6ab40348fe97c0f04eea584ed3";
 const SPOTIFY_REDIRECT = location.origin + location.pathname;
+// Garrett's official Sold As-Is playlist — pinned at top, auto-plays on connect
+const SPOTIFY_DEFAULT_PLAYLIST = "spotify:playlist:6VvwciGOBHM3XfEqtHqV8S";
 const SPOTIFY_SCOPES = [
   "streaming",
   "user-read-email",
@@ -166,7 +168,9 @@ const SpotifyPlayer = {
       this.deviceId = device_id;
       this.connected = true;
       this.renderMiniPlayer();
-      UI.toast("Spotify connected — pick something to play");
+      UI.toast("Spotify connected — playing the official playlist");
+      // Auto-play Garrett's playlist
+      setTimeout(() => this.playContext(SPOTIFY_DEFAULT_PLAYLIST), 1500);
     });
     this.player.addListener("not_ready", () => {
       this.connected = false;
@@ -256,7 +260,11 @@ const SpotifyPlayer = {
       list.innerHTML = `<div class="sp-pl-loading">No playlists found</div>`;
       return;
     }
-    list.innerHTML = playlists.map(p =>
+    const official = `<button class="sp-pl-item sp-pl-official" data-uri="${SPOTIFY_DEFAULT_PLAYLIST}">
+        <span class="sp-pl-badge">OFFICIAL</span>
+        <span>Sold As-Is Playlist</span>
+      </button>`;
+    list.innerHTML = official + playlists.map(p =>
       `<button class="sp-pl-item" data-uri="${p.uri}">
         ${p.images[0] ? `<img src="${p.images[0].url}" alt="">` : ""}
         <span>${p.name}</span>

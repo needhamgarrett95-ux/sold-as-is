@@ -35,11 +35,20 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof AudioEngine !== "undefined") {
     AudioEngine.init();
     AudioEngine.renderPlayer();
-    // Touch click on every button tap (except music bar, login button)
+    // Touch tap on every button (touchstart for zero delay, except music bar, login button)
+    document.addEventListener("touchstart", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      if (btn.closest("#music-popup") || btn.id === "login-btn" || btn.id === "music-note") return;
+      AudioEngine.playTouch();
+    }, { passive: true, capture: true });
+    // Fallback for non-touch (desktop)
     document.addEventListener("click", (e) => {
       const btn = e.target.closest("button");
       if (!btn) return;
       if (btn.closest("#music-popup") || btn.id === "login-btn" || btn.id === "music-note") return;
+      // Only if not already handled by touchstart
+      if (e.detail === 0) return;
       AudioEngine.playTouch();
     }, true);
   }

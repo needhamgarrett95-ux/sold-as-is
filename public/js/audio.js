@@ -22,10 +22,17 @@ const AudioEngine = {
       this.currentTrack = p.track || 0;
     } catch (e) {}
     // Preload SFX
-    this.sfxTyping = new Audio("audio/sfx-typing-fixed.mp3");
+    this.sfxTyping = new Audio("assets/sfx-login-key.mp3");
     this.sfxTyping.preload = "auto";
-    this.sfxTouch = new Audio("audio/sfx-touch-b.mp3");
+    this.sfxTouch = new Audio("assets/sfx-tap-real.mp3");
     this.sfxTouch.preload = "auto";
+    // Preload tap into Web Audio buffer for zero-delay touchstart
+    try {
+      this._actx = this._actx || new (window.AudioContext || window.webkitAudioContext)();
+      fetch("assets/sfx-tap-real.mp3").then(r => r.arrayBuffer()).then(buf => {
+        this._actx.decodeAudioData(buf, (decoded) => { this._tapBuffer = decoded; });
+      }).catch(() => {});
+    } catch (e) {}
     // Music starts only when the player taps play (no autoplay)
   },
 
@@ -98,8 +105,20 @@ const AudioEngine = {
   },
 
   playTouch() {
-    if (!this.sfxOn || !this.sfxTouch) return;
-    // Clone for overlap
+    if (!this.sfxOn) return;
+    // Prefer Web Audio buffer (zero delay, overlap allowed)
+    if (this._tapBuffer && this._actx) {
+      try {
+        const src = this._actx.createBufferSource();
+        src.buffer = this._tapBuffer;
+        const g = this._actx.createGain();
+        g.gain.value = 0.6 * (this.sfxVolume || 1);
+        src.connect(g); g.connect(this._actx.destination);
+        src.start(0);
+        return;
+      } catch (e) {}
+    }
+    if (!this.sfxTouch) return;
     const a = this.sfxTouch.cloneNode();
     a.volume = 0.6;
     a.play().catch(() => {});

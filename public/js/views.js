@@ -1418,6 +1418,16 @@ const Views = {
     }
   },
 
+  // Pick a random response, never repeating the last one
+  _lastPartReply: null,
+  pickPartReply(options) {
+    let pool = options.filter(o => o !== this._lastPartReply);
+    if (!pool.length) pool = options;
+    const pick = pool[(Math.random() * pool.length) | 0];
+    this._lastPartReply = pick;
+    return pick;
+  },
+
   // Player makes an offer on a BIN part — seller responds
   sendPartOffer(offerAmount) {
     const p = this.partsShop[this.partDetailIdx];
@@ -1434,21 +1444,42 @@ const Views = {
     let response, accepted = false, price = null;
 
     if (ratio >= 0.95) {
-      response = `"${money(offerAmount)}? Yeah, I can do that."`;
+      response = this.pickPartReply([
+        `"${money(offerAmount)}? Yeah, I can do that."`,
+        `"${money(offerAmount)} — sold. It's boxed and ready."`,
+        `"Done. ${money(offerAmount)} and it's yours."`,
+      ]);
       accepted = true; price = offerAmount;
     } else if (ratio >= 0.85) {
-      response = `"Hmm... ${money(offerAmount)}. Alright, it's yours."`;
+      response = this.pickPartReply([
+        `"Hmm... ${money(offerAmount)}. Alright, it's yours."`,
+        `"${money(offerAmount)}? Eh... fine. Take it."`,
+        `"You got me at ${money(offerAmount)}. Don't push it."`,
+      ]);
       accepted = true; price = offerAmount;
     } else if (ratio >= 0.70) {
       const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
-      response = `"Can't do ${money(offerAmount)}. How about ${money(counter)}?"`;
+      response = this.pickPartReply([
+        `"Can't do ${money(offerAmount)}. How about ${money(counter)}?"`,
+        `"${money(offerAmount)}'s light. ${money(counter)} gets it shipped today."`,
+        `"Meet me at ${money(counter)} and we got a deal."`,
+      ]);
       price = counter;
     } else if (ratio >= 0.50) {
       const counter = Math.round((p.price * 0.9) * (1 - stDisc) / 5) * 5;
-      response = `"${money(offerAmount)}? That's insulting. ${money(counter)} and not a penny less."`;
+      response = this.pickPartReply([
+        `"${money(offerAmount)}? That's insulting. ${money(counter)} and not a penny less."`,
+        `"For ${money(offerAmount)}? Nah. ${money(counter)}, firm."`,
+        `"${money(counter)}. I know what I got."`,
+      ]);
       price = counter;
     } else {
-      response = `"${money(offerAmount)}?? Get outta here with that lowball."`;
+      response = this.pickPartReply([
+        `"${money(offerAmount)}?? Get outta here with that lowball."`,
+        `"${money(offerAmount)} for this? Blocked. (Not really. But wow.)"`,
+        `"Is this a joke? ${money(offerAmount)}?"`,
+        `"${money(offerAmount)}. My scrap guy pays more than that."`,
+      ]);
     }
 
     this.partDetailOffer = {

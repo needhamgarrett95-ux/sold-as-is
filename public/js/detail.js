@@ -26,6 +26,15 @@ const Detail = {
 
   // Haggle: player sends a numeric offer, seller responds intelligently
   // Returns { response, accepted, price } — price is the buyable amount
+  _lastHaggle: null,
+  pickReply(options) {
+    let pool = options.filter(o => o !== this._lastHaggle);
+    if (!pool.length) pool = options;
+    const pick = pool[(Math.random() * pool.length) | 0];
+    this._lastHaggle = pick;
+    return pick;
+  },
+
   sendOffer(rawInput) {
     const l = this.current;
     // Numerals only
@@ -79,24 +88,71 @@ const Detail = {
     const ratio = effectiveOffer / l.price;
     let response, accepted = false, price = null;
 
+    // Track consecutive lowballs for unpredictable blocking
+    this._lowballStreak = (ratio < 0.50) ? (this._lowballStreak || 0) + 1 : 0;
+
     if (ratio >= 0.95) {
-      response = `"${money(offerPrice)}? Yeah, I can do that."`;
+      response = this.pickReply([
+        `"${money(offerPrice)}? Yeah, I can do that."`,
+        `"${money(offerPrice)} — deal. When can you pick it up?"`,
+        `"You got it for ${money(offerPrice)}. Pleasure doing business."`,
+        `"${money(offerPrice)} works. It's yours."`,
+      ]);
       accepted = true; price = offerPrice;
     } else if (ratio >= 0.85) {
-      response = `"Hmm... ${money(offerPrice)}. Alright, it's yours."`;
+      response = this.pickReply([
+        `"Hmm... ${money(offerPrice)}. Alright, it's yours."`,
+        `"${money(offerPrice)}? ...Fine. You drive a hard bargain."`,
+        `"I was hoping for more, but ${money(offerPrice)} — sold."`,
+        `"Okay okay, ${money(offerPrice)}. Don't tell my wife."`,
+      ]);
       accepted = true; price = offerPrice;
     } else if (ratio >= 0.70) {
       // Counter: meet in the middle, rounded to nearest $10 (Smooth Talker discount applied)
       const counter = Math.round(((offerPrice + l.price) / 2) * (1 - stDiscount) / 10) * 10;
-      response = `"${money(offerPrice)}? I could do ${money(counter)}. Meet me there and it's yours."`;
+      response = this.pickReply([
+        `"${money(offerPrice)}? I could do ${money(counter)}. Meet me there and it's yours."`,
+        `"Nah, but I'll meet you at ${money(counter)}."`,
+        `"${money(counter)} and we shake on it. Final."`,
+        `"Split the difference — ${money(counter)}. Take it or leave it."`,
+      ]);
       price = counter; // buy button updates to counter
     } else if (ratio >= 0.50) {
       // Firm counter at 90% (Smooth Talker discount applied)
       const counter = Math.round(l.price * 0.9 * (1 - stDiscount) / 10) * 10;
-      response = `"${money(offerPrice)}? Come on. ${money(counter)} and we got a deal."`;
+      response = this.pickReply([
+        `"${money(offerPrice)}? Come on. ${money(counter)} and we got a deal."`,
+        `"${money(offerPrice)} is insulting. ${money(counter)}, not a penny less."`,
+        `"I can't do ${money(offerPrice)}. ${money(counter)} is my floor."`,
+        `"Ha. ${money(counter)}. That's as low as I go."`,
+      ]);
       price = counter;
     } else {
-      response = `"${money(offerPrice)}?? No lowballs, bro."`;
+      // Lowball: unpredictable blocking (more lowballs = more likely to get blocked)
+      const blockChance = Math.min(0.15 + (this._lowballStreak - 1) * 0.25, 0.85);
+      if (Math.random() < blockChance) {
+        const blocks = [
+          `"${money(offerPrice)}?? Yeah, we're done here."`,
+          `"Get out of my DMs with that ${money(offerPrice)} nonsense."`,
+          `"${money(offerPrice)}. Blocked."`,
+          `"I'm not desperate. Don't message me again."`,
+        ];
+        this.thread = this.thread || [];
+        this.thread.push({ from: "you", text: money(offerPrice) });
+        this.thread.push({ from: "seller", text: this.pickReply(blocks) });
+        this.blocked = true;
+        this.haggleResponse = { response: null, accepted: false, price: null };
+        this.render();
+        return;
+      }
+      response = this.pickReply([
+        `"${money(offerPrice)}?? No lowballs, bro."`,
+        `"${money(offerPrice)}? Be serious."`,
+        `"Do I look like a charity? ${money(offerPrice)} — no."`,
+        `"${money(offerPrice)} wouldn't buy the seat. Try again."`,
+        `"Lol. ${money(offerPrice)}. Good one."`,
+        `"My grandma offers better than ${money(offerPrice)} and she's dead."`,
+      ]);
     }
     // Track the thread
     this.thread = this.thread || [];

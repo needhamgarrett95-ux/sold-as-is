@@ -99,11 +99,13 @@ const Feed = {
     this.render();
   },
 
-  // Eliseo_M's listing was bought — put up a fresh one
-  refreshDanny() {
-    this.listings = this.listings.filter(l => !l.isDanny);
-    this.listings.unshift(makeDannyListing(this.nextId++));
-    this.render();
+  // Ensure Eliseo_M always has exactly one listing
+  ensureDanny() {
+    const hasDanny = this.listings.some(l => l.isDanny);
+    if (!hasDanny) {
+      this.listings.unshift(makeDannyListing(this.nextId++));
+      this.render();
+    }
   },
 
   // Seller blocked the player — yank the listing and drop in a fresh one
@@ -118,6 +120,11 @@ const Feed = {
       this.listings.push(...fresh);
     }
     this.render();
+  },
+
+  // Call after init/refresh to guarantee Eliseo_M presence
+  initDanny() {
+    this.ensureDanny();
   },
 
   photoColor(bikeId) {

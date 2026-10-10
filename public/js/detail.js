@@ -282,11 +282,17 @@ const Detail = {
       this.render();
       return;
     }
-    State.buy({ ...l, price });
-    if (l.isDanny && typeof Feed !== "undefined") {
-      Feed.refreshDanny();
-    } else {
-      Feed.remove(l.id);
+    const wasDanny = !!l.isDanny;
+    const buyResult = State.buy({ ...l, price });
+    if (!buyResult) {
+      this.notice = "Purchase failed.";
+      this.render();
+      return;
+    }
+    Feed.remove(l.id);
+    // Eliseo_M always has a listing — put up a fresh one
+    if (wasDanny && typeof Feed !== "undefined") {
+      Feed.ensureDanny();
     }
     this.close();
     UI.refreshCash();

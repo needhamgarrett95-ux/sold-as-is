@@ -2498,7 +2498,7 @@ const Views = {
       r.condition = missing > 0 ? "Rough" : "Good";
     }
     if (typeof recalcFairValue !== "undefined") recalcFairValue(r);
-    r.fairValue = this.rollerValue(r);
+    // (don't use rollerValue here — that's for Assemble display only)
     // Clear the missing list since it's now encoded in partStates
     r.missingParts = [];
     State.garage.push(r);

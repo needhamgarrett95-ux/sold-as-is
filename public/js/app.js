@@ -10,6 +10,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     UI.refreshCash();
   }
+  // Settings menu
+  const cog = document.getElementById("settings-cog");
+  const menu = document.getElementById("settings-menu");
+  if (cog && menu) {
+    cog.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.classList.toggle("hidden");
+    });
+    document.addEventListener("click", (e) => {
+      if (!menu.classList.contains("hidden") && !menu.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    });
+    document.getElementById("settings-reset")?.addEventListener("click", () => {
+      if (confirm("Start over? This wipes your garage, parts, cash, and skills.")) {
+        localStorage.removeItem("soldasis_save_v1");
+        location.reload();
+      }
+    });
+  }
   // Hydrate custom icons
   Icon.hydrate();
   // Load saved progress (after Views is defined)

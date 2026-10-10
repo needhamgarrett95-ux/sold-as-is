@@ -664,3 +664,18 @@ button:focus { outline: none !important; box-shadow: none !important; }
 
 /* Part condition blurb */
 .eby-blurb { font-size: .78rem; color: #7a6a5f; font-style: italic; margin: 2px 0 6px; line-height: 1.3; }
+
+/* Settings */
+.traffic { align-items: center; }
+.settings-cog { margin-left: auto; background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; color: #8a8f96; }
+.settings-cog svg, .settings-cog [data-icon] { width: 16px; height: 16px; display: block; }
+.settings-cog:active { transform: rotate(30deg); }
+.settings-menu { position: absolute; top: 34px; right: 10px; z-index: 200; background: #fff; border: 1px solid #e0d5c8; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 220px; overflow: hidden; }
+.settings-menu.hidden { display: none; }
+.settings-head { padding: 10px 14px; font-weight: 800; font-size: .85rem; border-bottom: 1px solid #f0ebe4; background: #faf6f1; }
+.settings-item { display: block; width: 100%; text-align: left; padding: 12px 14px; background: none; border: none; border-bottom: 1px solid #f0ebe4; font-size: .85rem; font-weight: 600; cursor: pointer; color: #333; }
+.settings-item:last-child { border-bottom: none; }
+button.settings-item:active { background: #faf6f1; }
+.settings-sub { display: block; font-weight: 400; font-size: .75rem; color: #999; margin-top: 2px; }
+.settings-about { cursor: default; }
+#chrome { position: relative; }

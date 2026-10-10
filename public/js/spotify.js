@@ -1,6 +1,6 @@
 // Sold As-Is — Spotify integration (Web Playback SDK + PKCE)
 // Client ID goes here once Garrett creates the Spotify Developer app.
-const SPOTIFY_CLIENT_ID = "YOUR_CLIENT_ID_HERE";
+const SPOTIFY_CLIENT_ID = "0b63ca6ab40348fe97c0f04eea584ed3";
 const SPOTIFY_REDIRECT = location.origin + location.pathname;
 const SPOTIFY_SCOPES = [
   "streaming",

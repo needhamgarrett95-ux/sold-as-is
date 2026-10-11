@@ -39,9 +39,9 @@ const Detail = {
     return pick;
   },
 
-  _removeBlockedListing() {
+  _removeBlockedListing(passedListing) {
     // Seller blocked you — listing is replaced with a fresh one
-    const l = this.current;
+    const l = passedListing || this.current;
     if (l && typeof Feed !== "undefined" && Feed.replaceBlocked) {
       Feed.replaceBlocked(l.id);
     }
@@ -132,8 +132,9 @@ const Detail = {
       this.thread.push({ from: "seller", text: angry[(Math.random() * angry.length) | 0] });
       this.blocked = true;
       this.haggleResponse = { response: null, accepted: false, price: null };
+      const blockedListing = this.current;
       this.render();
-      this._removeBlockedListing();
+      this._removeBlockedListing(blockedListing);
       return;
     }
     this.offer = offerPrice;
@@ -396,9 +397,9 @@ const Detail = {
         this.thread.push({ from: "seller", text: this.pickReply(blocks) });
         this.blocked = true;
         this.haggleResponse = { response: null, accepted: false, price: null };
-        if (typeof Feed !== "undefined" && this.current) Feed.replaceBlocked(this.current.id);
+        const blockedListing2 = this.current;
         this.render();
-      this._removeBlockedListing();
+        this._removeBlockedListing(blockedListing2);
         return;
       }
       response = this.pickReply([

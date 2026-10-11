@@ -6,6 +6,29 @@
   --ink: #1c1e21; --dim: #6b6f76; --blue: #e04536; --bluedk: #b93226;
   --green: #1e7e34; --amber: #b7790e; --red: #c0392b;
 }
+/* Dark mode */
+body.dark-mode {
+  --paper: #1a1d22; --card: #242930; --line: #3a4048;
+  --ink: #ece9e1; --dim: #9aa0a8;
+  --green: #4caf50; --amber: #febc2e; --red: #ff6659;
+}
+body.dark-mode #browser { background: #1a1d22; }
+body.dark-mode .kb { background: #242930; border-color: #3a4048; }
+body.dark-mode .kb-key { background: #333943; border-color: #3a4048; color: #ece9e1; }
+body.dark-mode .kb-key:active { background: #3a4048; }
+body.dark-mode .kb-key.fn { background: #2c3138; }
+body.dark-mode .kb-display { color: #ece9e1; }
+body.dark-mode .modal-box { background: #242930; }
+body.dark-mode .modal-title { color: #ece9e1; }
+body.dark-mode .modal-desc { color: #9aa0a8; }
+body.dark-mode .modal-btn { background: #333943; border-color: #3a4048; color: #ece9e1; }
+body.dark-mode .dd-btn { background: #242930; border-color: #3a4048; color: #ece9e1; }
+body.dark-mode .dd-menu { background: #2c3138; border-color: #3a4048; }
+body.dark-mode .dd-item { color: #ece9e1; border-color: #333943; }
+body.dark-mode .dd-item:active { background: #333943; }
+body.dark-mode .dd-item.sel { background: rgba(224,69,54,.16); color: #e04536; }
+body.dark-mode .demo-input, body.dark-mode .parts-search { background: #1a1d22; border-color: #3a4048; color: #ece9e1; }
+body.dark-mode .kb-overlay, body.dark-mode .modal-overlay { background: rgba(0,0,0,.6); }
 html, body { height: 100%; overflow: hidden; background: var(--bg);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent; }

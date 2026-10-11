@@ -54,6 +54,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Dark mode toggle
+    const darkToggle = document.getElementById("settings-darkmode");
+    const darkSub = document.getElementById("darkmode-sub");
+    const applyDark = (on) => {
+      document.body.classList.toggle("dark-mode", on);
+      if (darkSub) darkSub.textContent = on ? "on" : "off";
+      try { localStorage.setItem("soldasis_darkmode", on ? "1" : "0"); } catch (e) {}
+    };
+    try {
+      if (localStorage.getItem("soldasis_darkmode") === "1") applyDark(true);
+    } catch (e) {}
+    darkToggle?.addEventListener("click", () => {
+      applyDark(!document.body.classList.contains("dark-mode"));
+    });
+
     document.getElementById("settings-reset")?.addEventListener("click", () => {
       // Custom confirmation modal (no system dialog)
       const existing = document.getElementById("reset-confirm");

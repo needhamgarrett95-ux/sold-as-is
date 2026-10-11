@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (bell) {
     bell.addEventListener("click", (e) => {
       e.stopPropagation();
+      document.getElementById("music-popup")?.classList.add("hidden");
+      document.getElementById("settings-menu")?.classList.add("hidden");
       UI.showActivity();
     });
     document.addEventListener("click", (e) => {
@@ -30,6 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (cog && menu) {
     cog.addEventListener("click", (e) => {
       e.stopPropagation();
+      document.getElementById("music-popup")?.classList.add("hidden");
+      document.getElementById("activity-popup")?.classList.add("hidden");
       menu.classList.toggle("hidden");
     });
     document.addEventListener("click", (e) => {

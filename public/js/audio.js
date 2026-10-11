@@ -216,6 +216,7 @@ const AudioEngine = {
     document.getElementById("music-note")?.addEventListener("click", (e) => {
       e.stopPropagation();
       document.getElementById("settings-menu")?.classList.add("hidden");
+      document.getElementById("activity-popup")?.classList.add("hidden");
       popup.classList.toggle("hidden");
     });
     // Close popup when tapping elsewhere

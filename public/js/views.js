@@ -267,6 +267,7 @@ const Views = {
       <article class="card" data-bike-offer="${i}">
         <div class="photo">
           <div class="just-listed">${l.sold ? "SOLD" : "Your Listing"}</div>
+          ${l.offer && !l.offer.seen && !l.sold ? `<span class="listing-dot"></span>` : ""}
 
           <img src="assets/bikes/${l.sprite}.png" alt="${l.brand} ${l.model}" loading="lazy" draggable="false"${Feed.spriteNudge.has(l.sprite) ? ' class="nudged"' : ""}>
           <div class="card-cond">${l.condition}</div>
@@ -417,6 +418,8 @@ const Views = {
     } catch (e) {}
     UI._unreadActivity = (UI._unreadActivity || 0) + 1;
     UI.updateBellBadge();
+    // Bell sound only for offer notifications
+    if (typeof AudioSys !== "undefined" && AudioSys.playBell) AudioSys.playBell();
     this.updateNavBadges();
     // Refresh the relevant view
     if (this.current === "market" && this.marketTab === "mine") {

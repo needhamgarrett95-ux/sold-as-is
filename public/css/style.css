@@ -801,6 +801,17 @@ button.settings-item:active { background: #faf6f1; }
   color: #888;
   flex-shrink: 0;
 }
+.listing-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: #f44336;
+  border-radius: 50%;
+  z-index: 2;
+}
+.photo { position: relative; }
 .activity-clear {
   display: block;
   width: 100%;

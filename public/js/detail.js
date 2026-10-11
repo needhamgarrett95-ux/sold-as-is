@@ -558,10 +558,9 @@ const UI = {
   toast(msg, category) {
     this._toastQueue.push(msg);
     this._showNextToast();
-    // Bump unread badge on bell + play notification sound
+    // Bump unread badge on bell
     this._unreadActivity++;
     this.updateBellBadge();
-    if (typeof AudioSys !== "undefined" && AudioSys.playBell) AudioSys.playBell();
     // Log to activity feed (auto-detect category if not given)
     try {
       if (!category) {

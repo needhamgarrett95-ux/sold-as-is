@@ -2275,10 +2275,12 @@ const Views = {
               const st = (b.partStates && b.partStates[p.key]) || "pristine";
               const isMissing = st === "missing" || (b.missingParts || []).includes(p.key);
               if (isMissing) {
+                const owned = (State.parts || []).filter(sp => sp.bikeSprite === b.sprite && sp.partKey === p.key).length;
                 return `<div class="part-cell state-missing" data-inspect-part="${p.key}">
                   <div class="part-missing-x">${Icon.get('missing')}</div>
                   <div class="part-label">${p.label}</div>
                   <div class="part-state">Missing</div>
+                  ${owned ? `<button class="eby-buy" data-install-garage-part="${p.key}" style="margin-top:6px">Install (${owned})</button>` : ""}
                 </div>`;
               }
               const revealed = (b.revealedParts || []).includes(p.key);
@@ -2576,6 +2578,33 @@ const Views = {
     return html;
   },
 
+  installPartOnGarageBike(bikeIdx, partKey) {
+    const b = (State.garage || [])[bikeIdx];
+    if (!b) return;
+    const parts = State.parts || [];
+    // Find best matching part (highest condition)
+    let bestIdx = -1, bestPct = -1;
+    parts.forEach((sp, i) => {
+      if (sp.bikeSprite === b.sprite && sp.partKey === partKey) {
+        const pct = sp.conditionPct || 0;
+        if (pct > bestPct) { bestPct = pct; bestIdx = i; }
+      }
+    });
+    if (bestIdx < 0) return;
+    const part = parts[bestIdx];
+    parts.splice(bestIdx, 1);
+    b.partStates = b.partStates || {};
+    b.partStates[partKey] = part.state || "used_good";
+    b.missingParts = (b.missingParts || []).filter(k => k !== partKey);
+    b.revealedParts = b.revealedParts || [];
+    if (!b.revealedParts.includes(partKey)) b.revealedParts.push(partKey);
+    // Recalculate condition
+    if (typeof calcBikeCondition !== "undefined") b.condition = calcBikeCondition(b.partStates, b.sprite);
+    if (typeof recalcFairValue !== "undefined") recalcFairValue(b);
+    UI.toast(`Installed ${part.partLabel || partKey}`);
+    Save.save();
+    this.renderGarage();
+  },
   installPartOnRoller(rollerIdx, invIdx) {
     const r = (State.rollers || [])[rollerIdx];
     const parts = State.parts || [];
@@ -2767,6 +2796,14 @@ const Views = {
     if (pickerClose) pickerClose.addEventListener("click", () => {
       this.rollerPickSlot = null;
       this.renderGarage();
+    });
+    // Garage: install part on bike missing that part
+    el.querySelectorAll("[data-install-garage-part]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const bikeIdx = this.garageDetailIdx;
+        if (bikeIdx >= 0) this.installPartOnGarageBike(bikeIdx, btn.dataset.installGaragePart);
+      });
     });
     // Roller detail: pick a specific part to install
     el.querySelectorAll("[data-pick-part]").forEach(row => {

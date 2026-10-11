@@ -1673,7 +1673,12 @@ const Views = {
             </div>
             ${this.partDetailOffer.accepted ? `
               <button class="eby-buy pd-buy" id="pd-accept-offer">Buy for ${money(this.partDetailOffer.price)}</button>
-            ` : ""}
+            ` : `
+              <div class="pd-offer-row" style="margin-top:10px">
+                <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Counter offer ($)">
+                <button class="eby-offer" id="pd-send-offer">Counter</button>
+              </div>
+            `}
           ` : `
             <div class="pd-offer-row">
               <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Your offer ($)">
@@ -1896,13 +1901,23 @@ const Views = {
       ]);
     }
 
-    this.partDetailOffer = {
-      thread: [
+    // Append to existing thread if countering, else start new
+    if (this.partDetailOffer && this.partDetailOffer.thread) {
+      this.partDetailOffer.thread.push(
         { from: "you", text: money(offerAmount) },
         { from: "seller", text: response },
-      ],
-      accepted, price,
-    };
+      );
+      this.partDetailOffer.accepted = accepted;
+      this.partDetailOffer.price = price;
+    } else {
+      this.partDetailOffer = {
+        thread: [
+          { from: "you", text: money(offerAmount) },
+          { from: "seller", text: response },
+        ],
+        accepted, price,
+      };
+    }
     this.renderPartDetail();
   },
 

@@ -457,7 +457,24 @@ const Detail = {
       return;
     }
     const wasDanny = !!l.isDanny;
-    const buyResult = State.buy({ ...l, price });
+    // Carry over Gear Head reveals — parts you could see in the listing stay revealed
+    const gh = (typeof Skills !== "undefined") ? Skills.tier("gearhead") : 0;
+    let revealedParts = [];
+    if (gh > 0 && l.partStates) {
+      const parts = availableParts(l.sprite);
+      if (gh >= 3) {
+        revealedParts = parts.map(p => p.key);
+      } else {
+        const seed = (l.id || 0) * 9301 + 49297;
+        const scored = parts.map(p => ({
+          p,
+          h: (seed * (p.key.charCodeAt(0) * 7 + p.key.length)) % 1000
+        })).sort((a, b) => a.h - b.h);
+        const count = gh === 1 ? 3 : Math.ceil(parts.length * 0.6);
+        revealedParts = scored.slice(0, count).map(x => x.p.key);
+      }
+    }
+    const buyResult = State.buy({ ...l, price, revealedParts });
     if (!buyResult) {
       this.notice = "Purchase failed.";
       this.render();

@@ -2246,7 +2246,8 @@ const Views = {
   garageDetailHTML() {
     const b = State.garage[this.garageDetailIdx];
     if (!b) return `<div class="empty">Bike not found.</div>`;
-    // Part picker overlay
+    // Part picker HTML (appended at end if active)
+    let pickerOverlay = "";
     if (this._installPicker && this._installPicker.bikeIdx === this.garageDetailIdx) {
       const { partKey } = this._installPicker;
       const matches = (State.parts || [])
@@ -2254,15 +2255,15 @@ const Views = {
         .filter(sp => sp.bikeSprite === b.sprite && sp.partKey === partKey)
         .sort((a, b2) => (b2.conditionPct || 0) - (a.conditionPct || 0));
       const pDef = availableParts(b.sprite).find(p => p.key === partKey);
-      let pickerHTML = `<div class="roller-picker">
+      pickerOverlay = `<div class="picker-overlay"><div class="roller-picker">
         <div class="roller-picker-head">
           <strong>Pick a ${pDef ? pDef.label : partKey}</strong>
           <button class="back-btn" id="install-picker-close">✕</button>
         </div>`;
       if (!matches.length) {
-        pickerHTML += `<div class="empty" style="padding:16px">None in inventory</div>`;
+        pickerOverlay += `<div class="empty" style="padding:16px">None in inventory</div>`;
       } else {
-        pickerHTML += `<div class="roller-picker-list">` + matches.map(m => `
+        pickerOverlay += `<div class="roller-picker-list">` + matches.map(m => `
           <div class="roller-pick-row" data-install-pick="${m.invIdx}">
             <img src="${m.img}" alt="${m.partLabel}" loading="lazy">
             <div class="roller-pick-info">
@@ -2272,8 +2273,7 @@ const Views = {
             <button class="eby-buy roller-pick-btn">Install</button>
           </div>`).join("") + `</div>`;
       }
-      pickerHTML += `</div>`;
-      return pickerHTML;
+      pickerOverlay += `</div></div>`;
     }
     const presets = this.descPresets(b.condition);
     const tier = (typeof Skills !== "undefined") ? Skills.unlocked["smoothtalker"] || 0 : 0;
@@ -2602,7 +2602,7 @@ const Views = {
             : `<div class="part-state" style="color:#999">none owned</div>`}
         </div>`;
       }).join("") + `</div>
-      <div style="padding:12px"><button class="eby-buy" id="roller-to-garage">${(r.missingParts || []).length ? `Move to Garage (missing ${(r.missingParts || []).length})` : "Move to Garage"}</button></div>`;
+      <div style="padding:12px"><button class="eby-buy" id="roller-to-garage">${(r.missingParts || []).length ? `Move to Garage (missing ${(r.missingParts || []).length})` : "Move to Garage"}</button></div>${pickerOverlay}`;
     return html;
   },
 

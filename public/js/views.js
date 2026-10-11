@@ -1933,30 +1933,7 @@ const Views = {
         accepted, price, blocked, walkedAway,
       };
     }
-    // Activity notification for blocks (bulletproof — works even if p is gone)
-    if (blocked) {
-      try {
-        const part = this.partsShop[this.partDetailIdx] || p || {};
-        const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-        const byBlockMsgs = [
-          `Blocked in the Boneyard. That ${part.partLabel || "part"} for the ${part.bikeBrand || ""} ${part.bikeModel || ""} is dead to you now.`.trim(),
-          `The ${part.partLabel || "part"} seller blocked you. Bold strategy, lowballing in the Boneyard.`,
-          `You got blocked over a ${part.partLabel || "part"}. The ${(part.bikeBrand || "") + " " + (part.bikeModel || "")} community will remember this.`.trim(),
-        ];
-        feed.unshift({ msg: byBlockMsgs[(Math.random() * byBlockMsgs.length) | 0], at: Date.now(), cat: "boneyard" });
-        if (feed.length > 50) feed.length = 50;
-        localStorage.setItem("soldasis_activity", JSON.stringify(feed));
-      } catch (e) {}
-      // Bump unread on UI (owns the bell) — silent, no toast, no sound
-      // Done outside try/catch so it always runs
-      try {
-        if (typeof UI !== "undefined") {
-          UI._unreadActivity = (UI._unreadActivity || 0) + 1;
-          UI._unreadBoneyard = (UI._unreadBoneyard || 0) + 1;
-          if (UI.updateBellBadge) UI.updateBellBadge();
-        }
-      } catch (e2) {}
-    }
+    // Notification handled in replaceBoneyardPart
     // Seller declined/moved on — pull the listing and replace with a fresh part
     if ((blocked || walkedAway) && typeof this.replaceBoneyardPart === "function") {
       const idx = this.partDetailIdx;
@@ -1970,6 +1947,26 @@ const Views = {
     if (!this.partsShop || idx < 0 || idx >= this.partsShop.length) return;
     // Don't replace Danny's part
     if (this.partsShop[idx].isDanny) return;
+    // Clear the old negotiation chat
+    this.partDetailOffer = null;
+    // Block notification (always fires on replacement)
+    try {
+      const oldPart = this.partsShop[idx];
+      const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+      const byBlockMsgs = [
+        `Blocked in the Boneyard. That ${oldPart.partLabel} for the ${oldPart.bikeBrand} ${oldPart.bikeModel} is dead to you now.`,
+        `The ${oldPart.partLabel} seller blocked you. Bold strategy, lowballing in the Boneyard.`,
+        `You got blocked over a ${oldPart.partLabel}. The ${oldPart.bikeBrand} ${oldPart.bikeModel} community will remember this.`,
+      ];
+      feed.unshift({ msg: byBlockMsgs[(Math.random() * byBlockMsgs.length) | 0], at: Date.now(), cat: "boneyard" });
+      if (feed.length > 50) feed.length = 50;
+      localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+      if (typeof UI !== "undefined") {
+        UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+        UI._unreadBoneyard = (UI._unreadBoneyard || 0) + 1;
+        if (UI.updateBellBadge) UI.updateBellBadge();
+      }
+    } catch (e) {}
     const bike = BIKES[(Math.random() * BIKES.length) | 0];
     const avail = availableParts(bike.sprite);
     const part = avail[(Math.random() * avail.length) | 0];

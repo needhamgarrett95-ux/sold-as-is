@@ -1194,3 +1194,13 @@ body.dark-mode .g-detail-photo { background: linear-gradient(135deg, #242930, #1
 body.dark-mode .g-desc-block textarea { background: #1a1d22; color: #ece9e1; border-color: #3a4048; }
 body.dark-mode .pd-auction-info { background: #2c3138; }
 body.dark-mode .pd-auction-info .pd-time { color: #ff6659; }
+
+/* QWERTY portrait optimization */
+.kb.qwerty { padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); }
+.kb.qwerty .kb-grid.qrow { gap: 4px; margin-bottom: 6px; }
+.kb.qwerty .kb-key { padding: 12px 2px; font-size: 16px; border-radius: 6px; }
+.kb.qwerty .kb-key.fn { font-size: 14px; padding: 12px 4px; }
+@media (max-width: 400px) {
+  .kb.qwerty .kb-key { padding: 10px 1px; font-size: 15px; }
+  .kb.qwerty .kb-display.text { font-size: 18px; }
+}

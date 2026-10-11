@@ -154,8 +154,9 @@ const Views = {
           this.partsRefreshesLeft = 0;
           setTimeout(() => this.tickPartsCooldown(), 100);
         } else {
-          this.partsRefreshesLeft = isNaN(savedRefreshes) ? 3 : savedRefreshes;
-          // Clear expired cooldown
+          // Fresh session: always reset to 3 free refreshes
+          this.partsRefreshesLeft = 3;
+          localStorage.setItem(this.PARTS_REFRESHES_KEY, "3");
           localStorage.removeItem(this.PARTS_COOLDOWN_KEY);
         }
       } catch (e) {}
@@ -188,8 +189,13 @@ const Views = {
         btn.innerHTML = "↻";
         btn.title = "Refresh listings";
       }
+    } else {
+      // Garage/collection: hide refresh button (no refresh here)
+      btn.style.display = "none";
+      return;
     }
-    // Garage/collection: leave button as-is
+    btn.style.display = "";
+    btn.style.display = "";
   },
 
   // --- auction engine ---

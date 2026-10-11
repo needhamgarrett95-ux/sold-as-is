@@ -60,21 +60,11 @@ const Tutorial = {
   },
 
   showBlocker() {
-    let b = document.getElementById("tutorial-blocker");
-    if (!b) {
-      b = document.createElement("div");
-      b.id = "tutorial-blocker";
-      document.body.appendChild(b);
-      // Swallow all taps except on highlighted elements
-      b.addEventListener("click", (e) => e.stopPropagation(), true);
-      b.addEventListener("touchend", (e) => e.stopPropagation(), true);
-    }
-    b.classList.add("visible");
+    document.body.classList.add("tutorial-locked");
   },
 
   hideBlocker() {
-    const b = document.getElementById("tutorial-blocker");
-    if (b) b.classList.remove("visible");
+    document.body.classList.remove("tutorial-locked");
   },
 
   start() {

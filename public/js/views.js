@@ -1899,6 +1899,15 @@ const Views = {
         accepted, price, blocked, walkedAway,
       };
     }
+    // Activity notification for blocks
+    if (blocked) {
+      try {
+        const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+        feed.unshift({ msg: `Seller blocked you on the ${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}`, at: Date.now(), cat: "boneyard" });
+        if (feed.length > 50) feed.length = 50;
+        localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+      } catch (e) {}
+    }
     // Seller declined/moved on — pull the listing and replace with a fresh part
     if ((blocked || walkedAway) && typeof this.replaceBoneyardPart === "function") {
       const idx = this.partDetailIdx;

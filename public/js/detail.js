@@ -45,6 +45,13 @@ const Detail = {
     if (l && typeof Feed !== "undefined" && Feed.replaceBlocked) {
       Feed.replaceBlocked(l.id);
     }
+    // Activity notification
+    try {
+      const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+      feed.unshift({ msg: `${l.seller || "Seller"} blocked you on the ${l.brand} ${l.model} listing`, at: Date.now(), cat: "market" });
+      if (feed.length > 50) feed.length = 50;
+      localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+    } catch (e) {}
     // Close detail after a beat so they see the block message, then refresh feed
     setTimeout(() => {
       this.close();

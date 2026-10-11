@@ -46,8 +46,14 @@ const Detail = {
       const idx = Feed.listings.findIndex(x => x.id === l.id);
       if (idx >= 0) Feed.listings.splice(idx, 1);
     }
-    // Close detail after a beat so they see the block message
-    setTimeout(() => { this.close(); }, 2500);
+    // Close detail after a beat so they see the block message, then refresh feed
+    setTimeout(() => {
+      this.close();
+      if (typeof Views !== "undefined" && Views.current === "market") {
+        Views.renderMarketFeed();
+        Views.renderMarketTabs();
+      }
+    }, 2500);
   },
   sendOffer(rawInput) {
     const l = this.current;

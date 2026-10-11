@@ -54,7 +54,7 @@ const Detail = {
           `You got blocked by ${l.seller || "the seller"}. The ${l.brand} ${l.model} listing has left the chat.`,
           `${l.seller || "Seller"} hit the block button. That ${l.brand} ${l.model} will never know your love.`,
         ];
-        feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "market" });
+        feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "marketplace" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
         if (typeof UI !== "undefined" && UI.updateBellBadge) UI.updateBellBadge();

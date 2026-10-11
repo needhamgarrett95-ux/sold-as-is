@@ -511,7 +511,7 @@ const Views = {
         <div class="haggle-actions">
           <button class="haggle-accept" id="haggle-accept">Accept ${money(offer.amount)}</button>
           <div class="haggle-counter-row">
-            <input type="number" inputmode="numeric" id="haggle-counter" placeholder="Counter offer">
+            <input type="text" inputmode="none" id="haggle-counter" placeholder="Counter offer">
             <button class="haggle-counter" id="haggle-send-counter">Counter</button>
           </div>
           <button class="haggle-decline" id="haggle-decline">Decline</button>
@@ -1044,7 +1044,7 @@ const Views = {
       row.outerHTML = `<div class="sell-price-row">
         <div class="sell-price-info">Fair market: <strong>${money(marketPrice)}</strong> · You paid: <strong>${paid}</strong></div>
         <div class="sell-price-inputrow">
-          <input type="number" inputmode="numeric" id="sell-price-${idx}" value="${marketPrice}" min="1">
+          <input type="text" inputmode="none" id="sell-price-${idx}" value="${marketPrice}" min="1">
           <button class="eby-confirm" data-confirm-sell="${idx}" data-ltype="${listType}">${btnText}</button>
           <button class="eby-cancel" data-cancel-sell>${Icon.get('close')}</button>
         </div>
@@ -1711,7 +1711,7 @@ const Views = {
           <div class="pd-bid-row">${p.highBidder ? (isWinning ? "You're winning!" : `High bidder: ${p.highBidder}`) : "No bids yet"}</div>
         </div>
         <div class="pd-bid-input">
-          <input type="number" inputmode="numeric" id="pd-bid-amount" value="${minBid}" min="${minBid}">
+          <input type="text" inputmode="none" id="pd-bid-amount" value="${minBid}" min="${minBid}">
         </div>
         <button class="pd-btn-primary" id="pd-place-bid">Place bid</button>
         <div class="pd-hint">Enter ${money(minBid)} or more</div>`;
@@ -1731,20 +1731,20 @@ const Views = {
             ` : (this.partDetailOffer.price && !this.partDetailOffer.blocked && !this.partDetailOffer.walkedAway) ? `
               <button class="eby-buy pd-buy" id="pd-accept-offer" style="margin-bottom:8px">Accept ${money(this.partDetailOffer.price)}</button>
               <div class="pd-offer-row">
-                <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Counter offer ($)">
+                <input type="text" inputmode="none" id="pd-offer-amount" placeholder="Counter offer ($)">
                 <button class="eby-offer" id="pd-send-offer">Counter</button>
               </div>
             ` : (this.partDetailOffer.blocked || this.partDetailOffer.walkedAway) ? `
               <div class="pd-offer-dead" style="margin-top:10px;color:#999;font-style:italic">This seller is done talking.</div>
             ` : `
               <div class="pd-offer-row" style="margin-top:10px">
-                <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Counter offer ($)">
+                <input type="text" inputmode="none" id="pd-offer-amount" placeholder="Counter offer ($)">
                 <button class="eby-offer" id="pd-send-offer">Counter</button>
               </div>
             `}
           ` : `
             <div class="pd-offer-row">
-              <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Your offer ($)">
+              <input type="text" inputmode="none" id="pd-offer-amount" placeholder="Your offer ($)">
               <button class="eby-offer" id="pd-send-offer">Send Offer</button>
             </div>
           `}
@@ -3210,7 +3210,7 @@ const Views = {
       if (btn) {
         const suggest = bike.fairValue || bike.boughtFor || 500;
         btn.outerHTML = `<div class="sell-price-row">
-          <input type="number" inputmode="numeric" id="bike-list-price" value="${suggest}" min="1">
+          <input type="text" inputmode="none" id="bike-list-price" value="${suggest}" min="1">
           <button class="eby-confirm" id="bike-list-confirm">List</button>
           <button class="eby-cancel" id="bike-list-cancel">${Icon.get('close')}</button>
         </div>`;

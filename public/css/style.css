@@ -69,9 +69,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .logo span { color: var(--blue); }
 .logo-boneyard span { color: #b5651d; }
 .logo.hidden { display: none; }
-.search { flex: 1; }
-.search input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--line);
-  border-radius: 8px; font-size: .85rem; background: var(--paper); color: var(--dim); }
+.search { flex: 2; min-width: 140px; }
+.search input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--line);
+  border-radius: 10px; font-size: .95rem; background: var(--paper); color: var(--dim); }
 .urlbar .url { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .url-refresh { background: transparent; border: none; color: #8b9199; font-size: 1.05rem;
   cursor: pointer; padding: 2px 6px; flex-shrink: 0; line-height: 1; }

@@ -191,8 +191,10 @@ document.addEventListener("DOMContentLoaded", () => {
       c.classList.add("active");
       Feed.setFilter(c.dataset.filter);
     }));
-  // Market search
-  document.getElementById("market-search").addEventListener("input", (e) => {
+  // Market search (with custom QWERTY keyboard)
+  const msInput = document.getElementById("market-search");
+  if (msInput && typeof GameQWERTY !== "undefined") GameQWERTY.attach(msInput, null);
+  msInput.addEventListener("input", (e) => {
     Feed.setSearch(e.target.value);
   });
   console.log("Sold As-Is: marketplace feed live.");

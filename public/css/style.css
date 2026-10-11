@@ -795,6 +795,7 @@ button.settings-item:active { background: #faf6f1; }
   font-size: 13px;
   display: flex;
   gap: 8px;
+  color: #fff;
 }
 .activity-time {
   color: #888;

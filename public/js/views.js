@@ -1118,6 +1118,16 @@ const Views = {
           this.unseenPartSales++;
           this.updateNavBadges();
           UI.refreshCash();
+          // Notify: someone won our auction
+          try {
+            const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+            feed.unshift({ msg: `${l.highBidder} won your ${l.partLabel} auction for ${money(l.currentBid)}`, at: Date.now(), cat: "boneyard" });
+            if (feed.length > 50) feed.length = 50;
+            localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+          } catch (e) {}
+          UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+          UI._unreadBoneyard = (UI._unreadBoneyard || 0) + 1;
+          UI.updateBellBadge();
           // XP for auction sale profit
           const aucCostBasis = (l.paidPrice || 0) + (l.repairSpent || 0);
           const aucXp = Skills.awardForSale(l.currentBid, aucCostBasis);

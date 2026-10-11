@@ -1208,3 +1208,16 @@ body.dark-mode .pd-auction-info .pd-time { color: #ff6659; }
   .kb.qwerty .kb-key { padding: 10px 1px; font-size: 15px; }
   .kb.qwerty .kb-display.text { font-size: 18px; }
 }
+
+/* Tutorial tap blocker */
+#tutorial-blocker {
+  position: fixed; inset: 0; z-index: 9000;
+  background: transparent;
+  display: none;
+}
+#tutorial-blocker.visible { display: block; }
+.tutorial-highlight {
+  position: relative; z-index: 9001 !important;
+  outline: 3px solid var(--red); outline-offset: 2px;
+  border-radius: 8px;
+}

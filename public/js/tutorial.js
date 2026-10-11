@@ -59,6 +59,24 @@ const Tutorial = {
     } catch (e) { return false; }
   },
 
+  showBlocker() {
+    let b = document.getElementById("tutorial-blocker");
+    if (!b) {
+      b = document.createElement("div");
+      b.id = "tutorial-blocker";
+      document.body.appendChild(b);
+      // Swallow all taps except on highlighted elements
+      b.addEventListener("click", (e) => e.stopPropagation(), true);
+      b.addEventListener("touchend", (e) => e.stopPropagation(), true);
+    }
+    b.classList.add("visible");
+  },
+
+  hideBlocker() {
+    const b = document.getElementById("tutorial-blocker");
+    if (b) b.classList.remove("visible");
+  },
+
   start() {
     if (!this.shouldRun()) return;
     this.active = true;
@@ -103,7 +121,9 @@ const Tutorial = {
 
     if (!step.action) {
       document.getElementById("tut-gotit").onclick = () => this.next();
+      this.hideBlocker();
     } else {
+      this.showBlocker();
       // On the haggle step, scroll the detail view to the message box
       if (step.action === "#d-back") {
         setTimeout(() => {
@@ -132,6 +152,7 @@ const Tutorial = {
   },
 
   unbind() {
+    this.hideBlocker();
     if (this.boundEl && this._handler) {
       this.boundEl.removeEventListener("click", this._handler, { capture: true });
       this.boundEl.removeEventListener("touchend", this._handler, { capture: true });
@@ -152,6 +173,7 @@ const Tutorial = {
 
   finish() {
     this.unbind();
+    this.hideBlocker();
     this.active = false;
     document.querySelectorAll(".tutorial-highlight").forEach(el =>
       el.classList.remove("tutorial-highlight"));

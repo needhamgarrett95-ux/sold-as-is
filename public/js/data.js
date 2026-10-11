@@ -305,6 +305,10 @@ function genPartsShop(n = 16) {
   };
   // Guarantee: at least 1 random part per bike model
   [...BIKES].sort(() => Math.random() - 0.5).forEach(bike => mkPart(bike));
+  // Eliseo_M lists parts randomly like anyone else (~5% per item)
+  for (const item of out) {
+    if (Math.random() < 0.05) { item.seller = "Eliseo_M"; item.isDanny = true; }
+  }
   // Fill remaining slots with random bikes (if n > bike count)
   const extra = Math.max(0, n - BIKES.length);
   for (let i = 0; i < extra; i++) {
@@ -442,7 +446,8 @@ function pickTown() {
 function genListings(n, startId = 0, prevBikeId = null) {
   const out = [];
   for (let i = 0; i < n; i++) {
-    let l = makeListing(startId + i);
+    // Eliseo_M shows up randomly like any other seller (~6% per listing)
+    let l = Math.random() < 0.06 ? makeDannyListing(startId + i) : makeListing(startId + i);
     // Never put the same bike twice in a row (re-roll up to 5x)
     let tries = 0;
     while (l.bikeId === prevBikeId && tries < 5) {

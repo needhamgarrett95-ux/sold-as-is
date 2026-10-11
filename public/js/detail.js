@@ -24,6 +24,7 @@ const Detail = {
     document.getElementById("detail").classList.add("hidden");
     document.getElementById("feed").style.display = "";
     this.current = null;
+    if (typeof Feed !== "undefined" && Feed.render) Feed.render();
   },
 
   // Haggle: player sends a numeric offer, seller responds intelligently
@@ -100,7 +101,9 @@ const Detail = {
           `"I don't have all day for this. Find another bike."`,
           `"This is going nowhere. We're done here."`,
         ]), accepted: false, price: null };
+        const blockedListing3 = this.current;
         this.render();
+        this._removeBlockedListing(blockedListing3);
         return;
       }
     }
@@ -504,10 +507,6 @@ const Detail = {
       return;
     }
     Feed.remove(l.id);
-    // Eliseo_M always has a listing — put up a fresh one
-    if (wasDanny && typeof Feed !== "undefined") {
-      Feed.ensureDanny();
-    }
     this.close();
     UI.refreshCash();
   },

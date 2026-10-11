@@ -20,9 +20,6 @@ const Feed = {
     } catch (e) {}
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
-    // Eliseo_M always has a listing up — random position
-    const _danny = makeDannyListing(this.nextId++);
-    this.listings.splice((Math.random() * (this.listings.length + 1)) | 0, 0, _danny);
     this.render();
     // No infinite scroll — feed is locked to 8 rows, refresh for new batch
     // (auto dropFresh removed — it caused random layout breaks)
@@ -65,20 +62,17 @@ const Feed = {
 
   refresh() {
     const now = Date.now();
-    // Fresh batch = clear blocked IDs (they were for the old batch)
-    this.blockedIds = new Set();
     if (now < this.cooldownUntil) {
       const remain = Math.ceil((this.cooldownUntil - now) / 1000);
       const m = Math.floor(remain / 60), s = remain % 60;
       return;
     }
+    // Fresh batch = clear blocked IDs (they were for the old batch)
+    this.blockedIds = new Set();
     // Fresh random batch replaces current feed
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     this.listings.forEach(l => l.fresh = true);
-    // Eliseo_M always has a listing up — random position
-    const _danny = makeDannyListing(this.nextId++);
-    this.listings.splice((Math.random() * (this.listings.length + 1)) | 0, 0, _danny);
     this.render();
     document.getElementById("feed").scrollTop = 0;
     this.cooldownUntil = now + this.COOLDOWN_S * 1000;
@@ -114,34 +108,16 @@ const Feed = {
     this.render();
   },
 
-  // Ensure Eliseo_M always has exactly one listing
-  ensureDanny() {
-    const hasDanny = this.listings.some(l => l.isDanny);
-    if (!hasDanny) {
-      const danny = makeDannyListing(this.nextId++);
-      // Random position, not pinned to front
-      const pos = (Math.random() * (this.listings.length + 1)) | 0;
-      this.listings.splice(pos, 0, danny);
-      this.render();
-    }
-  },
 
   // Seller blocked the player — yank the listing and drop in a fresh one
   replaceBlocked(id) {
     // Mark as blocked first (survives render races)
     this.blockedIds.add(id);
     try {
-      const wasDanny = this.listings.some(l => l.id === id && l.isDanny);
       this.listings = this.listings.filter(l => l.id !== id);
-      if (wasDanny) {
-        const danny = makeDannyListing(this.nextId++);
-        const pos = (Math.random() * (this.listings.length + 1)) | 0;
-        this.listings.splice(pos, 0, danny);
-      } else {
-        const fresh = genListings(1, this.nextId);
-        this.nextId += 1;
-        this.listings.push(...fresh);
-      }
+      const fresh = genListings(1, this.nextId);
+      this.nextId += 1;
+      this.listings.push(...fresh);
       this.render();
     } catch (e) {
       // Retry once after a beat (first-run race with data loading)
@@ -155,11 +131,6 @@ const Feed = {
         } catch (e2) {}
       }, 500);
     }
-  },
-
-  // Call after init/refresh to guarantee Eliseo_M presence
-  initDanny() {
-    this.ensureDanny();
   },
 
   photoColor(bikeId) {

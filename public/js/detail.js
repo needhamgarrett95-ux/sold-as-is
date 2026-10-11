@@ -64,14 +64,16 @@ const Detail = {
         this._forceBellDot();
       } catch (e) {}
     }
-    // Close detail after a beat so they see the block message, then refresh feed
+    // Disable buying immediately — this listing is dead
+    this.blocked = true;
+    // Close after a beat so they see the block message, then refresh feed
     setTimeout(() => {
       this.close();
       if (typeof Views !== "undefined" && Views.current === "market") {
         Views.renderMarketFeed();
         Views.renderMarketTabs();
       }
-    }, 2500);
+    }, 1500);
   },
   sendOffer(rawInput) {
     const l = this.current;

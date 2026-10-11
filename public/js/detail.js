@@ -558,9 +558,10 @@ const UI = {
   toast(msg, category) {
     this._toastQueue.push(msg);
     this._showNextToast();
-    // Bump unread badge on bell
+    // Bump unread badge on bell + play notification sound
     this._unreadActivity++;
     this.updateBellBadge();
+    if (typeof AudioSys !== "undefined" && AudioSys.playBell) AudioSys.playBell();
     // Log to activity feed (auto-detect category if not given)
     try {
       if (!category) {
@@ -590,7 +591,8 @@ const UI = {
       <div class="activity-tabs">
         <button class="activity-tab${cur === "marketplace" ? " active" : ""}" data-atab="marketplace">Marketplace</button>
         <button class="activity-tab${cur === "boneyard" ? " active" : ""}" data-atab="boneyard">Boneyard</button>
-      </div>`;
+      </div>
+      ${filtered.length ? `<button class="activity-clear" id="activity-clear">Clear</button>` : ""}`;
     if (!filtered.length) {
       list.innerHTML = tabsHTML + '<div class="activity-empty">No activity yet.</div>';
     } else {
@@ -603,6 +605,16 @@ const UI = {
     list.querySelectorAll("[data-atab]").forEach(b => {
       b.addEventListener("click", (e) => { e.stopPropagation(); this.showActivity(b.dataset.atab); });
     });
+    const clearBtn = list.querySelector("#activity-clear");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        try { localStorage.setItem("soldasis_activity", "[]"); } catch (err) {}
+        this._unreadActivity = 0;
+        this.updateBellBadge();
+        this.showActivity();
+      });
+    }
     // Close other popups
     document.getElementById("music-popup")?.classList.add("hidden");
     document.getElementById("settings-menu")?.classList.add("hidden");

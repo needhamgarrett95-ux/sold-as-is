@@ -801,6 +801,18 @@ button.settings-item:active { background: #faf6f1; }
   color: #888;
   flex-shrink: 0;
 }
+.activity-clear {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: none;
+  border-top: 1px solid #2a2a2a;
+  color: #888;
+  font-size: 12px;
+  cursor: pointer;
+}
+.activity-clear:active { color: #fff; }
 .activity-empty {
   padding: 20px;
   text-align: center;

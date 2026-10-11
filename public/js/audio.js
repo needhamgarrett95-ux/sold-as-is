@@ -44,6 +44,8 @@ const AudioEngine = {
     this.sfxTyping.preload = "auto";
     this.sfxTouch = new Audio("assets/sfx-tap-real.mp3");
     this.sfxTouch.preload = "auto";
+    this.sfxBell = new Audio("assets/sfx-bell.mp3");
+    this.sfxBell.preload = "auto";
     // Preload tap and typing tick into Web Audio buffers for zero-delay playback
     try {
       this._actx = this._actx || new (window.AudioContext || window.webkitAudioContext)();
@@ -52,6 +54,9 @@ const AudioEngine = {
       }).catch(() => {});
       fetch("assets/sfx-login-key.mp3").then(r => r.arrayBuffer()).then(buf => {
         this._actx.decodeAudioData(buf, (decoded) => { this._tickBuffer = decoded; });
+      }).catch(() => {});
+      fetch("assets/sfx-bell.mp3").then(r => r.arrayBuffer()).then(buf => {
+        this._actx.decodeAudioData(buf, (decoded) => { this._bellBuffer = decoded; });
       }).catch(() => {});
     } catch (e) {}
     // Music starts only when the player taps play (no autoplay)
@@ -157,6 +162,25 @@ const AudioEngine = {
     if (!this.sfxTouch) return;
     const a = this.sfxTouch.cloneNode();
     a.volume = 0.4;
+    a.play().catch(() => {});
+  },
+
+  playBell() {
+    if (!this.sfxOn) return;
+    if (this._bellBuffer && this._actx) {
+      try {
+        const src = this._actx.createBufferSource();
+        src.buffer = this._bellBuffer;
+        const g = this._actx.createGain();
+        g.gain.value = 0.5 * (this.sfxVolume || 1);
+        src.connect(g); g.connect(this._actx.destination);
+        src.start(0);
+        return;
+      } catch (e) {}
+    }
+    if (!this.sfxBell) return;
+    const a = this.sfxBell.cloneNode();
+    a.volume = 0.5;
     a.play().catch(() => {});
   },
 

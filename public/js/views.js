@@ -408,7 +408,15 @@ const Views = {
     // Only toast if not on the listings screen (badge handles it there)
     const onListings = (this.current === "market" && this.marketTab === "mine") ||
                        (this.current === "parts" && this.boneyardTab === "sell");
-    if (!onListings) UI.toast(`${buyerName} offered ${money(boostedOffer)} for your ${listing.brand} ${listing.model}`, "marketplace");
+    // Log to activity only (bell dot), no toast
+    try {
+      const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+      feed.unshift({ msg: `${buyerName} offered ${money(boostedOffer)} for your ${listing.brand} ${listing.model}`, at: Date.now(), cat: "marketplace" });
+      if (feed.length > 50) feed.length = 50;
+      localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+    } catch (e) {}
+    UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+    UI.updateBellBadge();
     this.updateNavBadges();
     // Refresh the relevant view
     if (this.current === "market" && this.marketTab === "mine") {
@@ -929,7 +937,15 @@ const Views = {
         }
         Save.save();
         // Notify: part sold at asking price (boneyard tab shows winner + price)
-        UI.toast(`${l.winner || "Buyer"} won your ${l.partLabel} for ${money(l.askPrice)}`, "boneyard");
+        // Log to activity only (bell dot), no toast
+        try {
+          const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+          feed.unshift({ msg: `${l.winner || "Buyer"} won your ${l.partLabel} for ${money(l.askPrice)}`, at: Date.now(), cat: "boneyard" });
+          if (feed.length > 50) feed.length = 50;
+          localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+        } catch (e) {}
+        UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+        UI.updateBellBadge();
         if (this.current === "parts" && this.boneyardTab === "sell") {
           this.renderParts();
         }

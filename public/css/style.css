@@ -1149,13 +1149,13 @@ body.dark-mode .msg-seller-card { background: #242930; border-color: #3a4048; }
 body.dark-mode .msg-seller-head { color: #ece9e1; }
 
 /* Dark mode: blend everything */
-body.dark-mode .part-missing { background: #2c3138; border-color: #3a4048; }
-body.dark-mode .part-missing .x { background: #333943; color: #9aa0a8; }
-body.dark-mode .garage-photo { background: linear-gradient(135deg, #242930, #1a1d22); }
-body.dark-mode .listing-desc-box { background: #242930; border-color: #3a4048; color: #ece9e1; }
+
+
+
+
 body.dark-mode .eby-btn-white { background: #2c3138; border-color: #3a4048; color: #e04536; }
-body.dark-mode .auction-timer { background: #2c3138; border-color: #3a4048; }
-body.dark-mode .auction-timer .time { color: #e04536; }
+
+
 body.dark-mode .music-popup { background: #242930; }
 body.dark-mode .music-popup .head { color: #ece9e1; }
 body.dark-mode .settings-menu { background: #242930; }
@@ -1181,3 +1181,16 @@ body.dark-mode .btn-strip { background: #2c3138; }
 body.dark-mode .eby-repair { background: #2c3138; }
 body.dark-mode .eby-delist { background: #2c3138; color: #9aa0a8; }
 body.dark-mode .eby-typechoice { background: #2c3138; }
+
+/* Dark mode: screenshot round 2 */
+body.dark-mode .part-missing, body.dark-mode .part-missing-x { background: #2c3138; }
+body.dark-mode .settings-head { background: #2c3138; color: #ece9e1; border-color: #3a4048; }
+body.dark-mode .settings-menu, body.dark-mode .music-popup, body.dark-mode .activity-popup {
+  background: #242930; border-color: #3a4048;
+}
+body.dark-mode .music-popup { border: 1.5px solid #3a4048; }
+body.dark-mode .activity-popup { border: 1.5px solid #3a4048; }
+body.dark-mode .g-detail-photo { background: linear-gradient(135deg, #242930, #1a1d22); }
+body.dark-mode .g-desc-block textarea { background: #1a1d22; color: #ece9e1; border-color: #3a4048; }
+body.dark-mode .pd-auction-info { background: #2c3138; }
+body.dark-mode .pd-auction-info .pd-time { color: #ff6659; }

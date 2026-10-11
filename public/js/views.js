@@ -1673,6 +1673,8 @@ const Views = {
             </div>
             ${this.partDetailOffer.accepted ? `
               <button class="eby-buy pd-buy" id="pd-accept-offer">Buy for ${money(this.partDetailOffer.price)}</button>
+            ` : (this.partDetailOffer.blocked || this.partDetailOffer.walkedAway) ? `
+              <div class="pd-offer-dead" style="margin-top:10px;color:#999;font-style:italic">This seller is done talking.</div>
             ` : `
               <div class="pd-offer-row" style="margin-top:10px">
                 <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Counter offer ($)">
@@ -1794,131 +1796,169 @@ const Views = {
       this.renderPartDetail();
       return;
     }
+    // Seller personality — assigned once per listing
+    if (!p.sellerStyle) {
+      const r = Math.random();
+      p.sellerStyle = r < 0.35 ? "motivated" : r < 0.70 ? "firm" : "flaky";
+    }
+    const style = p.sellerStyle;
+    // Track rounds
+    p.offerRounds = (p.offerRounds || 0) + 1;
+    const rounds = p.offerRounds;
     // Smooth Talker: discount boosts effective offer ratio
     const stDisc = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
     const ratio = (offerAmount * (1 + stDisc)) / p.price;
-    let response, accepted = false, price = null;
+    let response, accepted = false, price = null, blocked = false, walkedAway = false;
 
-    if (ratio >= 0.95) {
+    // Block risk ramps up with lowballs and rounds (like marketplace sellers)
+    const blockRisk = rounds === 1 ? 0 : rounds === 2 ? 0.10 : rounds === 3 ? 0.25 : rounds === 4 ? 0.50 : 0.75;
+    if (ratio < 0.50 && Math.random() < blockRisk) {
+      blocked = true;
       response = this.pickPartReply([
-        `"${money(offerAmount)}? Yeah, I can do that."`,
-        `"${money(offerAmount)} — sold. It's boxed and ready."`,
-        `"Done. ${money(offerAmount)} and it's yours."`,
-        `"${money(offerAmount)}. I'll get it in the mail today."`,
-        `"Sure, ${money(offerAmount)}. Good part, good price."`,
-        `"${money(offerAmount)} works for me. Shipping tomorrow."`,
-        `"You got it. ${money(offerAmount)}, packed with care."`,
-        `"${money(offerAmount)} — deal. Check your inbox for tracking."`,
-        `"${money(offerAmount)}? You got it. This part's a good one."`,
-        `"Done at ${money(offerAmount)}. I'll wrap it like it's my own."`,
-        `"${money(offerAmount)} — sold. You'll be happy with this."`,
-        `"Accepted! ${money(offerAmount)}. Ships within 24 hours."`,
-        `"${money(offerAmount)}. Pleasure doing business."`,
-        `"I'll take ${money(offerAmount)}. It's already in a box."`,
-        `"${money(offerAmount)}? That's fair. It's yours."`,
+        `"${money(offerAmount)}?? Stop wasting my time."`,
+        `"Blocked. Don't lowball me again."`,
+        `"${money(offerAmount)} for this? We're done here."`,
+        `"I'm not selling to you at ${money(offerAmount)}. Goodbye."`,
       ]);
-      accepted = true; price = offerAmount;
-    } else if (ratio >= 0.85) {
-      response = this.pickPartReply([
-        `"Hmm... ${money(offerAmount)}. Alright, it's yours."`,
-        `"${money(offerAmount)}? Eh... fine. Take it."`,
-        `"You got me at ${money(offerAmount)}. Don't push it."`,
-        `"${money(offerAmount)}... I wanted more, but okay."`,
-        `"Fine. ${money(offerAmount)}. You're lucky I need shelf space."`,
-        `"${money(offerAmount)}. Sold — but you're not getting another deal like this."`,
-        `"Ugh, okay. ${money(offerAmount)}. It's yours."`,
-        `"${money(offerAmount)} and we never speak of this discount again."`,
-        `"${money(offerAmount)}? ...Okay. But I'm not happy about it."`,
-        `"Fine, ${money(offerAmount)}. You caught me before coffee."`,
-        `"${money(offerAmount)}. Deal. I need to clear inventory anyway."`,
-        `"Alright, ${money(offerAmount)}. Don't tell the other buyers."`,
-        `"I'll do ${money(offerAmount)}. You're persistent, I'll give you that."`,
-        `"${money(offerAmount)} — okay. But no more haggling after this."`,
-        `"Sold for ${money(offerAmount)}. I hope you appreciate this."`,
-      ]);
-      accepted = true; price = offerAmount;
+    } else if (ratio >= 0.95) {
+      // Near asking — motivated accepts fast, firm might squeeze, flaky might ghost
+      if (style === "firm" && rounds < 2 && Math.random() < 0.3) {
+        const squeeze = Math.round(((offerAmount + p.price) / 2) / 5) * 5;
+        price = squeeze;
+        response = `"Almost... ${money(squeeze)} and it's yours. I know what I got."`;
+      } else if (style === "flaky" && Math.random() < 0.15) {
+        walkedAway = true;
+        response = `"Sorry man, someone just messaged me about this. Gotta go."`;
+      } else {
+        accepted = true; price = offerAmount;
+        response = this.pickSellerAccept(style, offerAmount);
+      }
     } else if (ratio >= 0.70) {
-      const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
-      response = this.pickPartReply([
-        `"Can't do ${money(offerAmount)}. How about ${money(counter)}?"`,
-        `"${money(offerAmount)}'s light. ${money(counter)} gets it shipped today."`,
-        `"Meet me at ${money(counter)} and we got a deal."`,
-        `"I can go ${money(counter)}. That's the best I can do on this one."`,
-        `"How's ${money(counter)} sound? I'm already losing money here."`,
-        `"${money(counter)} — final offer. These don't sit long."`,
-        `"Split it with me at ${money(counter)}. Fair?"`,
-        `"${money(offerAmount)} won't cover shipping. ${money(counter)} and it's on its way."`,
-        `"I hear you, but ${money(counter)} is where I need to be."`,
-        `"${money(counter)}? I can do that. It's a solid part."`,
-        `"Let's settle at ${money(counter)}. I think that's reasonable."`,
-        `"${money(offerAmount)} is close. ${money(counter)} closes the deal."`,
-        `"I could do ${money(counter)} if you pay today."`,
-        `"${money(counter)} and I'll upgrade you to priority shipping."`,
-        `"How about ${money(counter)}? Meet me there."`,
-      ]);
-      price = counter;
+      // Reasonable — counter based on personality
+      const patience = style === "motivated" ? 0.8 : style === "firm" ? 0.4 : 0.6;
+      if (Math.random() < patience) {
+        const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
+        price = counter;
+        response = this.pickSellerCounter(style, offerAmount, counter);
+      } else {
+        accepted = true; price = offerAmount;
+        response = this.pickSellerAccept(style, offerAmount);
+      }
     } else if (ratio >= 0.50) {
-      const counter = Math.round((p.price * 0.9) * (1 - stDisc) / 5) * 5;
-      response = this.pickPartReply([
-        `"${money(offerAmount)}? That's insulting. ${money(counter)} and not a penny less."`,
-        `"For ${money(offerAmount)}? Nah. ${money(counter)}, firm."`,
-        `"${money(counter)}. I know what I got."`,
-        `"${money(offerAmount)} is a joke. ${money(counter)}, take it or leave it."`,
-        `"I've got three watchers on this. ${money(counter)} or it goes to one of them."`,
-        `"${money(counter)}. That's already below market and you know it."`,
-        `"Nope. ${money(counter)}. I don't haggle on the good stuff."`,
-        `"${money(offerAmount)}? Cute. ${money(counter)} is the price."`,
-        `"${money(counter)}. I don't budge on parts this clean."`,
-        `"Look, ${money(counter)} is already a deal. Take it."`,
-        `"My price is ${money(counter)}. It's worth it, trust me."`,
-        `"${money(offerAmount)} doesn't work. ${money(counter)} does."`,
-        `"I've sold three of these at ${money(counter)}. That's the number."`,
-        `"${money(counter)}, firm. Good parts aren't cheap."`,
-        `"No can do at ${money(offerAmount)}. ${money(counter)} is my line."`,
-      ]);
-      price = counter;
+      // Low — firm sellers hold the line, others might deal
+      const holdFirm = style === "firm" ? 0.8 : style === "motivated" ? 0.3 : 0.5;
+      if (Math.random() < holdFirm) {
+        const counter = Math.round((p.price * 0.9) * (1 - stDisc) / 5) * 5;
+        price = counter;
+        response = this.pickSellerFirm(style, offerAmount, counter);
+      } else {
+        const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
+        price = counter;
+        response = this.pickSellerCounter(style, offerAmount, counter);
+      }
     } else {
-      response = this.pickPartReply([
-        `"${money(offerAmount)}?? Get outta here with that lowball."`,
-        `"${money(offerAmount)} for this? Blocked. (Not really. But wow.)"`,
-        `"Is this a joke? ${money(offerAmount)}?"`,
-        `"${money(offerAmount)}. My scrap guy pays more than that."`,
-        `"${money(offerAmount)}? I paid more for the bubble wrap."`,
-        `"Do you do this at the grocery store too? ${money(offerAmount)} — no."`,
-        `"${money(offerAmount)}. I'd make more parting it out myself."`,
-        `"That's not an offer, that's a typo. Try again."`,
-        `"${money(offerAmount)}? The photos alone cost me more in time."`,
-        `"I'm going to assume you missed a zero. ${money(offerAmount)}? Really?"`,
-        `"${money(offerAmount)}? This isn't a flea market."`,
-        `"Ha! ${money(offerAmount)}. That's adorable."`,
-        `"${money(offerAmount)} for a part this clean? Absolutely not."`,
-        `"I'd lose money at ${money(offerAmount)}. Hard pass."`,
-        `"${money(offerAmount)}. Did you mean to add another digit?"`,
-        `"That's... no. Just no. ${money(offerAmount)}?"`,
-        `"${money(offerAmount)}? I think you misread the listing."`,
-        `"Come on. ${money(offerAmount)}? Even I can't do that."`,
-        `"${money(offerAmount)}. I'm not even going to counter that."`,
-      ]);
+      // Insulting — walk away chance
+      const walkChance = style === "flaky" ? 0.50 : style === "motivated" ? 0.15 : 0.30;
+      if (Math.random() < walkChance) {
+        walkedAway = true;
+        response = this.pickPartReply([
+          `"${money(offerAmount)}?? Get outta here with that lowball."`,
+          `"${money(offerAmount)} for this? Blocked. (Not really. But wow.)"`,
+          `"Is this a joke? ${money(offerAmount)}?"`,
+        ]);
+      } else {
+        response = this.pickPartReply([
+          `"${money(offerAmount)}. My scrap guy pays more than that."`,
+          `"${money(offerAmount)}? I paid more for the bubble wrap."`,
+          `"Do you do this at the grocery store too? ${money(offerAmount)} — no."`,
+          `"That's not an offer, that's a typo. Try again."`,
+          `"${money(offerAmount)}? I think you misread the listing."`,
+        ]);
+      }
     }
 
     // Append to existing thread if countering, else start new
+    const msg = { from: "seller", text: response };
     if (this.partDetailOffer && this.partDetailOffer.thread) {
       this.partDetailOffer.thread.push(
         { from: "you", text: money(offerAmount) },
-        { from: "seller", text: response },
+        msg,
       );
       this.partDetailOffer.accepted = accepted;
       this.partDetailOffer.price = price;
+      this.partDetailOffer.blocked = blocked;
+      this.partDetailOffer.walkedAway = walkedAway;
     } else {
       this.partDetailOffer = {
         thread: [
           { from: "you", text: money(offerAmount) },
-          { from: "seller", text: response },
+          msg,
         ],
-        accepted, price,
+        accepted, price, blocked, walkedAway,
       };
     }
     this.renderPartDetail();
+  },
+
+  pickSellerAccept(style, amount) {
+    if (style === "motivated") return this.pickPartReply([
+      `"${money(amount)}? Yeah, I can do that."`,
+      `"${money(amount)} — sold. It's boxed and ready."`,
+      `"Done. ${money(amount)} and it's yours."`,
+      `"${money(amount)}. I'll get it in the mail today."`,
+      `"Sure, ${money(amount)}. Good part, good price."`,
+    ]);
+    if (style === "firm") return this.pickPartReply([
+      `"${money(amount)}. Fine. You drive a hard bargain."`,
+      `"Alright, ${money(amount)}. Don't tell anyone I went this low."`,
+      `"${money(amount)}... I wanted more, but okay."`,
+      `"Fine. ${money(amount)}. You're lucky I need shelf space."`,
+    ]);
+    return this.pickPartReply([
+      `"${money(amount)}? Eh... fine. Take it."`,
+      `"You got me at ${money(amount)}. Don't push it."`,
+      `"Ugh, okay. ${money(amount)}. It's yours."`,
+      `"${money(amount)} and we never speak of this discount again."`,
+    ]);
+  },
+
+  pickSellerCounter(style, offer, counter) {
+    if (style === "motivated") return this.pickPartReply([
+      `"Can't do ${money(offer)}. How about ${money(counter)}?"`,
+      `"${money(offer)}'s light. ${money(counter)} gets it shipped today."`,
+      `"Meet me at ${money(counter)} and we got a deal."`,
+      `"How's ${money(counter)} sound? I'm already losing money here."`,
+    ]);
+    if (style === "firm") return this.pickPartReply([
+      `"${money(offer)}? No. ${money(counter)}, firm."`,
+      `"I've got three watchers on this. ${money(counter)} or it goes to one of them."`,
+      `"${money(counter)}. That's already below market and you know it."`,
+      `"My price is ${money(counter)}. It's worth it, trust me."`,
+    ]);
+    return this.pickPartReply([
+      `"I could do ${money(counter)} if you pay today."`,
+      `"${money(counter)} and I'll upgrade you to priority shipping."`,
+      `"How about ${money(counter)}? Meet me there."`,
+      `"Split it with me at ${money(counter)}. Fair?"`,
+    ]);
+  },
+
+  pickSellerFirm(style, offer, counter) {
+    if (style === "motivated") return this.pickPartReply([
+      `"${money(offer)}? That's insulting. ${money(counter)} and not a penny less."`,
+      `"For ${money(offer)}? Nah. ${money(counter)}, firm."`,
+    ]);
+    if (style === "firm") return this.pickPartReply([
+      `"${money(counter)}. I know what I got."`,
+      `"${money(offer)} is a joke. ${money(counter)}, take it or leave it."`,
+      `"Nope. ${money(counter)}. I don't haggle on the good stuff."`,
+      `"${money(counter)}, firm. Good parts aren't cheap."`,
+    ]);
+    return this.pickPartReply([
+      `"Look, ${money(counter)} is already a deal. Take it."`,
+      `"No can do at ${money(offer)}. ${money(counter)} is my line."`,
+      `"${money(offer)} doesn't work. ${money(counter)} does."`,
+    ]);
   },
 
   // Place a custom bid amount on auction

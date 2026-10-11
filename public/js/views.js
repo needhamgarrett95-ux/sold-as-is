@@ -371,6 +371,7 @@ const Views = {
       } catch (e) {}
       UI._unreadActivity = (UI._unreadActivity || 0) + 1;
       UI.updateBellBadge();
+      if (typeof AudioEngine !== "undefined" && AudioEngine.playBell) AudioEngine.playBell();
       if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
       return;
     }

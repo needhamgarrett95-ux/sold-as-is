@@ -39,6 +39,16 @@ const Detail = {
     return pick;
   },
 
+  _removeBlockedListing() {
+    // Seller blocked you — listing disappears from feed
+    const l = this.current;
+    if (l && typeof Feed !== "undefined" && Feed.listings) {
+      const idx = Feed.listings.findIndex(x => x.id === l.id);
+      if (idx >= 0) Feed.listings.splice(idx, 1);
+    }
+    // Close detail after a beat so they see the block message
+    setTimeout(() => { this.close(); }, 2500);
+  },
   sendOffer(rawInput) {
     const l = this.current;
     // Numerals only
@@ -103,6 +113,7 @@ const Detail = {
       this.blocked = true;
       this.haggleResponse = { response: null, accepted: false, price: null };
       this.render();
+      this._removeBlockedListing();
       return;
     }
     this.offer = offerPrice;
@@ -367,6 +378,7 @@ const Detail = {
         this.haggleResponse = { response: null, accepted: false, price: null };
         if (typeof Feed !== "undefined" && this.current) Feed.replaceBlocked(this.current.id);
         this.render();
+      this._removeBlockedListing();
         return;
       }
       response = this.pickReply([

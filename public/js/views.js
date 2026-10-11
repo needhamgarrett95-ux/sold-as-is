@@ -2578,10 +2578,8 @@ const Views = {
       }
       if (typeof recalcFairValue !== "undefined") recalcFairValue(r);
     };
-    // Match by sprite, or by brand+model as fallback
-    const spriteMatch = part.bikeSprite === r.sprite;
-    const modelMatch = part.bikeBrand === r.brand && part.bikeModel === r.model;
-    if ((!spriteMatch && !modelMatch) || !(r.missingParts || []).includes(part.partKey)) {
+    // Picker already filtered to matching parts — just verify the slot is missing
+    if (!(r.missingParts || []).includes(part.partKey)) {
       return;
     }
     parts.splice(invIdx, 1);

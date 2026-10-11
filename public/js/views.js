@@ -1471,6 +1471,7 @@ const Views = {
     const sel = document.getElementById("parts-bike-filter");
     sel.innerHTML = `<option value="all">All bikes</option>` +
       BIKES.map(b => `<option value="${b.sprite}">${b.brand} ${b.name}</option>`).join("");
+    if (typeof GameDropdown !== "undefined") GameDropdown.enhance(sel, null);
     sel.addEventListener("change", (e) => {
       this.partsFilter = e.target.value;
       this.renderParts();
@@ -1610,6 +1611,7 @@ const Views = {
     });
     // Parts search (preserve focus while typing)
     const psInput = document.getElementById("parts-search");
+    if (psInput && typeof GameQWERTY !== "undefined") GameQWERTY.attach(psInput, null);
     if (psInput && !preserve) {
       psInput.addEventListener("input", (e) => {
         this.partsSearch = e.target.value;
@@ -2552,12 +2554,39 @@ const Views = {
         const tier = parseInt(node.dataset.tier, 10);
         const def = SKILL_DEFS.find(d => d.id === skillId);
         const cost = Skills.tierCost(tier);
-        if (!confirm(`Unlock ${def.name} Tier ${tier} for ${cost} skill point${cost > 1 ? "s" : ""}?\n\n${def.tiers[tier - 1]}`)) return;
-        if (Skills.unlockTier(skillId)) {
-          this.renderGarage();
-        } else {
-        }
+        this.showSkillConfirm(def, tier, cost, skillId);
       });
+    });
+  },
+
+  showSkillConfirm(def, tier, cost, skillId) {
+    // Custom in-game confirmation modal (no system dialog)
+    const existing = document.getElementById("skill-confirm");
+    if (existing) existing.remove();
+    const html = `
+    <div class="modal-overlay" id="skill-confirm">
+      <div class="modal-box">
+        <div class="modal-title">Unlock ${def.name}?</div>
+        <div class="modal-body">
+          <div class="modal-tier">Tier ${tier} — ${cost} skill point${cost > 1 ? "s" : ""}</div>
+          <div class="modal-desc">${def.tiers[tier - 1]}</div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" id="skill-cancel">Not Yet</button>
+          <button class="modal-btn go" id="skill-go">Unlock</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML("beforeend", html);
+    document.getElementById("skill-cancel").addEventListener("click", () => {
+      document.getElementById("skill-confirm").remove();
+    });
+    document.getElementById("skill-confirm").addEventListener("click", (e) => {
+      if (e.target.id === "skill-confirm") document.getElementById("skill-confirm").remove();
+    });
+    document.getElementById("skill-go").addEventListener("click", () => {
+      document.getElementById("skill-confirm").remove();
+      if (Skills.unlockTier(skillId)) this.renderGarage();
     });
   },
 
@@ -2879,6 +2908,7 @@ const Views = {
     // Garage sort
     const sortSel = el.querySelector("#garage-sort");
     if (sortSel) {
+      if (typeof GameDropdown !== "undefined") GameDropdown.enhance(sortSel, null);
       sortSel.addEventListener("change", (e) => {
         this.garageSort = e.target.value;
         this.renderGarage();
@@ -2886,6 +2916,7 @@ const Views = {
     }
     // Parts search (debounced, preserves focus)
     const search = el.querySelector("#parts-search");
+    if (search && typeof GameQWERTY !== "undefined") GameQWERTY.attach(search, null);
     if (search) {
       let debounce = null;
       search.addEventListener("input", (e) => {

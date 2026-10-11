@@ -603,7 +603,12 @@ const Detail = {
     document.getElementById("d-buy").onclick = () => this.buyNow();
     const offerInput = document.getElementById("offer-input");
     const sendBtn = document.getElementById("offer-send");
-    const sendOffer = () => this.sendOffer(offerInput.value);
+    if (offerInput && typeof GameKB !== "undefined") {
+      GameKB.attach(offerInput, (val) => {
+        if (val > 0) this.sendOffer(String(val));
+      });
+    }
+    const sendOffer = () => this.sendOffer(offerInput.dataset.raw || offerInput.value);
     // Numerals only as they type
     offerInput.addEventListener("input", () => {
       offerInput.value = offerInput.value.replace(/[^0-9]/g, "");

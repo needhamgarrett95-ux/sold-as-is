@@ -990,3 +990,48 @@ button.settings-item:active { background: #faf6f1; }
 .kb-key.fn { background: #f0ebe2; font-size: 18px; }
 .kb-key.go { background: var(--red); color: #fff; border-color: var(--red); font-size: 18px; }
 .kb-key.go:active { background: #b83026; }
+
+/* QWERTY keyboard */
+.kb.qwerty .kb-display.text { font-size: 20px; text-align: left; padding: 8px 12px; }
+.kb-grid.qrow { margin-bottom: 8px; }
+.kb-key.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* Custom modal (replaces system confirm) */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box {
+  background: #fff; border-radius: 16px; max-width: 340px; width: 100%;
+  padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #222; }
+.modal-tier { font-size: 15px; font-weight: 600; color: var(--red); margin-bottom: 8px; }
+.modal-desc { font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px;
+  border: 1.5px solid var(--line); background: #faf6f0; color: #222; cursor: pointer;
+}
+.modal-btn.go { background: var(--red); border-color: var(--red); color: #fff; }
+.modal-btn:active { transform: scale(0.97); }
+
+/* Custom dropdown */
+.dd-wrap { position: relative; display: inline-block; width: 100%; }
+.dd-btn {
+  width: 100%; padding: 10px 12px; font-size: 14px; text-align: left;
+  background: #fff; border: 1.5px solid var(--line); border-radius: 8px;
+  color: #222; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+}
+.dd-arrow { color: #999; font-size: 12px; }
+.dd-menu {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
+  background: #fff; border: 1.5px solid var(--line); border-radius: 8px;
+  margin-top: 4px; max-height: 240px; overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.dd-menu.hidden { display: none; }
+.dd-item { padding: 12px; font-size: 14px; color: #222; cursor: pointer; border-bottom: 1px solid #f0ebe2; }
+.dd-item:last-child { border-bottom: none; }
+.dd-item:active { background: #faf6f0; }
+.dd-item.sel { background: #fef2f0; color: var(--red); font-weight: 600; }

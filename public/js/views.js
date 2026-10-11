@@ -1025,7 +1025,7 @@ const Views = {
       return;
     }
     // Remove from inventory, add to listings
-    parts.splice(invIdx, 1);
+    parts.splice(actualIdx, 1);
     this.myPartListings.push({
       ...p,
       askPrice: price,
@@ -1052,7 +1052,7 @@ const Views = {
     if (!startPrice || startPrice <= 0) {
       return;
     }
-    parts.splice(invIdx, 1);
+    parts.splice(actualIdx, 1);
     const pct = ensurePct(p);
     const state = pctToState(pct);
     // Generate bidders with secret budgets
@@ -2569,8 +2569,14 @@ const Views = {
   installPartOnRoller(rollerIdx, invIdx) {
     const r = (State.rollers || [])[rollerIdx];
     const parts = State.parts || [];
-    const part = parts[invIdx];
-    if (!r || !part) return;
+    let part = parts[invIdx];
+    let actualIdx = invIdx;
+    // Fallback: if index is stale, find by matching partKey + sprite
+    if (!part && this._lastPickPart) {
+      actualIdx = parts.findIndex(p => p.partKey === this._lastPickPart.partKey && p.bikeSprite === this._lastPickPart.bikeSprite);
+      part = parts[actualIdx];
+    }
+    if (!r || !part || actualIdx < 0) return;
     // Recalculate condition after install (at end of function)
     const _recalc = () => {
       if (typeof calcBikeCondition !== "undefined") {
@@ -2582,7 +2588,7 @@ const Views = {
     if (!(r.missingParts || []).includes(part.partKey)) {
       return;
     }
-    parts.splice(invIdx, 1);
+    parts.splice(actualIdx, 1);
     // Install: set condition, remove from missing
     const partKey = part.partKey;
     r.partStates = r.partStates || {};
@@ -2757,7 +2763,11 @@ const Views = {
       const btn = row.querySelector(".roller-pick-btn");
       const doInstall = (e) => {
         e.stopPropagation();
-        this.installPartOnRoller(+row.dataset.roller, +row.dataset.pickPart);
+        e.preventDefault();
+        const pIdx = +row.dataset.pickPart;
+        const p = (State.parts || [])[pIdx];
+        if (p) this._lastPickPart = { partKey: p.partKey, bikeSprite: p.bikeSprite };
+        this.installPartOnRoller(+row.dataset.roller, pIdx);
       };
       if (btn) btn.addEventListener("click", doInstall);
       row.addEventListener("click", doInstall);

@@ -1168,3 +1168,16 @@ body.dark-mode .cart-popup .head { background: #2c3138; color: #ece9e1; }
 body.dark-mode .repair-btn { background: #2c3138; border-color: #b7790e; color: #febc2e; }
 body.dark-mode .music-ctrl { background: #333943; }
 body.dark-mode .music-ctrl svg { fill: #ece9e1; }
+
+/* Dark mode: remaining hardcoded whites */
+body.dark-mode .haggle-modal { background: #242930; }
+body.dark-mode .haggle-counter { background: #1a1d22; color: #e04536; }
+body.dark-mode .pd-modal { background: #1a1d22; }
+body.dark-mode .eby-offer { background: #2c3138; color: #e04536; }
+body.dark-mode .pd-btn-outline { background: #2c3138; color: #e04536; }
+body.dark-mode .cart-modal { background: #242930; }
+body.dark-mode .eby-auction { background: #242930; }
+body.dark-mode .btn-strip { background: #2c3138; }
+body.dark-mode .eby-repair { background: #2c3138; }
+body.dark-mode .eby-delist { background: #2c3138; color: #9aa0a8; }
+body.dark-mode .eby-typechoice { background: #2c3138; }

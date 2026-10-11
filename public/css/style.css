@@ -348,8 +348,12 @@ button svg { vertical-align: -3px; }
   display: flex; flex-direction: column; }
 .haggle-head { padding: 12px 16px; border-bottom: 1px solid #eee;
   position: relative; }
-.haggle-close { position: absolute; right: 12px; top: 12px;
-  background: none; border: none; font-size: 1.2rem; cursor: pointer; }
+.haggle-close { position: absolute; right: 12px; top: 12px; z-index: 10;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.5); border: none; border-radius: 50%;
+  font-size: 1rem; cursor: pointer; color: #fff; }
+.pd-head { position: relative; height: 0; }
+body.dark-mode .haggle-close { background: rgba(255,255,255,.15); }
 .haggle-title { font-weight: 800; font-size: 1rem; padding-right: 30px; }
 .haggle-sub { font-size: .82rem; color: #666; margin-top: 2px; }
 .haggle-photo { height: 140px; display: flex; align-items: center;

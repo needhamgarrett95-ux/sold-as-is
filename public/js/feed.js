@@ -8,6 +8,7 @@ const Feed = {
   search: "",
 
   init() {
+    this.blockedIds = new Set();
     // Restore cooldown from previous session
     try {
       const saved = parseInt(localStorage.getItem(this.COOLDOWN_KEY) || "0", 10);
@@ -64,6 +65,8 @@ const Feed = {
 
   refresh() {
     const now = Date.now();
+    // Fresh batch = clear blocked IDs (they were for the old batch)
+    this.blockedIds = new Set();
     if (now < this.cooldownUntil) {
       const remain = Math.ceil((this.cooldownUntil - now) / 1000);
       const m = Math.floor(remain / 60), s = remain % 60;

@@ -1058,3 +1058,32 @@ button.settings-item:active { background: #faf6f1; }
 .dd-item:last-child { border-bottom: none; }
 .dd-item:active { background: #faf6f0; }
 .dd-item.sel { background: #fef2f0; color: var(--red); font-weight: 600; }
+
+/* Dark mode: kill the remaining white surfaces */
+body.dark-mode .photo { background: #242930; }
+body.dark-mode .card { background: #242930; }
+body.dark-mode .card-info { color: #ece9e1; }
+body.dark-mode .card-price-name { color: #ece9e1; }
+body.dark-mode .card-loc { color: #9aa0a8; }
+body.dark-mode .cond-badge, body.dark-mode .card-cond { background: #333943; color: #ece9e1; }
+body.dark-mode .cond-locked-note { background: #2c3138; color: #9aa0a8; }
+body.dark-mode .part-cell { background: #242930; border-color: #3a4048; }
+body.dark-mode .part-cell .part-label { color: #ece9e1; }
+body.dark-mode .eby-item { background: #242930; border-color: #3a4048; }
+body.dark-mode .eby-title { color: #ece9e1; }
+body.dark-mode .eby-meta { color: #9aa0a8; }
+body.dark-mode .pd-modal { background: #1a1d22; }
+body.dark-mode .pd-body { background: #1a1d22; color: #ece9e1; }
+body.dark-mode .pd-title { color: #ece9e1; }
+body.dark-mode .msg { background: #2c3138; color: #ece9e1; }
+body.dark-mode .msg.you { background: #333943; }
+body.dark-mode .detail-head, body.dark-mode .detail-body { background: #1a1d22; color: #ece9e1; }
+body.dark-mode .seller-card { background: #242930; border-color: #3a4048; }
+body.dark-mode .offer-box { background: #242930; border-color: #3a4048; }
+body.dark-mode input:not(.kb-target) { background: #1a1d22; color: #ece9e1; border-color: #3a4048; }
+body.dark-mode .garage-card { background: #242930; border-color: #3a4048; }
+body.dark-mode .collection-card { background: #242930; }
+body.dark-mode .skill-card { background: #242930; border-color: #3a4048; }
+body.dark-mode .tier-node { background: #2c3138; border-color: #3a4048; color: #ece9e1; }
+body.dark-mode .activity-item { background: #242930; border-color: #3a4048; color: #ece9e1; }
+body.dark-mode .activity-popup { background: #242930; }

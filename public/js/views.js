@@ -2297,7 +2297,7 @@ const Views = {
         </div>
         <div class="cond-report">
           <h3>Inspect Parts</h3>
-          <div class="sub" style="margin-bottom:8px">Tap a part to reveal its condition. <button class="link-btn" id="strip-toggle">Strip parts instead</button></div>
+          <div class="sub" style="margin-bottom:8px">Tap a part to reveal its condition.</div>
           <div class="parts-grid" id="inspect-grid">
             ${availableParts(b.sprite).map(p => {
               const st = (b.partStates && b.partStates[p.key]) || "pristine";
@@ -2323,10 +2323,11 @@ const Views = {
         </div>
         <div class="g-detail-actions">
           <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
+          <button class="btn-strip" id="strip-toggle-btn" style="margin-top:8px">Strip Parts</button>
           <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
 
         </div>
-        <div class="sub" style="margin-top:8px">To strip parts, use "Strip parts instead" above and tap parts individually.</div>
+
         ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}
       </div>${pickerOverlay}`;
   },
@@ -2866,10 +2867,11 @@ const Views = {
     if (toGarage && !toGarage.disabled) toGarage.addEventListener("click", () => {
       this.rollerToGarage(this.rollerDetailIdx);
     });
-    // Strip mode toggle
-    const stripToggle = el.querySelector("#strip-toggle");
-    if (stripToggle) stripToggle.addEventListener("click", () => {
+    // Strip mode toggle (button)
+    const stripToggleBtn = el.querySelector("#strip-toggle-btn");
+    if (stripToggleBtn) stripToggleBtn.addEventListener("click", () => {
       this.stripMode = !this.stripMode;
+      stripToggleBtn.textContent = this.stripMode ? "Done Stripping" : "Strip Parts";
       this.renderGarage();
     });
     // Inspect / strip parts: tap to reveal or pull

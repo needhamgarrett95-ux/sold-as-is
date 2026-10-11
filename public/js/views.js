@@ -2817,7 +2817,7 @@ const Views = {
     });
     // Roller detail: close picker
     const pickerClose = el.querySelector("#roller-picker-close");
-    if (instPickerClose) instPickerClose.addEventListener("click", () => {
+    if (pickerClose) pickerClose.addEventListener("click", () => {
       this.rollerPickSlot = null;
       this.renderGarage();
     });

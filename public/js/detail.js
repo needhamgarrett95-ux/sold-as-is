@@ -57,7 +57,10 @@ const Detail = {
         feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "marketplace" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
-        if (typeof UI !== "undefined" && UI.updateBellBadge) UI.updateBellBadge();
+        // Bump unread (silent — no toast, no sound)
+        this._unreadActivity = (this._unreadActivity || 0) + 1;
+        this._unreadMarketplace = (this._unreadMarketplace || 0) + 1;
+        this.updateBellBadge();
       } catch (e) {}
     }
     // Close detail after a beat so they see the block message, then refresh feed

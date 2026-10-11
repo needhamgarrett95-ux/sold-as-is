@@ -1924,7 +1924,12 @@ const Views = {
         feed.unshift({ msg: byBlockMsgs[(Math.random() * byBlockMsgs.length) | 0], at: Date.now(), cat: "boneyard" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
-        if (typeof UI !== "undefined" && UI.updateBellBadge) UI.updateBellBadge();
+        // Bump unread (silent — no toast, no sound)
+        if (typeof Detail !== "undefined") {
+          Detail._unreadActivity = (Detail._unreadActivity || 0) + 1;
+          Detail._unreadBoneyard = (Detail._unreadBoneyard || 0) + 1;
+          Detail.updateBellBadge();
+        }
       } catch (e) {}
     }
     // Seller declined/moved on — pull the listing and replace with a fresh part

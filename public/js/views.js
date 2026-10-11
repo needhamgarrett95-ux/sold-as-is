@@ -489,6 +489,8 @@ const Views = {
     const l = this.haggleListing;
     if (!l) return;
     const el = document.getElementById("seller-haggle");
+    const prevHaggle = el.querySelector(".haggle-modal");
+    const savedHaggleScroll = prevHaggle ? prevHaggle.scrollTop : 0;
     const offer = l.offer;
     const isBike = offer.type === "bike";
     const title = isBike ? `${l.brand} ${l.model}` : `${l.partLabel} — ${l.bikeBrand} ${l.bikeModel}`;
@@ -533,6 +535,9 @@ const Views = {
     // Scroll thread to bottom
     const thread = document.getElementById("haggle-thread");
     if (thread) thread.scrollTop = thread.scrollHeight;
+    // Restore modal scroll
+    const newHaggle = el.querySelector(".haggle-modal");
+    if (newHaggle && savedHaggleScroll > 0) newHaggle.scrollTop = savedHaggleScroll;
   },
 
   acceptBuyerOffer() {
@@ -1671,7 +1676,8 @@ const Views = {
     if (!p) return;
     const el = document.getElementById("part-detail");
     // Preserve scroll position (don't jump to top on seller responses)
-    const scrollY = window.scrollY;
+    const prevModal = el.querySelector(".pd-modal");
+    const savedScroll = prevModal ? prevModal.scrollTop : 0;
     const isAuction = p.listingType === "auction";
 
     let actionHtml = "";
@@ -1826,7 +1832,8 @@ const Views = {
       });
     }
     // Restore scroll position
-    requestAnimationFrame(() => window.scrollTo(0, scrollY));
+    const newModal = el.querySelector(".pd-modal");
+    if (newModal && savedScroll > 0) newModal.scrollTop = savedScroll;
   },
 
   // Pick a random response, never repeating the last one

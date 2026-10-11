@@ -515,6 +515,9 @@ const Detail = {
   render() {
     const l = this.current;
     const el = document.getElementById("detail");
+    // Preserve scroll position across re-renders (offer submissions etc.)
+    const prevScroll = el.querySelector(".detail-scroll");
+    const savedScroll = prevScroll ? prevScroll.scrollTop : 0;
     const hr = this.haggleResponse;
     el.innerHTML = `
     <div class="detail-scroll">
@@ -626,6 +629,11 @@ const Detail = {
       this.thread.push({ from: "seller", text: `"Fine. One more chance. Don't waste it."` });
       this.render();
     };
+    // Restore scroll position
+    if (savedScroll > 0) {
+      const ds = el.querySelector(".detail-scroll");
+      if (ds) ds.scrollTop = savedScroll;
+    }
   },
 };
 

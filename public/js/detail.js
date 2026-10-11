@@ -9,6 +9,7 @@ const Detail = {
     this.current = l;
     this.offer = null;
     this._lastCounter = null; // fresh negotiation
+    this._haggleRounds = 0;
     this.thread = [];
     this.haggleResponse = null;
     this.blocked = false;
@@ -48,6 +49,22 @@ const Detail = {
       return;
     }
     const offerPrice = parseInt(digits, 10);
+    this._haggleRounds = (this._haggleRounds || 0) + 1;
+    // Seller patience: 15% block chance at round 4, +20% each round after (cap 80%)
+    if (this._haggleRounds >= 4 && !this.blocked) {
+      const blockChance = Math.min(0.15 + (this._haggleRounds - 4) * 0.20, 0.80);
+      if (Math.random() < blockChance) {
+        this.blocked = true;
+        this.haggleResponse = { response: this.pickReply([
+          `"You know what? I'm tired of going back and forth. Deal's off."`,
+          `"We've been at this too long. I'm moving on."`,
+          `"I don't have all day for this. Find another bike."`,
+          `"This is going nowhere. We're done here."`,
+        ]), accepted: false, price: null };
+        this.render();
+        return;
+      }
+    }
     // Easter egg: the 67 meme
     if (offerPrice === 67) {
       this.thread = this.thread || [];

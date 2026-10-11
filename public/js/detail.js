@@ -607,8 +607,18 @@ const Detail = {
     const offerInput = document.getElementById("offer-input");
     const sendBtn = document.getElementById("offer-send");
     if (offerInput && typeof GameKB !== "undefined") {
+      const ask = this.current.price;
       GameKB.attach(offerInput, (val) => {
         if (val > 0) this.sendOffer(String(val));
+      }, (typed) => {
+        let html = `Asking <span class="kb-ctx-price">$${ask.toLocaleString()}</span>`;
+        if (typed > 0) {
+          const diff = ask - typed;
+          if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under asking</span>`;
+          else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over asking</span>`;
+          else html += ` · full asking price`;
+        }
+        return html;
       });
     }
     const sendOffer = () => this.sendOffer(offerInput.dataset.raw || offerInput.value);

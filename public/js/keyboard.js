@@ -4,12 +4,14 @@ const GameKB = {
   activeInput: null,
   buf: '',
   onDone: null,
+  contextFn: null,
 
   init() {
     if (document.getElementById('game-kb')) return;
     const html = `
     <div class="kb-overlay" id="kb-overlay"></div>
     <div class="kb" id="game-kb">
+      <div class="kb-context" id="kb-context"></div>
       <div class="kb-display"><span id="kb-val"></span><span class="kb-cursor">|</span></div>
       <div class="kb-grid">
         <div class="kb-key" data-k="1">1</div>
@@ -55,29 +57,40 @@ const GameKB = {
 
   render() {
     document.getElementById('kb-val').textContent = this.fmt(this.buf);
+    const ctx = document.getElementById('kb-context');
+    if (ctx) {
+      if (this.contextFn) {
+        const html = this.contextFn(parseInt(this.buf, 10) || 0);
+        ctx.innerHTML = html || '';
+        ctx.style.display = html ? '' : 'none';
+      } else {
+        ctx.style.display = 'none';
+      }
+    }
   },
 
   // Attach to an input element. onDone receives the numeric value.
-  attach(input, onDone) {
+  attach(input, onDone, contextFn) {
     if (!input || input.dataset.kbAttached) return;
     input.dataset.kbAttached = '1';
     input.setAttribute('readonly', 'readonly');
     input.setAttribute('inputmode', 'none');
     input.addEventListener('click', (e) => {
       e.preventDefault();
-      this.open(input, onDone);
+      this.open(input, onDone, contextFn);
     });
     input.addEventListener('focus', (e) => {
       e.preventDefault();
       input.blur();
-      this.open(input, onDone);
+      this.open(input, onDone, contextFn);
     });
   },
 
-  open(input, onDone) {
+  open(input, onDone, contextFn) {
     this.init();
     this.activeInput = input;
     this.onDone = onDone || null;
+    this.contextFn = contextFn || null;
     this.buf = input.dataset.raw || '';
     this.render();
     document.getElementById('game-kb').classList.add('show');
@@ -95,6 +108,7 @@ const GameKB = {
     document.getElementById('kb-overlay').classList.remove('show');
     this.activeInput = null;
     this.onDone = null;
+    this.contextFn = null;
     this.buf = '';
   },
 };
@@ -192,6 +206,7 @@ const GameQWERTY = {
     document.getElementById('qwerty-overlay').classList.remove('show');
     this.activeInput = null;
     this.onDone = null;
+    this.contextFn = null;
     this.buf = '';
   },
 };

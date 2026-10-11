@@ -523,8 +523,17 @@ const Views = {
     document.getElementById("haggle-decline").addEventListener("click", () => this.declineBuyerOffer());
     const haggleInput = document.getElementById("haggle-counter");
     if (haggleInput && typeof GameKB !== "undefined") {
+      const theirOffer = l.offer ? l.offer.amount : 0;
+      const listPrice = l.askPrice || 0;
       GameKB.attach(haggleInput, (val) => {
         if (val > 0) this.counterBuyerOffer(val);
+      }, (typed) => {
+        let html = `Their offer <span class="kb-ctx-price">$${theirOffer.toLocaleString()}</span> · Your listing <span class="kb-ctx-price">$${listPrice.toLocaleString()}</span>`;
+        if (typed > 0) {
+          const diff = typed - theirOffer;
+          if (diff > 0) html += `<br><span class="kb-ctx-over">$${diff.toLocaleString()} above their offer</span>`;
+        }
+        return html;
       });
     }
     document.getElementById("haggle-send-counter").addEventListener("click", () => {
@@ -1040,7 +1049,16 @@ const Views = {
         </div>
       </div>`;
       const input = el.querySelector(`#sell-price-${idx}`);
-      if (input && typeof GameKB !== "undefined") GameKB.attach(input, null);
+      const fv = part.fairValue || 0;
+      if (input && typeof GameKB !== "undefined") GameKB.attach(input, null, (typed) => {
+        let html = fv ? `Fair value <span class="kb-ctx-price">~$${Math.round(fv).toLocaleString()}</span>` : '';
+        if (typed > 0 && fv) {
+          const diff = typed - Math.round(fv);
+          if (diff > 0) html += ` · <span class="kb-ctx-over">$${diff.toLocaleString()} over fair</span>`;
+          else if (diff < 0) html += ` · <span class="kb-ctx-under">$${(-diff).toLocaleString()} under fair</span>`;
+        }
+        return html;
+      });
       const confirmBtn = el.querySelector(`[data-confirm-sell="${idx}"]`);
       const cancelBtn = el.querySelector(`[data-cancel-sell]`);
       if (confirmBtn) confirmBtn.addEventListener("click", () => {
@@ -1763,12 +1781,18 @@ const Views = {
     if (isAuction) {
       const bidInput = document.getElementById("pd-bid-amount");
       if (bidInput && typeof GameKB !== "undefined") {
+        const curBid = p.currentBid;
+        const minBidNow = p.currentBid + (p.bidIncrement || 1);
         GameKB.attach(bidInput, (kbVal) => {
           const minBid = p.currentBid + (p.bidIncrement || 1);
           if (kbVal >= minBid) {
             this.placePartBid(this.partDetailIdx, kbVal);
             this.renderPartDetail();
           }
+        }, (typed) => {
+          let html = `Current bid <span class="kb-ctx-price">$${curBid.toLocaleString()}</span> · Min bid <span class="kb-ctx-price">$${minBidNow.toLocaleString()}</span>`;
+          if (typed > 0 && typed < minBidNow) html += `<br><span class="kb-ctx-over">$${(minBidNow - typed).toLocaleString()} short of minimum</span>`;
+          return html;
         });
       }
       document.getElementById("pd-place-bid").addEventListener("click", () => {
@@ -1799,8 +1823,18 @@ const Views = {
       });
       const offerInput = document.getElementById("pd-offer-amount");
       if (offerInput && typeof GameKB !== "undefined") {
+        const partAsk = p.price;
         GameKB.attach(offerInput, (kbVal) => {
           if (kbVal > 0) this.sendPartOffer(kbVal);
+        }, (typed) => {
+          let html = `Asking <span class="kb-ctx-price">$${partAsk.toLocaleString()}</span>`;
+          if (typed > 0) {
+            const diff = partAsk - typed;
+            if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under asking</span>`;
+            else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over asking</span>`;
+            else html += ` · full asking price`;
+          }
+          return html;
         });
       }
       const offerBtn = document.getElementById("pd-send-offer");
@@ -3175,7 +3209,19 @@ const Views = {
           <button class="eby-cancel" id="bike-list-cancel">${Icon.get('close')}</button>
         </div>`;
         const input = document.getElementById("bike-list-price");
-        if (input && typeof GameKB !== "undefined") GameKB.attach(input, null);
+        const bikeFair = bike.fairValue || 0;
+        const bikePaid = (bike.boughtFor || 0) + (bike.repairSpent || 0);
+        if (input && typeof GameKB !== "undefined") GameKB.attach(input, null, (typed) => {
+          let html = '';
+          if (bikeFair) html += `Fair value <span class="kb-ctx-price">~$${bikeFair.toLocaleString()}</span>`;
+          if (bikePaid) html += `${html ? ' · ' : ''}You paid <span class="kb-ctx-price">$${bikePaid.toLocaleString()}</span>`;
+          if (typed > 0 && bikePaid) {
+            const diff = typed - bikePaid;
+            if (diff > 0) html += `<br><span class="kb-ctx-under">+$${diff.toLocaleString()} profit if it sells</span>`;
+            else if (diff < 0) html += `<br><span class="kb-ctx-over">-$${(-diff).toLocaleString()} loss if it sells</span>`;
+          }
+          return html;
+        });
         const confirm = document.getElementById("bike-list-confirm");
         const cancel = document.getElementById("bike-list-cancel");
         if (confirm) confirm.addEventListener("click", () => {

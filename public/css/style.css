@@ -1215,3 +1215,14 @@ body.tutorial-locked { touch-action: pan-y; }
   outline: 3px solid var(--red); outline-offset: 2px;
   border-radius: 8px;
 }
+
+/* Keyboard context line */
+.kb-context {
+  text-align: center; font-size: .85rem; font-weight: 600;
+  color: var(--dim); padding: 6px 12px 0; line-height: 1.4;
+}
+.kb-context .kb-ctx-price { color: var(--ink); font-weight: 800; }
+.kb-context .kb-ctx-under { color: #2e7d32; font-weight: 700; }
+.kb-context .kb-ctx-over { color: #e04536; font-weight: 700; }
+body.dark-mode .kb-context .kb-ctx-under { color: #4caf50; }
+body.dark-mode .kb-context .kb-ctx-over { color: #ff6659; }

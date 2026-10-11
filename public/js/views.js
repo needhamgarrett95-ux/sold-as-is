@@ -1924,21 +1924,12 @@ const Views = {
         feed.unshift({ msg: byBlockMsgs[(Math.random() * byBlockMsgs.length) | 0], at: Date.now(), cat: "boneyard" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
-        // Bump unread (silent — no toast, no sound)
-        if (typeof Detail !== "undefined") {
-          Detail._unreadActivity = (Detail._unreadActivity || 0) + 1;
-          Detail._unreadBoneyard = (Detail._unreadBoneyard || 0) + 1;
-          Detail.updateBellBadge();
+        // Bump unread on UI (owns the bell) — silent, no toast, no sound
+        if (typeof UI !== "undefined") {
+          UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+          UI._unreadBoneyard = (UI._unreadBoneyard || 0) + 1;
+          if (UI.updateBellBadge) UI.updateBellBadge();
         }
-        // Direct DOM fallback
-        setTimeout(() => {
-          const bell = document.getElementById("activity-bell");
-          if (bell && !bell.querySelector(".bell-dot")) {
-            const dot = document.createElement("span");
-            dot.className = "bell-dot";
-            bell.appendChild(dot);
-          }
-        }, 100);
       } catch (e) {}
     }
     // Seller declined/moved on — pull the listing and replace with a fresh part

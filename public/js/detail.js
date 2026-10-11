@@ -57,19 +57,12 @@ const Detail = {
         feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "marketplace" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
-        // Bump unread (silent — no toast, no sound)
-        this._unreadActivity = (this._unreadActivity || 0) + 1;
-        this._unreadMarketplace = (this._unreadMarketplace || 0) + 1;
-        this.updateBellBadge();
-        // Direct DOM fallback
-        setTimeout(() => {
-          const bell = document.getElementById("activity-bell");
-          if (bell && !bell.querySelector(".bell-dot")) {
-            const dot = document.createElement("span");
-            dot.className = "bell-dot";
-            bell.appendChild(dot);
-          }
-        }, 100);
+        // Bump unread on UI (owns the bell) — silent, no toast, no sound
+        if (typeof UI !== "undefined") {
+          UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+          UI._unreadMarketplace = (UI._unreadMarketplace || 0) + 1;
+          if (UI.updateBellBadge) UI.updateBellBadge();
+        }
       } catch (e) {}
     }
     // Disable buying immediately — this listing is dead
@@ -640,6 +633,20 @@ const UI = {
   _unreadActivity: 0,
   _unreadMarketplace: 0,
   _unreadBoneyard: 0,
+  updateBellBadge() {
+    const bell = document.getElementById("activity-bell");
+    if (!bell) return;
+    let dot = bell.querySelector(".bell-dot");
+    if (this._unreadActivity > 0) {
+      if (!dot) {
+        dot = document.createElement("span");
+        dot.className = "bell-dot";
+        bell.appendChild(dot);
+      }
+    } else if (dot) {
+      dot.remove();
+    }
+  },
   toast(msg, category) {
     this._toastQueue.push(msg);
     this._showNextToast();

@@ -351,11 +351,39 @@ function makeListing(id) {
     // fair value estimate (what inspection would reveal)
     fairValue,
     title,
-    description: `${bike.desc} ${pick([
-      "Starts right up, idles smooth.", "Could use a tune but solid bones.",
-      "Been sitting, will need the usual.", "I don't know much about these, selling for a friend.",
-      "Turn key and go. Seriously.", "Needs love. Priced accordingly.",
-    ])} ${pick(["Clean title in hand.", "Bill of sale only.", "Title in hand.", "Lost title, BOS only."])}`,
+    description: `${bike.desc} ${(() => {
+      const tc = trueCond.toLowerCase();
+      // Condition-matched flavor lines — no more "starts right up" on a rough bike
+      if (tc.includes("mint") || tc.includes("clean")) {
+        return pick([
+          "Starts right up, idles smooth.", "Turn key and go. Seriously.",
+          "Garage kept, adult owned. Meticulous.",
+          "Just serviced, ready to ride home today.",
+        ]);
+      } else if (tc.includes("good")) {
+        return pick([
+          "Could use a tune but solid bones.", "Runs strong, just cosmetic wear.",
+          "Daily rider. Starts every time.",
+        ]);
+      } else if (tc.includes("fair")) {
+        return pick([
+          "Been sitting, will need the usual.", "Needs love. Priced accordingly.",
+          "Runs but rough around the edges. Honest bike.",
+        ]);
+      } else if (tc.includes("rough")) {
+        return pick([
+          "Ran when parked. Been sitting a while.", "Project bike, priced to move.",
+          "Needs work — engine turns over but won't catch.",
+          "As-is special. Bring a truck and a dream.",
+        ]);
+      } else { // non-runner, parts bike
+        return pick([
+          "Does not run. Selling as a parts bike.", "Blown motor. Good bones for parts.",
+          "I don't know much about these, selling for a friend.",
+          "Roller — no engine. Everything else is there.",
+        ]);
+      }
+    })()} ${pick(["Clean title in hand.", "Bill of sale only.", "Title in hand.", "Lost title, BOS only."])}`,
     seller: pick(SELLERS),
     sellerRating: (3.5 + Math.random() * 1.5).toFixed(1),
     ...(() => { const t = pickTown(); return { location: t.town, miles: t.miles }; })(),

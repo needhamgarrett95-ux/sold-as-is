@@ -433,16 +433,14 @@ const Views = {
   // Open the haggle chat for a listing
   openOfferFromActivity(listingId) {
     // Go to market > my listings, then open the haggle
-    this.current = "market";
     this.marketTab = "mine";
-    if (this.renderMarket) this.renderMarket();
-    else if (this.renderMarketFeed) { this.renderMarketFeed(); this.renderMarketTabs(); }
+    this.show("market");
     setTimeout(() => {
-      const idx = this.myBikeListings.findIndex(l => l.id === listingId);
+      const idx = this.myBikeListings.findIndex(l => String(l.id) === String(listingId));
       if (idx >= 0 && this.myBikeListings[idx].offer) {
         this.openSellerHaggle(this.myBikeListings, idx);
       }
-    }, 100);
+    }, 150);
   },
   openSellerHaggle(listingsArray, idx) {
     const l = listingsArray[idx];

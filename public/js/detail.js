@@ -157,7 +157,23 @@ const Detail = {
     // Track consecutive lowballs for unpredictable blocking
     this._lowballStreak = (ratio < 0.50) ? (this._lowballStreak || 0) + 1 : 0;
 
-    if (ratio >= 0.95) {
+    // Generous seller: rare early on, Smooth Talker warms people up (+4%/tier)
+    const stTier = (typeof Skills !== "undefined") ? Skills.tier("smoothtalker") : 0;
+    const generous = ratio >= 0.50 && ratio < 0.85 && Math.random() < (0.03 + stTier * 0.04);
+
+    if (generous) {
+      response = this.pickReply([
+        `"You know what? You've got an honest face. ${money(offerPrice)} — she's yours."`,
+        `"Ah hell, I like you. ${money(offerPrice)} and we skip the dance."`,
+        `"It's my birthday week and I'm feeling generous. ${money(offerPrice)}. Take her."`,
+        `"My wife wants it out of the garage by Friday. ${money(offerPrice)} — her loss is your gain."`,
+        `"You remind me of me at your age. ${money(offerPrice)}, and that's me being soft."`,
+        `"Fine — ${money(offerPrice)}. I was tired of looking at the listing anyway."`,
+        `"You caught me after a good day and a better lunch. ${money(offerPrice)}. Deal."`,
+        `"You messaged like a human instead of a bot. ${money(offerPrice)}, she's yours."`,
+      ]);
+      accepted = true; price = offerPrice;
+    } else if (ratio >= 0.95) {
       response = this.pickReply([
         `"${money(offerPrice)}? Yeah, I can do that."`,
         `"${money(offerPrice)} — deal. When can you pick it up?"`,

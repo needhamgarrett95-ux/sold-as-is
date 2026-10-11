@@ -628,6 +628,9 @@ const Views = {
     let walkChance = walkTable[Math.min(offer.rounds, 4)];
     if (style === "flaky") walkChance = Math.min(0.9, walkChance * 1.3);
     if (style === "eager") walkChance *= 0.6;
+    // Generous buyer: rare early on, Smooth Talker warms people up (+4%/tier)
+    const stTier = (typeof Skills !== "undefined") ? Skills.tier("smoothtalker") : 0;
+    const generousChance = 0.03 + stTier * 0.04;
 
     if (counterAmount <= offer.amount) {
       // Met (or beat) their standing offer — done deal
@@ -638,6 +641,11 @@ const Views = {
       // They already planted their flag at their ceiling and you pushed past it
       walkedAway = true;
       response = this.randomUltimatumWalkResponse(style);
+    } else if (Math.random() < generousChance) {
+      // Every so often a buyer just wants it and stops fighting
+      accepted = true;
+      offer.amount = counterAmount;
+      response = this.randomGenerousAcceptResponse(counterAmount, style);
     } else if (counterAmount <= max) {
       // Inside their budget — but nobody pays the first counter if they can help it
       if (Math.random() < walkChance * 0.35) {
@@ -1065,6 +1073,30 @@ const Views = {
       `You had my best price and wanted more. We're done. Good luck.`,
     ]);
   },
+
+  randomGenerousAcceptResponse(amount, style) {
+    if (style === "eager") return this.pickBuyerReply([
+      `You know what? I just want it. ${money(amount)}. Done. No more games!`,
+      `Life's short. ${money(amount)} — I'll take it!`,
+      `Okay I can't pretend anymore, I NEED this bike. ${money(amount)}, deal!`,
+      `${money(amount)}? Yes. I was never going to walk away from this one.`,
+      `Sold! ${money(amount)}! My heart said yes three messages ago.`,
+    ]);
+    if (style === "flaky") return this.pickBuyerReply([
+      `eh you know what. fine. ${money(amount)}. lets just do it lol`,
+      `okay okay ${money(amount)}. i want it. there, i said it`,
+      `${money(amount)}. yeah. surprising myself here too`,
+      `whatever, ${money(amount)}. future me can deal with it`,
+    ]);
+    return this.pickBuyerReply([
+      `Alright — ${money(amount)}. Don't tell the other sellers I went soft.`,
+      `You know what, ${money(amount)}. I like your style. Deal.`,
+      `${money(amount)}. I've been lowballing people all week; consider this karma in reverse.`,
+      `Fine, ${money(amount)}. Sometimes you just pay the number and go ride.`,
+      `I'll do ${money(amount)}. My therapist says I need to commit to things.`,
+    ]);
+  },
+
 
 
   tickBikeSales() {

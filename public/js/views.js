@@ -361,6 +361,12 @@ const Views = {
       State.cash += askPrice;
       State.sold.push({ ...listing, soldFor: askPrice, soldAt: Date.now() });
       UI.refreshCash();
+      // Stats + XP (same as haggle accept)
+      const costBasis = (listing.boughtFor || listing.paidPrice || 0) + (listing.repairSpent || 0);
+      if (askPrice > costBasis) State.stats.bikesSoldForProfit = (State.stats.bikesSoldForProfit || 0) + 1;
+      if (typeof Milestones !== "undefined") Milestones.check(State.stats);
+      const xpResult = Skills.awardForSale(askPrice, costBasis);
+      if (xpResult.xp > 0) XPPopup.show(xpResult.xp, xpResult.newPoints);
       Save.save();
       // Log to activity only (no toast — bell dot handles it)
       try {

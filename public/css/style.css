@@ -1250,3 +1250,4 @@ body {
   -webkit-touch-callout: none;
 }
 input, textarea { -webkit-user-select: none; user-select: none; }
+body.dark-mode .haggle-photo { background: linear-gradient(135deg, #242930, #1a1d22); }

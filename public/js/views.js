@@ -1933,25 +1933,29 @@ const Views = {
         accepted, price, blocked, walkedAway,
       };
     }
-    // Activity notification for blocks
+    // Activity notification for blocks (bulletproof — works even if p is gone)
     if (blocked) {
       try {
+        const part = this.partsShop[this.partDetailIdx] || p || {};
         const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
         const byBlockMsgs = [
-          `Blocked in the Boneyard. That ${p.partLabel} for the ${p.bikeBrand} ${p.bikeModel} is dead to you now.`,
-          `The ${p.partLabel} seller blocked you. Bold strategy, lowballing in the Boneyard.`,
-          `You got blocked over a ${p.partLabel}. The ${p.bikeBrand} ${p.bikeModel} community will remember this.`,
+          `Blocked in the Boneyard. That ${part.partLabel || "part"} for the ${part.bikeBrand || ""} ${part.bikeModel || ""} is dead to you now.`.trim(),
+          `The ${part.partLabel || "part"} seller blocked you. Bold strategy, lowballing in the Boneyard.`,
+          `You got blocked over a ${part.partLabel || "part"}. The ${(part.bikeBrand || "") + " " + (part.bikeModel || "")} community will remember this.`.trim(),
         ];
         feed.unshift({ msg: byBlockMsgs[(Math.random() * byBlockMsgs.length) | 0], at: Date.now(), cat: "boneyard" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
-        // Bump unread on UI (owns the bell) — silent, no toast, no sound
+      } catch (e) {}
+      // Bump unread on UI (owns the bell) — silent, no toast, no sound
+      // Done outside try/catch so it always runs
+      try {
         if (typeof UI !== "undefined") {
           UI._unreadActivity = (UI._unreadActivity || 0) + 1;
           UI._unreadBoneyard = (UI._unreadBoneyard || 0) + 1;
           if (UI.updateBellBadge) UI.updateBellBadge();
         }
-      } catch (e) {}
+      } catch (e2) {}
     }
     // Seller declined/moved on — pull the listing and replace with a fresh part
     if ((blocked || walkedAway) && typeof this.replaceBoneyardPart === "function") {

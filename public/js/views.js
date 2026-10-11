@@ -1804,6 +1804,8 @@ const Views = {
         }
       });
     }
+    // Restore scroll position
+    requestAnimationFrame(() => window.scrollTo(0, scrollY));
   },
 
   // Pick a random response, never repeating the last one
@@ -1814,7 +1816,6 @@ const Views = {
     const pick = pool[(Math.random() * pool.length) | 0];
     this._lastPartReply = pick;
     return pick;
-    window.scrollTo(0, scrollY);
   },
 
   // Player makes an offer on a BIN part — seller responds

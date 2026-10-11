@@ -619,44 +619,73 @@ const Views = {
       return;
     }
 
-    const max = offer.maxAmount;
+    const max = Math.max(offer.maxAmount || 0, offer.amount);
     const style = offer.style || "haggler";
     let response, accepted = false, walkedAway = false;
 
-    // Style modifiers
-    const patience = style === "eager" ? 0.9 : style === "haggler" ? 0.5 : 0.3;
-    const walkChance = style === "flaky" ? 0.40 : style === "eager" ? 0.10 : 0.25;
+    // Buyers are cheap too — walk risk grows every round, mirroring seller patience
+    const walkTable = [0, 0.10, 0.25, 0.50, 0.75];
+    let walkChance = walkTable[Math.min(offer.rounds, 4)];
+    if (style === "flaky") walkChance = Math.min(0.9, walkChance * 1.3);
+    if (style === "eager") walkChance *= 0.6;
 
-    if (counterAmount <= max) {
-      // Within budget — eagers accept fast, hagglers try one more squeeze
-      if (style === "haggler" && offer.rounds < 2 && Math.random() < 0.4) {
-        const squeeze = Math.round(((offer.amount + counterAmount) / 2) / 5) * 5;
-        offer.amount = Math.min(squeeze, max);
-        response = `Almost... can we do ${money(offer.amount)}? Meet me there and it's a deal.`;
+    if (counterAmount <= offer.amount) {
+      // Met (or beat) their standing offer — done deal
+      accepted = true;
+      offer.amount = counterAmount;
+      response = this.randomCounterAcceptResponse(counterAmount, style);
+    } else if (offer.ultimatum) {
+      // They already planted their flag at their ceiling and you pushed past it
+      walkedAway = true;
+      response = this.randomUltimatumWalkResponse(style);
+    } else if (counterAmount <= max) {
+      // Inside their budget — but nobody pays the first counter if they can help it
+      if (Math.random() < walkChance * 0.35) {
+        walkedAway = true;
+        response = this.randomWalkAwayResponse(style);
       } else {
-        accepted = true;
-        response = this.randomCounterAcceptResponse(counterAmount, style);
-        offer.amount = counterAmount;
+        const gap = max - offer.amount;
+        const prog = gap > 0 ? (counterAmount - offer.amount) / gap : 1;
+        let acceptChance = 0.85 - prog * 0.55;
+        if (style === "haggler") acceptChance *= 0.8;
+        if (style === "eager") acceptChance = Math.min(0.95, acceptChance * 1.15);
+        if (Math.random() < acceptChance) {
+          accepted = true;
+          offer.amount = counterAmount;
+          response = this.randomCounterAcceptResponse(counterAmount, style);
+        } else {
+          // Counter back: climb part of the gap, never past their ceiling
+          const climb = 0.35 + Math.random() * 0.25;
+          let newOffer = Math.round((offer.amount + (counterAmount - offer.amount) * climb) / 5) * 5;
+          newOffer = Math.min(newOffer, max);
+          if (newOffer <= offer.amount) newOffer = Math.min(offer.amount + 5, max);
+          offer.amount = newOffer;
+          if (newOffer >= max) offer.ultimatum = true;
+          response = this.randomCounterBackResponse(offer.amount, style);
+        }
       }
-    } else if (counterAmount <= max * 1.10) {
-      // Close to max
-      if (Math.random() < patience) {
-        const newOffer = Math.round(((offer.amount + counterAmount) / 2) / 5) * 5;
-        offer.amount = Math.min(newOffer, max);
-        response = this.randomCounterBackResponse(offer.amount, style);
+    } else if (counterAmount <= max * 1.15) {
+      // Over their ceiling, but close enough to argue about
+      if (Math.random() < walkChance) {
+        walkedAway = true;
+        response = this.randomWalkAwayResponse(style);
+      } else if (Math.random() < 0.55) {
+        offer.amount = max;
+        offer.ultimatum = true;
+        response = this.randomUltimatumResponse(max, style);
       } else {
-        accepted = true;
-        response = this.randomCounterAcceptResponse(counterAmount, style);
-        offer.amount = counterAmount;
+        offer.amount = Math.round((max * 0.97) / 5) * 5;
+        response = this.randomCounterBackResponse(offer.amount, style);
       }
     } else {
-      // Way over — likely walk, or stretch to max
-      if (Math.random() < walkChance) {
+      // Way over — most walk, the rest plant their flag
+      if (Math.random() < Math.min(0.9, walkChance + 0.25)) {
         walkedAway = true;
         response = this.randomWalkAwayResponse(style);
       } else {
         offer.amount = max;
-        response = `That's my absolute ceiling — ${money(max)}. Take it or leave it.`;
+        offer.ultimatum = true;
+        response = this.randomUltimatumResponse(max, style);
       }
     }
 
@@ -669,8 +698,7 @@ const Views = {
       setTimeout(() => {
         l.offer = null;
         this.closeSellerHaggle();
-        // Seller moved on — pull the listing and replace with a fresh one
-        if (typeof Feed !== "undefined" && Feed.replaceBlocked) Feed.replaceBlocked(l.id);
+        // The listing stays up — only this buyer is gone
         if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
         if (this.current === "parts") this.renderParts();
       }, 1200);
@@ -861,6 +889,8 @@ const Views = {
       `${money(amount)}... alright. I'm in. Good doing business.`,
       `I'll take it at ${money(amount)}. Fair is fair.`,
       `Done at ${money(amount)}. When's a good time for pickup?`,
+      `${money(amount)}. Fine. FINE. You're good at this.`,
+      `Deal — ${money(amount)}. Tell nobody I paid this much.`,
     ]);
   },
 
@@ -882,6 +912,9 @@ const Views = {
       `Please? ${money(amount)}? I'll bring coffee too!`,
       `${money(amount)}! Final offer! I'm begging here!`,
       `I can make ${money(amount)} work — can you? Please say yes.`,
+      `What about ${money(amount)} and I bring the truck TODAY? Like, right now today.`,
+      `${money(amount)}! I sold my guitar for this. Do not let the guitar die in vain.`,
+      `Okay deep breath — ${money(amount)}. That's me being brave.`,
     ]);
     if (style === "flaky") return this.pickBuyerReply([
       `Meh, ${money(amount)} is all I'd do.`,
@@ -900,6 +933,9 @@ const Views = {
       `hmm ${money(amount)}. i'll think abt it`,
       `${money(amount)}?? fine? i guess?`,
       `ok ${money(amount)}. actually wait. yeah ${money(amount)}.`,
+      `${money(amount)}? my cousin said thats fair so`,
+      `i could do ${money(amount)} if u dont make it weird`,
+      `${money(amount)}. dont ask me to go higher i'll simply perish`,
     ]);
     return this.pickBuyerReply([
       `That's a bit steep for me. How about ${money(amount)}?`,
@@ -922,6 +958,9 @@ const Views = {
       `${money(amount)} is the best I can do — and it's a good offer.`,
       `Split the difference at ${money(amount)}? I'm trying here.`,
       `Okay, ${money(amount)}. That's me stretching. Your move.`,
+      `${money(amount)} — and I won't tell my wife. That's the real negotiation here.`,
+      `I'll go ${money(amount)}. My accountant is screaming, but here we are.`,
+      `${money(amount)}. You negotiate like my mother-in-law. Respect.`,
     ]);
   },
 
@@ -977,6 +1016,56 @@ const Views = {
       "Too steep. Someone else will pay it — not me.",
     ]);
   },
+
+  randomUltimatumResponse(amount, style) {
+    if (style === "eager") return this.pickBuyerReply([
+      `Okay — ${money(amount)}. That's truly everything I can scrape together. Please?`,
+      `${money(amount)} is me emptying the couch cushions AND the car console. That's my wall.`,
+      `I can do ${money(amount)} and not a penny more. I'm begging you, that's the ceiling.`,
+      `${money(amount)} — final. If I go higher I can't afford gas to come get it.`,
+      `That's ${money(amount)} and it's every dollar with my name on it. Take it or leave it?`,
+      `My absolute max is ${money(amount)}. I measured. Twice. Please say yes.`,
+    ]);
+    if (style === "flaky") return this.pickBuyerReply([
+      `${money(amount)}. thats my final. probably. yeah final`,
+      `ok ${money(amount)} is IT. no more games lol`,
+      `${money(amount)} take it or leave it. i'll survive either way lol`,
+      `last number: ${money(amount)}. lmk or dont`,
+      `${money(amount)}. ceiling. floor. whatever. its the number`,
+      `i can do ${money(amount)} and thats like, it it`,
+    ]);
+    return this.pickBuyerReply([
+      `${money(amount)}. That's my ceiling — the wall, the roof, all of it. Take it or leave it.`,
+      `Final answer: ${money(amount)}. I don't say that lightly.`,
+      `I'll plant my flag at ${money(amount)}. There's nothing above it.`,
+      `${money(amount)} is where my budget ends and my pride begins. Final.`,
+      `That's my absolute ceiling — ${money(amount)}. The ball's in your court now.`,
+      `One number left in me: ${money(amount)}. After that we're just pen pals.`,
+    ]);
+  },
+
+  randomUltimatumWalkResponse(style) {
+    if (style === "eager") return this.pickBuyerReply([
+      `I told you that was my ceiling... I really wanted this one. Good luck.`,
+      `Man. I said take it or leave it and you left it. I'm crushed. Bye.`,
+      `That was genuinely all I had. Okay... good luck with the sale.`,
+      `I emptied my whole budget and it wasn't enough. I'm out. So bummed.`,
+    ]);
+    if (style === "flaky") return this.pickBuyerReply([
+      `lol i said final. bye`,
+      `told u. ${"i'm"} out lol`,
+      `u pushed it. nvm bye`,
+      `yeah nah i said ceiling. later`,
+    ]);
+    return this.pickBuyerReply([
+      `I said take it or leave it. You picked leave it. Good luck.`,
+      `My ceiling was real. We're done here.`,
+      `I planted my flag and you walked over it. I'm out.`,
+      `That was my final number for a reason. Take care.`,
+      `You had my best price and wanted more. We're done. Good luck.`,
+    ]);
+  },
+
 
   tickBikeSales() {
     // Single buyer system: one buyer at a time per listing.
@@ -1874,9 +1963,12 @@ const Views = {
   // Pick a random response, never repeating the last one
   _lastPartReply: null,
   pickPartReply(options) {
-    let pool = options.filter(o => o !== this._lastPartReply);
+    this._recentPartReplies = this._recentPartReplies || [];
+    let pool = options.filter(o => !this._recentPartReplies.includes(o));
     if (!pool.length) pool = options;
     const pick = pool[(Math.random() * pool.length) | 0];
+    this._recentPartReplies.push(pick);
+    if (this._recentPartReplies.length > 3) this._recentPartReplies.shift();
     this._lastPartReply = pick;
     return pick;
   },
@@ -2079,18 +2171,22 @@ const Views = {
       `"${money(offer)}'s light. ${money(counter)} gets it shipped today."`,
       `"Meet me at ${money(counter)} and we got a deal."`,
       `"How's ${money(counter)} sound? I'm already losing money here."`,
+      `"${money(counter)} and I'll throw in a firm handshake and zero eye contact."`,
+      `"Meet me at ${money(counter)} — my storage unit rent is due and so is this deal."`,
     ]);
     if (style === "firm") return this.pickPartReply([
       `"${money(offer)}? No. ${money(counter)}, firm."`,
       `"I've got three watchers on this. ${money(counter)} or it goes to one of them."`,
       `"${money(counter)}. That's already below market and you know it."`,
       `"My price is ${money(counter)}. It's worth it, trust me."`,
+      `"${money(counter)}. I priced it while angry and I stand by it."`,
     ]);
     return this.pickPartReply([
       `"I could do ${money(counter)} if you pay today."`,
       `"${money(counter)} and I'll upgrade you to priority shipping."`,
       `"How about ${money(counter)}? Meet me there."`,
       `"Split it with me at ${money(counter)}. Fair?"`,
+      `"${money(counter)}, and I'll pretend this negotiation never hurt me."`,
     ]);
   },
 
@@ -2104,6 +2200,7 @@ const Views = {
       `"${money(offer)} is a joke. ${money(counter)}, take it or leave it."`,
       `"Nope. ${money(counter)}. I don't haggle on the good stuff."`,
       `"${money(counter)}, firm. Good parts aren't cheap."`,
+      `"${money(counter)}. The price has a family. Don't make me call them."`,
     ]);
     return this.pickPartReply([
       `"Look, ${money(counter)} is already a deal. Take it."`,

@@ -2304,11 +2304,11 @@ const Views = {
               const isMissing = st === "missing" || (b.missingParts || []).includes(p.key);
               if (isMissing) {
                 const owned = (State.parts || []).filter(sp => sp.bikeSprite === b.sprite && sp.partKey === p.key).length;
-                return `<div class="part-cell state-missing" data-inspect-part="${p.key}">
+                return `<div class="part-cell" data-inspect-part="${p.key}">
                   <div class="part-missing-x">${Icon.get('missing')}</div>
                   <div class="part-label">${p.label}</div>
-                  <div class="part-state">Missing</div>
-                  ${owned ? `<button class="eby-buy" data-install-garage-part="${p.key}" style="margin-top:6px">Install (${owned})</button>` : `<div class="part-state" style="color:#999;font-size:11px">none owned</div>`}
+                  <div class="part-state" style="color:#999">Missing</div>
+                  ${owned ? `<button class="eby-buy" data-install-garage-part="${p.key}" style="margin-top:6px">Install (${owned})</button>` : ""}
                 </div>`;
               }
               const revealed = (b.revealedParts || []).includes(p.key);

@@ -2323,7 +2323,7 @@ const Views = {
         </div>
         <div class="g-detail-actions">
           <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
-          <button class="btn-strip" id="strip-toggle-btn" style="margin-top:8px">Strip Parts</button>
+          <button class="btn-strip" id="strip-toggle-btn" style="margin-top:8px">${Icon.get('wrench')} Strip Parts</button>
           <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
 
         </div>
@@ -2871,7 +2871,7 @@ const Views = {
     const stripToggleBtn = el.querySelector("#strip-toggle-btn");
     if (stripToggleBtn) stripToggleBtn.addEventListener("click", () => {
       this.stripMode = !this.stripMode;
-      stripToggleBtn.textContent = this.stripMode ? "Done Stripping" : "Strip Parts";
+      stripToggleBtn.innerHTML = this.stripMode ? `${Icon.get('wrench')} Done Stripping` : `${Icon.get('wrench')} Strip Parts`;
       this.renderGarage();
     });
     // Inspect / strip parts: tap to reveal or pull

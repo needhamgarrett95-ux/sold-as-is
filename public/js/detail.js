@@ -40,11 +40,10 @@ const Detail = {
   },
 
   _removeBlockedListing() {
-    // Seller blocked you — listing disappears from feed
+    // Seller blocked you — listing is replaced with a fresh one
     const l = this.current;
-    if (l && typeof Feed !== "undefined" && Feed.listings) {
-      const idx = Feed.listings.findIndex(x => x.id === l.id);
-      if (idx >= 0) Feed.listings.splice(idx, 1);
+    if (l && typeof Feed !== "undefined" && Feed.replaceBlocked) {
+      Feed.replaceBlocked(l.id);
     }
     // Close detail after a beat so they see the block message, then refresh feed
     setTimeout(() => {

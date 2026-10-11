@@ -1025,7 +1025,7 @@ const Views = {
       return;
     }
     // Remove from inventory, add to listings
-    parts.splice(actualIdx, 1);
+    parts.splice(invIdx, 1);
     this.myPartListings.push({
       ...p,
       askPrice: price,
@@ -1052,7 +1052,7 @@ const Views = {
     if (!startPrice || startPrice <= 0) {
       return;
     }
-    parts.splice(actualIdx, 1);
+    parts.splice(invIdx, 1);
     const pct = ensurePct(p);
     const state = pctToState(pct);
     // Generate bidders with secret budgets

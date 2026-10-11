@@ -1126,3 +1126,20 @@ body.dark-mode .part-thumb { background: #242930; }
 body.dark-mode .garage-bike-img { background: #242930; }
 body.dark-mode .collection-bike-img { background: #242930; }
 body.dark-mode .bike-sprite-wrap { background: #242930; }
+
+/* Dark mode: listing cards, detail, haggle */
+body.dark-mode .feed { background: #1a1d22; }
+body.dark-mode .card { background: #242930; border-color: #3a4048; }
+body.dark-mode .card + .card { border-color: #3a4048; }
+body.dark-mode .d-photo { background: linear-gradient(135deg, #242930, #1a1d22); }
+body.dark-mode .detail-photo img { filter: none; }
+body.dark-mode .listing-desc { color: #9aa0a8; }
+body.dark-mode .part-hidden { background: #2c3138; border-color: #3a4048; }
+body.dark-mode .part-hidden .q { background: #333943; color: #9aa0a8; }
+body.dark-mode .haggle-box { background: #242930; border-color: #3a4048; }
+body.dark-mode .haggle-box input { background: #1a1d22; color: #ece9e1; border-color: #3a4048; }
+body.dark-mode .msg-seller { background: #242930; border-color: #3a4048; }
+body.dark-mode .msg-seller input { background: #1a1d22; color: #ece9e1; }
+
+body.dark-mode .part-cell.state-hidden { background: #2c3138; }
+body.dark-mode .d-hidden { background: #2c3138; color: #9aa0a8; }

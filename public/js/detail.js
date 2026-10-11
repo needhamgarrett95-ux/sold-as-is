@@ -56,6 +56,7 @@ const Detail = {
       feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "market" });
       if (feed.length > 50) feed.length = 50;
       localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+      if (typeof UI !== "undefined" && UI.updateBellBadge) UI.updateBellBadge();
     } catch (e) {}
     // Close detail after a beat so they see the block message, then refresh feed
     setTimeout(() => {

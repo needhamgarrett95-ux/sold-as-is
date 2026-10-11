@@ -1675,6 +1675,12 @@ const Views = {
             </div>
             ${this.partDetailOffer.accepted ? `
               <button class="eby-buy pd-buy" id="pd-accept-offer">Buy for ${money(this.partDetailOffer.price)}</button>
+            ` : (this.partDetailOffer.price && !this.partDetailOffer.blocked && !this.partDetailOffer.walkedAway) ? `
+              <button class="eby-buy pd-buy" id="pd-accept-offer" style="margin-bottom:8px">Accept ${money(this.partDetailOffer.price)}</button>
+              <div class="pd-offer-row">
+                <input type="number" inputmode="numeric" id="pd-offer-amount" placeholder="Counter offer ($)">
+                <button class="eby-offer" id="pd-send-offer">Counter</button>
+              </div>
             ` : (this.partDetailOffer.blocked || this.partDetailOffer.walkedAway) ? `
               <div class="pd-offer-dead" style="margin-top:10px;color:#999;font-style:italic">This seller is done talking.</div>
             ` : `
@@ -1836,15 +1842,20 @@ const Views = {
         response = this.pickSellerAccept(style, offerAmount);
       }
     } else if (ratio >= 0.70) {
-      // Reasonable — counter based on personality
-      const patience = style === "motivated" ? 0.8 : style === "firm" ? 0.4 : 0.6;
-      if (Math.random() < patience) {
-        const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
-        price = counter;
-        response = this.pickSellerCounter(style, offerAmount, counter);
-      } else {
+      // Reasonable — accept on 2nd+ round, or counter once based on personality
+      if (rounds >= 2) {
         accepted = true; price = offerAmount;
         response = this.pickSellerAccept(style, offerAmount);
+      } else {
+        const patience = style === "motivated" ? 0.6 : style === "firm" ? 0.3 : 0.5;
+        if (Math.random() < patience) {
+          const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
+          price = counter;
+          response = this.pickSellerCounter(style, offerAmount, counter);
+        } else {
+          accepted = true; price = offerAmount;
+          response = this.pickSellerAccept(style, offerAmount);
+        }
       }
     } else if (ratio >= 0.50) {
       // Low — firm sellers hold the line, others might deal
@@ -1911,6 +1922,7 @@ const Views = {
         feed.unshift({ msg: byBlockMsgs[(Math.random() * byBlockMsgs.length) | 0], at: Date.now(), cat: "boneyard" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+        if (typeof UI !== "undefined" && UI.updateBellBadge) UI.updateBellBadge();
       } catch (e) {}
     }
     // Seller declined/moved on — pull the listing and replace with a fresh part

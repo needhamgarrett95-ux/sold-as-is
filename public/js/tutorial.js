@@ -61,10 +61,25 @@ const Tutorial = {
 
   showBlocker() {
     document.body.classList.add("tutorial-locked");
+    if (!this._tapGuard) {
+      this._tapGuard = (e) => {
+        // Allow taps on highlighted element, tutorial card, and its children
+        if (e.target.closest(".tutorial-highlight") || e.target.closest("#tutorial-card")) return;
+        e.stopPropagation();
+        e.preventDefault();
+      };
+      document.addEventListener("click", this._tapGuard, true);
+      document.addEventListener("touchend", this._tapGuard, true);
+    }
   },
 
   hideBlocker() {
     document.body.classList.remove("tutorial-locked");
+    if (this._tapGuard) {
+      document.removeEventListener("click", this._tapGuard, true);
+      document.removeEventListener("touchend", this._tapGuard, true);
+      this._tapGuard = null;
+    }
   },
 
   start() {

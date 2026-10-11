@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Custom Keyboard Demo — Sold As-Is</title>
+<style>
+  :root { --red: #d43a2f; --ink: #222; --line: #e0d8cc; --bg: #faf6f0; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--ink); padding: 20px; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { color: #777; font-size: 14px; margin: 0 0 20px; }
+  .demo-field { margin-bottom: 16px; }
+  .demo-field label { display: block; font-size: 13px; color: #777; margin-bottom: 6px; }
+  .demo-input {
+    width: 100%; padding: 14px; font-size: 20px; border: 1.5px solid var(--line);
+    border-radius: 10px; background: #fff; color: var(--ink);
+  }
+  .demo-input:focus { outline: none; border-color: var(--red); }
+  /* Custom keyboard */
+  .kb-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9998;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .kb-overlay.show { opacity: 1; pointer-events: auto; }
+  .kb {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+    background: #fff; border-top: 1px solid var(--line);
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform 0.25s ease-out;
+    border-radius: 16px 16px 0 0;
+  }
+  .kb.show { transform: translateY(0); }
+  .kb-display {
+    text-align: center; font-size: 28px; font-weight: 700; padding: 8px;
+    margin-bottom: 8px; min-height: 48px; color: var(--ink);
+  }
+  .kb-display .kb-cursor { color: var(--red); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .kb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .kb-key {
+    padding: 16px; font-size: 22px; font-weight: 600; text-align: center;
+    background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px;
+    color: var(--ink); cursor: pointer; user-select: none;
+  }
+  .kb-key:active { background: #eee5d8; transform: scale(0.97); }
+  .kb-key.fn { background: #f0ebe2; font-size: 18px; }
+  .kb-key.go { background: var(--red); color: #fff; border-color: var(--red); font-size: 18px; }
+  .kb-key.go:active { background: #b83026; }
+</style>
+</head>
+<body>
+  <h1>Custom Keyboard Demo</h1>
+  <p>Tap any field below — the game keyboard slides up instead of the iOS one. Styled to match Sold As-Is.</p>
+
+  <div class="demo-field">
+    <label>Make an offer</label>
+    <input class="demo-input kb-target" readonly placeholder="Tap to enter amount" inputmode="none">
+  </div>
+  <div class="demo-field">
+    <label>Place a bid</label>
+    <input class="demo-input kb-target" readonly placeholder="Tap to enter bid" inputmode="none">
+  </div>
+  <div class="demo-field">
+    <label>List price</label>
+    <input class="demo-input kb-target" readonly placeholder="Tap to set price" inputmode="none">
+  </div>
+
+  <div class="kb-overlay" id="kb-overlay"></div>
+  <div class="kb" id="kb">
+    <div class="kb-display" id="kb-display"><span id="kb-val"></span><span class="kb-cursor">|</span></div>
+    <div class="kb-grid">
+      <div class="kb-key" data-k="1">1</div>
+      <div class="kb-key" data-k="2">2</div>
+      <div class="kb-key" data-k="3">3</div>
+      <div class="kb-key" data-k="4">4</div>
+      <div class="kb-key" data-k="5">5</div>
+      <div class="kb-key" data-k="6">6</div>
+      <div class="kb-key" data-k="7">7</div>
+      <div class="kb-key" data-k="8">8</div>
+      <div class="kb-key" data-k="9">9</div>
+      <div class="kb-key fn" data-k="clear">C</div>
+      <div class="kb-key" data-k="0">0</div>
+      <div class="kb-key fn" data-k="back">⌫</div>
+    </div>
+    <div class="kb-grid" style="margin-top:8px;grid-template-columns:1fr 1fr;">
+      <div class="kb-key fn" data-k="cancel">Cancel</div>
+      <div class="kb-key go" data-k="go">Done</div>
+    </div>
+  </div>
+
+<script>
+  const kb = document.getElementById('kb');
+  const overlay = document.getElementById('kb-overlay');
+  const dispVal = document.getElementById('kb-val');
+  let activeInput = null;
+  let buf = '';
+
+  function fmt(n) { return n ? '$' + Number(n).toLocaleString() : ''; }
+
+  function openKb(input) {
+    activeInput = input;
+    buf = input.dataset.raw || '';
+    dispVal.textContent = fmt(buf);
+    kb.classList.add('show');
+    overlay.classList.add('show');
+  }
+  function closeKb(commit) {
+    if (commit && activeInput) {
+      activeInput.dataset.raw = buf;
+      activeInput.value = fmt(buf);
+    }
+    kb.classList.remove('show');
+    overlay.classList.remove('show');
+    activeInput = null;
+    buf = '';
+  }
+
+  document.querySelectorAll('.kb-target').forEach(el => {
+    el.addEventListener('click', () => openKb(el));
+  });
+  overlay.addEventListener('click', () => closeKb(false));
+
+  kb.addEventListener('click', (e) => {
+    const k = e.target.dataset.k;
+    if (!k) return;
+    if (k === 'clear') buf = '';
+    else if (k === 'back') buf = buf.slice(0, -1);
+    else if (k === 'cancel') return closeKb(false);
+    else if (k === 'go') return closeKb(true);
+    else if (buf.length < 7) buf += k;
+    dispVal.textContent = fmt(buf);
+  });
+</script>
+</body>
+</html>

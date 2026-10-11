@@ -2959,13 +2959,14 @@ const Views = {
     if (bike.missingParts.includes(partKey)) {
       return;
     }
-    // Mark as missing in partStates too
+    // Capture the part's actual condition BEFORE marking as missing
     bike.partStates = bike.partStates || {};
+    const state = (bike.partStates && bike.partStates[partKey] !== "missing" && bike.partStates[partKey]) || "pristine";
+    // Mark as missing in partStates too
     bike.partStates[partKey] = "missing";
     const avail = availableParts(bike.sprite);
     const pDef = avail.find(p => p.key === partKey);
     if (!pDef) return;
-    const state = (bike.partStates && bike.partStates[partKey]) || "pristine";
     // Move to inventory
     State.parts = State.parts || [];
     State.parts.push({

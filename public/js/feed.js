@@ -18,8 +18,9 @@ const Feed = {
     } catch (e) {}
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
-    // Eliseo_M always has a listing up
-    this.listings.unshift(makeDannyListing(this.nextId++));
+    // Eliseo_M always has a listing up — random position
+    const _danny = makeDannyListing(this.nextId++);
+    this.listings.splice((Math.random() * (this.listings.length + 1)) | 0, 0, _danny);
     this.render();
     // No infinite scroll — feed is locked to 8 rows, refresh for new batch
     // (auto dropFresh removed — it caused random layout breaks)
@@ -71,8 +72,9 @@ const Feed = {
     this.listings = genListings(this.batchSize, this.nextId);
     this.nextId += this.batchSize;
     this.listings.forEach(l => l.fresh = true);
-    // Eliseo_M always has a listing up
-    this.listings.unshift(makeDannyListing(this.nextId++));
+    // Eliseo_M always has a listing up — random position
+    const _danny = makeDannyListing(this.nextId++);
+    this.listings.splice((Math.random() * (this.listings.length + 1)) | 0, 0, _danny);
     this.render();
     document.getElementById("feed").scrollTop = 0;
     this.cooldownUntil = now + this.COOLDOWN_S * 1000;

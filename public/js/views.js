@@ -419,7 +419,7 @@ const Views = {
     UI._unreadActivity = (UI._unreadActivity || 0) + 1;
     UI.updateBellBadge();
     // Bell sound only for offer notifications
-    if (typeof AudioSys !== "undefined" && AudioSys.playBell) AudioSys.playBell();
+    if (typeof AudioEngine !== "undefined" && AudioEngine.playBell) AudioEngine.playBell();
     this.updateNavBadges();
     // Refresh the relevant view
     if (this.current === "market" && this.marketTab === "mine") {

@@ -1117,3 +1117,12 @@ body.dark-mode .garage-bike-name { color: #ece9e1; }
 body.dark-mode .garage-bike-meta { color: #9aa0a8; }
 body.dark-mode .notice { color: #9aa0a8; }
 body.dark-mode ::placeholder { color: #9aa0a8; opacity: 1; }
+
+/* Dark mode: image containers */
+body.dark-mode .card .photo { background: linear-gradient(135deg, #242930, #1a1d22); }
+body.dark-mode .pd-photo { background: #242930; }
+body.dark-mode .eby-thumb { background: #242930; }
+body.dark-mode .part-thumb { background: #242930; }
+body.dark-mode .garage-bike-img { background: #242930; }
+body.dark-mode .collection-bike-img { background: #242930; }
+body.dark-mode .bike-sprite-wrap { background: #242930; }

@@ -2388,6 +2388,11 @@ const Views = {
   },
 
   renderGarage() {
+    // Strip mode belongs to one bike's page only — never carries over
+    if (this.stripMode && this._stripFor !== this.garageDetailIdx) {
+      this.stripMode = false;
+      this._stripFor = null;
+    }
     const el = document.getElementById("garage-view");
     const tabs = `
       <div class="g-tabs">
@@ -3114,6 +3119,7 @@ const Views = {
     const stripToggleBtn = el.querySelector("#strip-toggle-btn");
     if (stripToggleBtn) stripToggleBtn.addEventListener("click", () => {
       this.stripMode = !this.stripMode;
+      this._stripFor = this.stripMode ? this.garageDetailIdx : null;
       stripToggleBtn.innerHTML = this.stripMode ? `${Icon.get('wrench')} Done Stripping` : `${Icon.get('wrench')} Strip Parts`;
       this.renderGarage();
     });

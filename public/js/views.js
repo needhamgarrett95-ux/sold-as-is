@@ -2179,7 +2179,7 @@ const Views = {
       <div class="g-tabs">
         <button class="g-tab${this.garageTab === "bikes" ? " active" : ""}" data-gtab="bikes">${Icon.get('moped')} Bikes${State.garage.length ? ` (${State.garage.length})` : ""}</button>
         <button class="g-tab${this.garageTab === "parts" ? " active" : ""}" data-gtab="parts">${Icon.get('gear')} Parts${State.parts && State.parts.length ? ` (${State.parts.length})` : ""}</button>
-        <button class="g-tab${this.garageTab === "assemble" ? " active" : ""}" data-gtab="assemble">${Icon.get('wrench')} Assemble</button>
+
         <button class="g-tab${this.garageTab === "skills" ? " active" : ""}" data-gtab="skills">${Icon.get('trophy')} Skills${Skills.unspentPoints() ? ` (${Skills.unspentPoints()})` : ""}</button>
       </div>`;
     if (this.garageTab === "parts") {

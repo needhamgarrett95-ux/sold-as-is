@@ -50,9 +50,11 @@ const Detail = {
     }
     const offerPrice = parseInt(digits, 10);
     this._haggleRounds = (this._haggleRounds || 0) + 1;
-    // Seller patience: 25% block chance at round 3, +25% each round after (cap 90%)
-    if (this._haggleRounds >= 3 && !this.blocked) {
-      const blockChance = Math.min(0.25 + (this._haggleRounds - 3) * 0.25, 0.90);
+    // Seller patience: starts round 2, balanced escalation
+    // R2: 10% → R3: 25% → R4: 50% → R5+: 75% cap
+    if (this._haggleRounds >= 2 && !this.blocked) {
+      const chances = [0, 0.10, 0.25, 0.50, 0.75];
+      const blockChance = chances[Math.min(this._haggleRounds, 4)];
       if (Math.random() < blockChance) {
         this.blocked = true;
         this.haggleResponse = { response: this.pickReply([

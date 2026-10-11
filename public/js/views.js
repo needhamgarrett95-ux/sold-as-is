@@ -2328,7 +2328,7 @@ const Views = {
         </div>
         <div class="sub" style="margin-top:8px">To strip parts, use "Strip parts instead" above and tap parts individually.</div>
         ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}
-      </div>`;
+      </div>${pickerOverlay}`;
   },
 
 
@@ -2602,7 +2602,7 @@ const Views = {
             : `<div class="part-state" style="color:#999">none owned</div>`}
         </div>`;
       }).join("") + `</div>
-      <div style="padding:12px"><button class="eby-buy" id="roller-to-garage">${(r.missingParts || []).length ? `Move to Garage (missing ${(r.missingParts || []).length})` : "Move to Garage"}</button></div>${pickerOverlay}`;
+      <div style="padding:12px"><button class="eby-buy" id="roller-to-garage">${(r.missingParts || []).length ? `Move to Garage (missing ${(r.missingParts || []).length})` : "Move to Garage"}</button></div>`;
     return html;
   },
 

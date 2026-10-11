@@ -598,8 +598,9 @@ const UI = {
       list.innerHTML = tabsHTML + filtered.map((a, idx) => {
         const d = new Date(a.at);
         const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-        const cls = a.clickable ? "activity-item clickable" : "activity-item";
-        const dataAttr = a.clickable && a.listingId ? ` data-listing="${a.listingId}"` : "";
+        const isClickable = a.clickable || (a.listingId && a.cat === "marketplace");
+        const cls = isClickable ? "activity-item clickable" : "activity-item";
+        const dataAttr = isClickable && a.listingId ? ` data-listing="${a.listingId}"` : "";
         return `<div class="${cls}"${dataAttr}><span class="activity-time">${time}</span><span>${a.msg}</span></div>`;
       }).join("");
     }

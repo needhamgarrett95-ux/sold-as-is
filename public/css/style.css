@@ -1251,3 +1251,7 @@ body {
 }
 input, textarea { -webkit-user-select: none; user-select: none; }
 body.dark-mode .haggle-photo { background: linear-gradient(135deg, #242930, #1a1d22); }
+
+/* Kill overscroll: no rubber-band / pull gestures ever reach the browser */
+html, body { overscroll-behavior: none; }
+#browser, #browser * { overscroll-behavior: none; }

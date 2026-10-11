@@ -572,6 +572,12 @@ const Views = {
     const offer = l.offer;
     offer.rounds = (offer.rounds || 0) + 1;
     offer.thread.push({ from: "you", text: `How about ${money(counterAmount)}?` });
+    // Countering HIGHER than your own listing price? Buyer thinks you're crazy.
+    if (counterAmount > l.askPrice) {
+      offer.thread.push({ from: "buyer", text: `"Are you smoking crack dude... your listing says ${money(l.askPrice)}."` });
+      this.renderSellerHaggle();
+      return;
+    }
 
     const max = offer.maxAmount;
     const style = offer.style || "haggler";

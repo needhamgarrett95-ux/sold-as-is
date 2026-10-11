@@ -2,6 +2,7 @@
 const Feed = {
   listings: [],
   nextId: 0,
+  blockedIds: new Set(),
   batchSize: 16, // 8 rows x 2 cols, locked
   filter: "all",
   search: "",
@@ -124,6 +125,8 @@ const Feed = {
 
   // Seller blocked the player — yank the listing and drop in a fresh one
   replaceBlocked(id) {
+    // Mark as blocked first (survives render races)
+    this.blockedIds.add(id);
     try {
       const wasDanny = this.listings.some(l => l.id === id && l.isDanny);
       this.listings = this.listings.filter(l => l.id !== id);
@@ -187,7 +190,7 @@ const Feed = {
   },
 
   render() {
-    const shown = this.listings.filter(l => this.matchesFilter(l));
+    const shown = this.listings.filter(l => !this.blockedIds.has(l.id) && this.matchesFilter(l));
     const feed = document.getElementById("feed");
     // Clear first + force reflow to prevent iOS ghost rendering
     feed.innerHTML = "";

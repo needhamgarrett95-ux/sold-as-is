@@ -1664,6 +1664,8 @@ const Views = {
     const p = this.partsShop[this.partDetailIdx];
     if (!p) return;
     const el = document.getElementById("part-detail");
+    // Preserve scroll position (don't jump to top on seller responses)
+    const scrollY = window.scrollY;
     const isAuction = p.listingType === "auction";
 
     let actionHtml = "";
@@ -1812,6 +1814,7 @@ const Views = {
     const pick = pool[(Math.random() * pool.length) | 0];
     this._lastPartReply = pick;
     return pick;
+    window.scrollTo(0, scrollY);
   },
 
   // Player makes an offer on a BIN part — seller responds

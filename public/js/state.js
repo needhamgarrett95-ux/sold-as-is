@@ -19,7 +19,11 @@ const State = {
   buy(listing) {
     if (!this.canAfford(listing.price)) return false;
     this.cash -= listing.price;
-    this.garage.push({ ...listing, boughtFor: listing.price, boughtAt: Date.now() });
+    const boughtBike = { ...listing, boughtFor: listing.price, boughtAt: Date.now() };
+    // Keep the two missing-part ledgers in agreement from the start
+    boughtBike.missingParts = Object.keys(boughtBike.partStates || {})
+      .filter(k => boughtBike.partStates[k] === "missing");
+    this.garage.push(boughtBike);
     this.stats.bikesBought++;
     if (typeof Milestones !== "undefined") Milestones.check(this.stats);
     Save.save();

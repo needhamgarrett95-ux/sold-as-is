@@ -2511,7 +2511,7 @@ const Views = {
         </div>
         <div class="cond-report">
           <h3>Inspect Parts</h3>
-          <div class="sub" style="margin-bottom:8px">Tap a part to reveal its condition.</div>
+          <div class="sub" style="margin-bottom:8px">${this.stripMode ? "Strip mode — tap a part to pull it off this bike. Missing parts can't be stripped." : "Tap a part to reveal its condition."}</div>
           <div class="parts-grid" id="inspect-grid">
             ${availableParts(b.sprite).map(p => {
               const st = (b.partStates && b.partStates[p.key]) || "pristine";
@@ -2537,7 +2537,7 @@ const Views = {
         </div>
         <div class="g-detail-actions">
           <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
-          <button class="btn-strip" id="strip-toggle-btn" style="margin-top:8px">${Icon.get('wrench')} Strip Parts</button>
+          <button class="btn-strip" id="strip-toggle-btn" style="margin-top:8px">${Icon.get('wrench')} ${this.stripMode ? "Done Stripping" : "Strip Parts"}</button>
           <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
 
         </div>
@@ -3259,7 +3259,11 @@ const Views = {
 
   stripPartFromBike(bike, partKey) {
     bike.missingParts = bike.missingParts || [];
-    if (bike.missingParts.includes(partKey)) {
+    bike.partStates = bike.partStates || {};
+    // A missing part is missing in either ledger — nothing exists to strip
+    if (bike.missingParts.includes(partKey) || bike.partStates[partKey] === "missing") {
+      // Heal the ledgers so they agree from here on
+      if (!bike.missingParts.includes(partKey)) bike.missingParts.push(partKey);
       return;
     }
     // Capture the part's actual condition BEFORE marking as missing

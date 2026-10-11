@@ -1255,3 +1255,7 @@ body.dark-mode .haggle-photo { background: linear-gradient(135deg, #242930, #1a1
 /* Kill overscroll: no rubber-band / pull gestures ever reach the browser */
 html, body { overscroll-behavior: none; }
 #browser, #browser * { overscroll-behavior: none; }
+
+/* Strip mode: unmistakable while active */
+.part-cell.strip-mode { background: rgba(224,69,54,.08); box-shadow: inset 0 0 0 1px #e04536; }
+body.dark-mode .part-cell.strip-mode { background: rgba(255,102,89,.12); box-shadow: inset 0 0 0 1px #ff6659; }

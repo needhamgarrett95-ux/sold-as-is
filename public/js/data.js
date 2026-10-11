@@ -321,14 +321,24 @@ function makeListing(id) {
   // Price: base * condition * (0.85–1.25 noise) — sometimes a deal, sometimes overpriced
   const dealFactor = 0.85 + Math.random() * 0.4;
   const price = Math.round(bike.base * cond.mult * dealFactor / 10) * 10;
-  const tag = pick(TAGS);
-  const title = pick(TITLES).replace("{bike}", `${bike.brand} ${bike.name}`)
-    .replace("{cond}", cond.name.toLowerCase()).replace("{tag}", tag);
   const minsAgo = Math.floor(Math.random() * 600) + 2;
   const partStates = rollPartStates(cond.name, bike.sprite);
   // Recalculate true condition from parts (may differ from rolled condition)
   const trueCond = calcBikeCondition(partStates, bike.sprite);
   const trueCondObj = CONDITIONS.find(c => c.name === trueCond) || cond;
+  // Title uses TRUE condition so it matches the description
+  // Tags are filtered to not contradict the condition
+  const badConds = ["parts bike", "non-runner"];
+  const isBad = badConds.some(bc => trueCond.toLowerCase().includes(bc));
+  const goodTags = TAGS.filter(t => {
+    const tl = t.toLowerCase();
+    if (isBad && ["runs great", "runs gr8", "fresh top end", "just serviced", "new tires"].some(g => tl.includes(g))) return false;
+    if (!isBad && ["needs carb work", "project bike", "ran when parked"].some(b => tl.includes(b))) return false;
+    return true;
+  });
+  const tag = pick(goodTags.length ? goodTags : TAGS);
+  const title = pick(TITLES).replace("{bike}", `${bike.brand} ${bike.name}`)
+    .replace("{cond}", trueCond.toLowerCase()).replace("{tag}", tag);
   // Each missing part knocks ~8% off fair value
   const missingCount = Object.values(partStates).filter(s => s === "missing").length;
   const fairValue = Math.round(bike.base * trueCondObj.mult * Math.pow(0.92, missingCount) / 10) * 10;

@@ -2246,6 +2246,35 @@ const Views = {
   garageDetailHTML() {
     const b = State.garage[this.garageDetailIdx];
     if (!b) return `<div class="empty">Bike not found.</div>`;
+    // Part picker overlay
+    if (this._installPicker && this._installPicker.bikeIdx === this.garageDetailIdx) {
+      const { partKey } = this._installPicker;
+      const matches = (State.parts || [])
+        .map((sp, i) => ({ ...sp, invIdx: i }))
+        .filter(sp => sp.bikeSprite === b.sprite && sp.partKey === partKey)
+        .sort((a, b2) => (b2.conditionPct || 0) - (a.conditionPct || 0));
+      const pDef = availableParts(b.sprite).find(p => p.key === partKey);
+      let pickerHTML = `<div class="roller-picker">
+        <div class="roller-picker-head">
+          <strong>Pick a ${pDef ? pDef.label : partKey}</strong>
+          <button class="back-btn" id="install-picker-close">✕</button>
+        </div>`;
+      if (!matches.length) {
+        pickerHTML += `<div class="empty" style="padding:16px">None in inventory</div>`;
+      } else {
+        pickerHTML += `<div class="roller-picker-list">` + matches.map(m => `
+          <div class="roller-pick-row" data-install-pick="${m.invIdx}">
+            <img src="${m.img}" alt="${m.partLabel}" loading="lazy">
+            <div class="roller-pick-info">
+              <div class="roller-pick-name">${m.partLabel}</div>
+              <div class="roller-pick-cond state-${m.state}">${m.stateLabel} · ${m.conditionPct || "?"}%</div>
+            </div>
+            <button class="eby-buy roller-pick-btn">Install</button>
+          </div>`).join("") + `</div>`;
+      }
+      pickerHTML += `</div>`;
+      return pickerHTML;
+    }
     const presets = this.descPresets(b.condition);
     const tier = (typeof Skills !== "undefined") ? Skills.unlocked["smoothtalker"] || 0 : 0;
     if (!b.desc) b.desc = presets[0].t;
@@ -2577,20 +2606,19 @@ const Views = {
     return html;
   },
 
-  installPartOnGarageBike(bikeIdx, partKey) {
+  installPartOnGarageBike(bikeIdx, partKey, invIdx) {
     const b = (State.garage || [])[bikeIdx];
     if (!b) return;
     const parts = State.parts || [];
-    let bestIdx = -1, bestPct = -1;
-    parts.forEach((sp, i) => {
-      if (sp.bikeSprite === b.sprite && sp.partKey === partKey) {
-        const pct = sp.conditionPct || 0;
-        if (pct > bestPct) { bestPct = pct; bestIdx = i; }
-      }
-    });
-    if (bestIdx < 0) return;
-    const part = parts[bestIdx];
-    parts.splice(bestIdx, 1);
+    // If invIdx provided, use that specific part; otherwise show picker
+    if (invIdx === undefined || invIdx === null) {
+      this._installPicker = { bikeIdx, partKey };
+      this.renderGarage();
+      return;
+    }
+    const part = parts[invIdx];
+    if (!part || part.partKey !== partKey || part.bikeSprite !== b.sprite) return;
+    parts.splice(invIdx, 1);
     b.partStates = b.partStates || {};
     b.partStates[partKey] = part.state || "used_good";
     b.missingParts = (b.missingParts || []).filter(k => k !== partKey);
@@ -2789,17 +2817,35 @@ const Views = {
     });
     // Roller detail: close picker
     const pickerClose = el.querySelector("#roller-picker-close");
-    if (pickerClose) pickerClose.addEventListener("click", () => {
+    if (instPickerClose) instPickerClose.addEventListener("click", () => {
       this.rollerPickSlot = null;
       this.renderGarage();
     });
-    // Garage: install part on bike
+    // Garage: install part on bike (opens picker)
     el.querySelectorAll("[data-install-garage-part]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const bikeIdx = this.garageDetailIdx;
         if (bikeIdx >= 0) this.installPartOnGarageBike(bikeIdx, btn.dataset.installGaragePart);
       });
+    });
+    // Install picker: close
+    const instPickerClose = el.querySelector("#install-picker-close");
+    if (instPickerClose) instPickerClose.addEventListener("click", () => {
+      this._installPicker = null;
+      this.renderGarage();
+    });
+    // Install picker: pick a part
+    el.querySelectorAll("[data-install-pick]").forEach(row => {
+      const btn = row.querySelector(".roller-pick-btn");
+      const doPick = (e) => {
+        e.stopPropagation();
+        const { bikeIdx, partKey } = this._installPicker || {};
+        this._installPicker = null;
+        if (bikeIdx !== undefined) this.installPartOnGarageBike(bikeIdx, partKey, +row.dataset.installPick);
+      };
+      if (btn) btn.addEventListener("click", doPick);
+      row.addEventListener("click", doPick);
     });
     // Roller detail: pick a specific part to install
     el.querySelectorAll("[data-pick-part]").forEach(row => {

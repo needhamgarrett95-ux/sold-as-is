@@ -555,6 +555,8 @@ const UI = {
   _toastQueue: [],
   _toastShowing: false,
   _unreadActivity: 0,
+  _unreadMarketplace: 0,
+  _unreadBoneyard: 0,
   toast(msg, category) {
     this._toastQueue.push(msg);
     this._showNextToast();
@@ -578,6 +580,10 @@ const UI = {
     // Clear unread badge
     this._unreadActivity = 0;
     this.updateBellBadge();
+    // Clear tab-specific dot when that tab is opened
+    const curTab = tab || this._activityTab || "marketplace";
+    if (curTab === "marketplace") this._unreadMarketplace = 0;
+    if (curTab === "boneyard") this._unreadBoneyard = 0;
     const popup = document.getElementById("activity-popup");
     const list = document.getElementById("activity-list");
     if (!popup || !list) return;
@@ -588,8 +594,8 @@ const UI = {
     const filtered = feed.filter(a => (a.cat || "marketplace") === cur);
     const tabsHTML = `
       <div class="activity-tabs">
-        <button class="activity-tab${cur === "marketplace" ? " active" : ""}" data-atab="marketplace">Marketplace</button>
-        <button class="activity-tab${cur === "boneyard" ? " active" : ""}" data-atab="boneyard">Boneyard</button>
+        <button class="activity-tab${cur === "marketplace" ? " active" : ""}" data-atab="marketplace">Marketplace${this._unreadMarketplace > 0 ? `<span class="tab-dot-sm"></span>` : ""}</button>
+        <button class="activity-tab${cur === "boneyard" ? " active" : ""}" data-atab="boneyard">Boneyard${this._unreadBoneyard > 0 ? `<span class="tab-dot-sm"></span>` : ""}</button>
       </div>
       ${filtered.length ? `<button class="activity-clear" id="activity-clear">Clear</button>` : ""}`;
     if (!filtered.length) {

@@ -376,6 +376,7 @@ const Views = {
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
       } catch (e) {}
       UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+      UI._unreadMarketplace = (UI._unreadMarketplace || 0) + 1;
       UI.updateBellBadge();
       if (typeof AudioEngine !== "undefined" && AudioEngine.playBell) AudioEngine.playBell();
       if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
@@ -424,6 +425,7 @@ const Views = {
       localStorage.setItem("soldasis_activity", JSON.stringify(feed));
     } catch (e) {}
     UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+    UI._unreadMarketplace = (UI._unreadMarketplace || 0) + 1;
     UI.updateBellBadge();
     // Bell sound only for offer notifications
     if (typeof AudioEngine !== "undefined" && AudioEngine.playBell) AudioEngine.playBell();
@@ -1397,6 +1399,16 @@ const Views = {
         State.stats.auctionsWon++;
         if (typeof Milestones !== "undefined") Milestones.check(State.stats);
         UI.refreshCash();
+        // Auction win notification (bell + activity)
+        try {
+          const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+          feed.unshift({ msg: `You won the auction for ${p.partLabel} at ${money(p.currentBid)}`, at: Date.now(), cat: "boneyard" });
+          if (feed.length > 50) feed.length = 50;
+          localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+        } catch (e) {}
+        UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+        UI._unreadBoneyard = (UI._unreadBoneyard || 0) + 1;
+        UI.updateBellBadge();
       } else if (i >= 0) {
         this.partsShop.splice(i, 1);
       }
@@ -2566,7 +2578,10 @@ const Views = {
       }
       if (typeof recalcFairValue !== "undefined") recalcFairValue(r);
     };
-    if (part.bikeSprite !== r.sprite || !(r.missingParts || []).includes(part.partKey)) {
+    // Match by sprite, or by brand+model as fallback
+    const spriteMatch = part.bikeSprite === r.sprite;
+    const modelMatch = part.bikeBrand === r.brand && part.bikeModel === r.model;
+    if ((!spriteMatch && !modelMatch) || !(r.missingParts || []).includes(part.partKey)) {
       return;
     }
     parts.splice(invIdx, 1);
@@ -2936,7 +2951,7 @@ const Views = {
     this.stripMode = false;
     Save.save();
     this.renderGarage();
-    UI.toast(`${bike.brand} ${bike.model} moved to Assemble`);
+
     this.garageTab = "assemble";
     Save.save();
     this.renderGarage();

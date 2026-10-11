@@ -780,6 +780,15 @@ button.settings-item:active { background: #faf6f1; }
   font-weight: 600;
   cursor: pointer;
 }
+.tab-dot-sm {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #f44336;
+  border-radius: 50%;
+  margin-left: 4px;
+  vertical-align: middle;
+}
 .activity-tab.active {
   color: #fff;
   border-bottom-color: #d4a017;

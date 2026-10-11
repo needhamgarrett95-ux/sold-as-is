@@ -61,7 +61,15 @@ const Detail = {
         this._unreadActivity = (this._unreadActivity || 0) + 1;
         this._unreadMarketplace = (this._unreadMarketplace || 0) + 1;
         this.updateBellBadge();
-        this._forceBellDot();
+        // Direct DOM fallback
+        setTimeout(() => {
+          const bell = document.getElementById("activity-bell");
+          if (bell && !bell.querySelector(".bell-dot")) {
+            const dot = document.createElement("span");
+            dot.className = "bell-dot";
+            bell.appendChild(dot);
+          }
+        }, 100);
       } catch (e) {}
     }
     // Disable buying immediately — this listing is dead

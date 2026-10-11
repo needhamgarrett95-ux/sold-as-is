@@ -1929,8 +1929,16 @@ const Views = {
           Detail._unreadActivity = (Detail._unreadActivity || 0) + 1;
           Detail._unreadBoneyard = (Detail._unreadBoneyard || 0) + 1;
           Detail.updateBellBadge();
-          if (Detail._forceBellDot) Detail._forceBellDot();
         }
+        // Direct DOM fallback
+        setTimeout(() => {
+          const bell = document.getElementById("activity-bell");
+          if (bell && !bell.querySelector(".bell-dot")) {
+            const dot = document.createElement("span");
+            dot.className = "bell-dot";
+            bell.appendChild(dot);
+          }
+        }, 100);
       } catch (e) {}
     }
     // Seller declined/moved on — pull the listing and replace with a fresh part

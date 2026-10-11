@@ -378,7 +378,10 @@ const Views = {
       // Log to activity only (no toast — bell dot handles it)
       try {
         const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-        feed.unshift({ msg: `${buyerName} bought your ${listing.brand} ${listing.model} at listing price (${money(askPrice)})`, at: Date.now(), cat: "marketplace", listingId: listing.id, clickable: true, soldView: true });
+        const binProfit = askPrice - costBasis;
+        const binPl = binProfit >= 0 ? `+$${Math.round(binProfit).toLocaleString()}` : `-$${Math.round(Math.abs(binProfit)).toLocaleString()}`;
+        const binPlWord = binProfit >= 0 ? "profit" : "loss";
+        feed.unshift({ msg: `${buyerName} bought your ${listing.brand} ${listing.model} at listing price (${money(askPrice)} · ${binPl} ${binPlWord})`, at: Date.now(), cat: "marketplace", listingId: listing.id, clickable: true, soldView: true });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
       } catch (e) {}
@@ -556,6 +559,21 @@ const Views = {
     if (typeof Milestones !== "undefined") Milestones.check(State.stats);
     const xpResult = Skills.awardForSale(amount, costBasis);
     if (xpResult.xp > 0) XPPopup.show(xpResult.xp, xpResult.newPoints);
+    // Sale notification (silent — red dot, no sound)
+    try {
+      const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+      const bikeName = `${l.brand} ${l.model}`;
+      const pl = profit >= 0 ? `+$${Math.round(profit).toLocaleString()}` : `-$${Math.round(Math.abs(profit)).toLocaleString()}`;
+      const plWord = profit >= 0 ? "profit" : "loss";
+      feed.unshift({ msg: `Sold the ${bikeName} for ${money(amount)} (${pl} ${plWord})`, at: Date.now(), cat: "marketplace", listingId: l.id });
+      if (feed.length > 50) feed.length = 50;
+      localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+      if (typeof UI !== "undefined") {
+        UI._unreadActivity = (UI._unreadActivity || 0) + 1;
+        UI._unreadMarketplace = (UI._unreadMarketplace || 0) + 1;
+        if (UI.updateBellBadge) UI.updateBellBadge();
+      }
+    } catch (e) {}
     this.closeSellerHaggle();
     // Refresh views
     if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }

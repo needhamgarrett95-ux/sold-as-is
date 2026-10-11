@@ -45,19 +45,21 @@ const Detail = {
     if (l && typeof Feed !== "undefined" && Feed.replaceBlocked) {
       Feed.replaceBlocked(l.id);
     }
-    // Activity notification
-    try {
-      const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-      const blockMsgs = [
-        `${l.seller || "Seller"} blocked you. The ${l.brand} ${l.model} is gone forever. Smooth.`,
-        `You got blocked by ${l.seller || "the seller"}. The ${l.brand} ${l.model} listing has left the chat.`,
-        `${l.seller || "Seller"} hit the block button. That ${l.brand} ${l.model} will never know your love.`,
-      ];
-      feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "market" });
-      if (feed.length > 50) feed.length = 50;
-      localStorage.setItem("soldasis_activity", JSON.stringify(feed));
-      if (typeof UI !== "undefined" && UI.updateBellBadge) UI.updateBellBadge();
-    } catch (e) {}
+    // Activity notification (silent — red dot, no sound)
+    if (l) {
+      try {
+        const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
+        const blockMsgs = [
+          `${l.seller || "Seller"} blocked you. The ${l.brand} ${l.model} is gone forever. Smooth.`,
+          `You got blocked by ${l.seller || "the seller"}. The ${l.brand} ${l.model} listing has left the chat.`,
+          `${l.seller || "Seller"} hit the block button. That ${l.brand} ${l.model} will never know your love.`,
+        ];
+        feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "market" });
+        if (feed.length > 50) feed.length = 50;
+        localStorage.setItem("soldasis_activity", JSON.stringify(feed));
+        if (typeof UI !== "undefined" && UI.updateBellBadge) UI.updateBellBadge();
+      } catch (e) {}
+    }
     // Close detail after a beat so they see the block message, then refresh feed
     setTimeout(() => {
       this.close();

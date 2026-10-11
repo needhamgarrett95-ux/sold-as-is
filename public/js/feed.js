@@ -112,7 +112,10 @@ const Feed = {
   ensureDanny() {
     const hasDanny = this.listings.some(l => l.isDanny);
     if (!hasDanny) {
-      this.listings.unshift(makeDannyListing(this.nextId++));
+      const danny = makeDannyListing(this.nextId++);
+      // Random position, not pinned to front
+      const pos = (Math.random() * (this.listings.length + 1)) | 0;
+      this.listings.splice(pos, 0, danny);
       this.render();
     }
   },
@@ -122,7 +125,9 @@ const Feed = {
     const wasDanny = this.listings.some(l => l.id === id && l.isDanny);
     this.listings = this.listings.filter(l => l.id !== id);
     if (wasDanny) {
-      this.listings.unshift(makeDannyListing(this.nextId++));
+      const danny = makeDannyListing(this.nextId++);
+      const pos = (Math.random() * (this.listings.length + 1)) | 0;
+      this.listings.splice(pos, 0, danny);
     } else {
       const fresh = genListings(1, this.nextId);
       this.nextId += 1;

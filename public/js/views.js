@@ -92,7 +92,8 @@ const Views = {
     try { localStorage.setItem(this.PARTS_REFRESHES_KEY, String(this.partsRefreshesLeft)); } catch (e) {}
     this.partsShop = genPartsShop(16);
     // Eliseo_M always has a part listed
-    this.partsShop.unshift(makeDannyPart(1000 + ((Math.random() * 9000) | 0)));
+    const dannyPart = makeDannyPart(1000 + ((Math.random() * 9000) | 0));
+    this.partsShop.splice((Math.random() * (this.partsShop.length + 1)) | 0, 0, dannyPart);
     // Reset filters on fresh stock
     this.renderParts();
     // Browser Extension Tier 3: deal alerts
@@ -1457,7 +1458,8 @@ const Views = {
   renderParts(preserve) {
     if (!this.partsShop.length) {
       this.partsShop = genPartsShop(16);
-      this.partsShop.unshift(makeDannyPart(1000 + ((Math.random() * 9000) | 0)));
+      const dannyPart = makeDannyPart(1000 + ((Math.random() * 9000) | 0));
+    this.partsShop.splice((Math.random() * (this.partsShop.length + 1)) | 0, 0, dannyPart);
     }
     this.startAuctionTimer();
     this.startSalesTimer();
@@ -2178,7 +2180,8 @@ const Views = {
     const wasDanny = p.isDanny;
     this.partsShop.splice(i, 1);
     if (wasDanny) {
-      this.partsShop.unshift(makeDannyPart(1000 + ((Math.random() * 9000) | 0)));
+      const dannyPart = makeDannyPart(1000 + ((Math.random() * 9000) | 0));
+    this.partsShop.splice((Math.random() * (this.partsShop.length + 1)) | 0, 0, dannyPart);
     }
     UI.refreshCash();
     Save.save();

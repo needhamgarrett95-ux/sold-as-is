@@ -595,14 +595,29 @@ const UI = {
     if (!filtered.length) {
       list.innerHTML = tabsHTML + '<div class="activity-empty">No activity yet.</div>';
     } else {
-      list.innerHTML = tabsHTML + filtered.map(a => {
+      list.innerHTML = tabsHTML + filtered.map((a, idx) => {
         const d = new Date(a.at);
         const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-        return `<div class="activity-item"><span class="activity-time">${time}</span><span>${a.msg}</span></div>`;
+        const cls = a.clickable ? "activity-item clickable" : "activity-item";
+        const dataAttr = a.clickable && a.listingId ? ` data-listing="${a.listingId}"` : "";
+        return `<div class="${cls}"${dataAttr}><span class="activity-time">${time}</span><span>${a.msg}</span></div>`;
       }).join("");
     }
     list.querySelectorAll("[data-atab]").forEach(b => {
       b.addEventListener("click", (e) => { e.stopPropagation(); this.showActivity(b.dataset.atab); });
+    });
+    list.querySelectorAll(".activity-item.clickable").forEach(item => {
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const listingId = item.dataset.listing;
+        if (!listingId) return;
+        // Close popup
+        document.getElementById("activity-popup")?.classList.add("hidden");
+        // Navigate to My Listings and open the offer
+        if (typeof Views !== "undefined" && Views.openOfferFromActivity) {
+          Views.openOfferFromActivity(listingId);
+        }
+      });
     });
     const clearBtn = list.querySelector("#activity-clear");
     if (clearBtn) {

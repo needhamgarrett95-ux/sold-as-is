@@ -812,6 +812,13 @@ button.settings-item:active { background: #faf6f1; }
   z-index: 2;
 }
 .photo { position: relative; }
+.activity-item.clickable {
+  cursor: pointer;
+  background: rgba(212, 160, 23, 0.08);
+}
+.activity-item.clickable:active {
+  background: rgba(212, 160, 23, 0.15);
+}
 .activity-clear {
   display: block;
   width: 100%;

@@ -412,7 +412,7 @@ const Views = {
     // Log to activity only (bell dot), no toast
     try {
       const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-      feed.unshift({ msg: `${buyerName} offered ${money(boostedOffer)} for your ${listing.brand} ${listing.model}`, at: Date.now(), cat: "marketplace" });
+      feed.unshift({ msg: `${buyerName} offered ${money(boostedOffer)} for your ${listing.brand} ${listing.model}`, at: Date.now(), cat: "marketplace", listingId: listing.id, clickable: true });
       if (feed.length > 50) feed.length = 50;
       localStorage.setItem("soldasis_activity", JSON.stringify(feed));
     } catch (e) {}
@@ -431,6 +431,19 @@ const Views = {
   },
 
   // Open the haggle chat for a listing
+  openOfferFromActivity(listingId) {
+    // Go to market > my listings, then open the haggle
+    this.current = "market";
+    this.marketTab = "mine";
+    if (this.renderMarket) this.renderMarket();
+    else if (this.renderMarketFeed) { this.renderMarketFeed(); this.renderMarketTabs(); }
+    setTimeout(() => {
+      const idx = this.myBikeListings.findIndex(l => l.id === listingId);
+      if (idx >= 0 && this.myBikeListings[idx].offer) {
+        this.openSellerHaggle(this.myBikeListings, idx);
+      }
+    }, 100);
+  },
   openSellerHaggle(listingsArray, idx) {
     const l = listingsArray[idx];
     if (!l || !l.offer) return;

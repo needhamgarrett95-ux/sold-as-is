@@ -1,5 +1,17 @@
 // Sold As-Is — app entry point
 document.addEventListener("DOMContentLoaded", () => {
+  // Migrate: Assemble removed — move any rollers back to garage
+  try {
+    if (State.rollers && State.rollers.length) {
+      State.garage = State.garage || [];
+      State.rollers.forEach(r => {
+        // Convert roller back to garage bike
+        State.garage.push(r);
+      });
+      State.rollers = [];
+      Save.save();
+    }
+  } catch (e) {}
   // Debug/testing: ?godmode=1 unlocks all perks + max cash
   if (new URLSearchParams(location.search).get("godmode") === "1") {
     State.cash = 999999;

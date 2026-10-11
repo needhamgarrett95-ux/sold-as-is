@@ -48,7 +48,12 @@ const Detail = {
     // Activity notification
     try {
       const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-      feed.unshift({ msg: `${l.seller || "Seller"} blocked you on the ${l.brand} ${l.model} listing`, at: Date.now(), cat: "market" });
+      const blockMsgs = [
+        `${l.seller || "Seller"} blocked you. The ${l.brand} ${l.model} is gone forever. Smooth.`,
+        `You got blocked by ${l.seller || "the seller"}. The ${l.brand} ${l.model} listing has left the chat.`,
+        `${l.seller || "Seller"} hit the block button. That ${l.brand} ${l.model} will never know your love.`,
+      ];
+      feed.unshift({ msg: blockMsgs[(Math.random() * blockMsgs.length) | 0], at: Date.now(), cat: "market" });
       if (feed.length > 50) feed.length = 50;
       localStorage.setItem("soldasis_activity", JSON.stringify(feed));
     } catch (e) {}

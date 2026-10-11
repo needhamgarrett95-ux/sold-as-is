@@ -1903,7 +1903,12 @@ const Views = {
     if (blocked) {
       try {
         const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-        feed.unshift({ msg: `Seller blocked you on the ${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}`, at: Date.now(), cat: "boneyard" });
+        const byBlockMsgs = [
+          `Blocked in the Boneyard. That ${p.partLabel} for the ${p.bikeBrand} ${p.bikeModel} is dead to you now.`,
+          `The ${p.partLabel} seller blocked you. Bold strategy, lowballing in the Boneyard.`,
+          `You got blocked over a ${p.partLabel}. The ${p.bikeBrand} ${p.bikeModel} community will remember this.`,
+        ];
+        feed.unshift({ msg: byBlockMsgs[(Math.random() * byBlockMsgs.length) | 0], at: Date.now(), cat: "boneyard" });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
       } catch (e) {}

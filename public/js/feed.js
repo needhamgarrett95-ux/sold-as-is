@@ -124,18 +124,31 @@ const Feed = {
 
   // Seller blocked the player — yank the listing and drop in a fresh one
   replaceBlocked(id) {
-    const wasDanny = this.listings.some(l => l.id === id && l.isDanny);
-    this.listings = this.listings.filter(l => l.id !== id);
-    if (wasDanny) {
-      const danny = makeDannyListing(this.nextId++);
-      const pos = (Math.random() * (this.listings.length + 1)) | 0;
-      this.listings.splice(pos, 0, danny);
-    } else {
-      const fresh = genListings(1, this.nextId);
-      this.nextId += 1;
-      this.listings.push(...fresh);
+    try {
+      const wasDanny = this.listings.some(l => l.id === id && l.isDanny);
+      this.listings = this.listings.filter(l => l.id !== id);
+      if (wasDanny) {
+        const danny = makeDannyListing(this.nextId++);
+        const pos = (Math.random() * (this.listings.length + 1)) | 0;
+        this.listings.splice(pos, 0, danny);
+      } else {
+        const fresh = genListings(1, this.nextId);
+        this.nextId += 1;
+        this.listings.push(...fresh);
+      }
+      this.render();
+    } catch (e) {
+      // Retry once after a beat (first-run race with data loading)
+      setTimeout(() => {
+        try {
+          this.listings = this.listings.filter(l => l.id !== id);
+          const fresh = genListings(1, this.nextId);
+          this.nextId += 1;
+          this.listings.push(...fresh);
+          this.render();
+        } catch (e2) {}
+      }, 500);
     }
-    this.render();
   },
 
   // Call after init/refresh to guarantee Eliseo_M presence

@@ -519,13 +519,16 @@ const Views = {
     document.getElementById("haggle-close").addEventListener("click", () => this.closeSellerHaggle());
     document.getElementById("haggle-accept").addEventListener("click", () => this.acceptBuyerOffer());
     document.getElementById("haggle-decline").addEventListener("click", () => this.declineBuyerOffer());
+    const haggleInput = document.getElementById("haggle-counter");
+    if (haggleInput && typeof GameKB !== "undefined") {
+      GameKB.attach(haggleInput, (val) => {
+        if (val > 0) this.counterBuyerOffer(val);
+      });
+    }
     document.getElementById("haggle-send-counter").addEventListener("click", () => {
       const input = document.getElementById("haggle-counter");
-      const val = parseInt(input.value.replace(/[^0-9]/g, ""), 10);
-      if (val > 0) {
-        input.blur();
-        this.counterBuyerOffer(val);
-      }
+      const val = parseInt((input.dataset.raw || input.value).replace(/[^0-9]/g, ""), 10);
+      if (val > 0) this.counterBuyerOffer(val);
     });
     // Scroll thread to bottom
     const thread = document.getElementById("haggle-thread");
@@ -1032,15 +1035,16 @@ const Views = {
         </div>
       </div>`;
       const input = el.querySelector(`#sell-price-${idx}`);
+      if (input && typeof GameKB !== "undefined") GameKB.attach(input, null);
       const confirmBtn = el.querySelector(`[data-confirm-sell="${idx}"]`);
       const cancelBtn = el.querySelector(`[data-cancel-sell]`);
       if (confirmBtn) confirmBtn.addEventListener("click", () => {
-        input.blur();
         const ltype = confirmBtn.dataset.ltype;
+        const priceVal = input.dataset.raw || input.value;
         if (ltype === "auction") {
-          this.listPartAuction(idx, input.value);
+          this.listPartAuction(idx, priceVal);
         } else {
-          this.listPartForSale(idx, input.value);
+          this.listPartForSale(idx, priceVal);
         }
       });
       if (cancelBtn) cancelBtn.addEventListener("click", () => this.renderGarage());
@@ -1749,9 +1753,19 @@ const Views = {
 
     document.getElementById("pd-close").addEventListener("click", () => this.closePartDetail());
     if (isAuction) {
+      const bidInput = document.getElementById("pd-bid-amount");
+      if (bidInput && typeof GameKB !== "undefined") {
+        GameKB.attach(bidInput, (kbVal) => {
+          const minBid = p.currentBid + (p.bidIncrement || 1);
+          if (kbVal >= minBid) {
+            this.placePartBid(this.partDetailIdx, kbVal);
+            this.renderPartDetail();
+          }
+        });
+      }
       document.getElementById("pd-place-bid").addEventListener("click", () => {
         const input = document.getElementById("pd-bid-amount");
-        const val = parseInt(input.value.replace(/[^0-9]/g, ""), 10);
+        const val = parseInt((input.dataset.raw || input.value).replace(/[^0-9]/g, ""), 10);
         const minBid = p.currentBid + (p.bidIncrement || 1);
         if (val < minBid) {
           input.value = minBid;
@@ -1775,12 +1789,17 @@ const Views = {
       if (cartBtn) cartBtn.addEventListener("click", () => {
         this.addToCart(this.partDetailIdx);
       });
+      const offerInput = document.getElementById("pd-offer-amount");
+      if (offerInput && typeof GameKB !== "undefined") {
+        GameKB.attach(offerInput, (kbVal) => {
+          if (kbVal > 0) this.sendPartOffer(kbVal);
+        });
+      }
       const offerBtn = document.getElementById("pd-send-offer");
       if (offerBtn) offerBtn.addEventListener("click", () => {
         const input = document.getElementById("pd-offer-amount");
-        const val = parseInt(input.value.replace(/[^0-9]/g, ""), 10);
+        const val = parseInt((input.dataset.raw || input.value).replace(/[^0-9]/g, ""), 10);
         if (val > 0) {
-          input.blur();
           this.sendPartOffer(val);
         }
       });
@@ -3118,11 +3137,11 @@ const Views = {
           <button class="eby-cancel" id="bike-list-cancel">${Icon.get('close')}</button>
         </div>`;
         const input = document.getElementById("bike-list-price");
+        if (input && typeof GameKB !== "undefined") GameKB.attach(input, null);
         const confirm = document.getElementById("bike-list-confirm");
         const cancel = document.getElementById("bike-list-cancel");
         if (confirm) confirm.addEventListener("click", () => {
-          input.blur();
-          this.listBikeForSale(this.garageDetailIdx, input.value);
+          this.listBikeForSale(this.garageDetailIdx, input.dataset.raw || input.value);
         });
         if (cancel) cancel.addEventListener("click", () => this.renderGarage());
         if (input) input.focus();

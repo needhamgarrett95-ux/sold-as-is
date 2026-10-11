@@ -959,3 +959,34 @@ button.settings-item:active { background: #faf6f1; }
   color: #999; background: #eee; border-radius: 6px;
 }
 .part-hidden svg { width: 48px; height: 48px; }
+
+/* Custom in-game keyboard */
+.kb-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9998;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.kb-overlay.show { opacity: 1; pointer-events: auto; }
+.kb {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
+  background: #fff; border-top: 1px solid var(--line);
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  transform: translateY(100%); transition: transform 0.25s ease-out;
+  border-radius: 16px 16px 0 0;
+}
+.kb.show { transform: translateY(0); }
+.kb-display {
+  text-align: center; font-size: 28px; font-weight: 700; padding: 8px;
+  margin-bottom: 8px; min-height: 48px; color: #222;
+}
+.kb-display .kb-cursor { color: var(--red); animation: kb-blink 1s infinite; }
+@keyframes kb-blink { 50% { opacity: 0; } }
+.kb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.kb-key {
+  padding: 16px; font-size: 22px; font-weight: 600; text-align: center;
+  background: #faf6f0; border: 1.5px solid var(--line); border-radius: 10px;
+  color: #222; cursor: pointer; user-select: none; -webkit-user-select: none;
+}
+.kb-key:active { background: #eee5d8; transform: scale(0.97); }
+.kb-key.fn { background: #f0ebe2; font-size: 18px; }
+.kb-key.go { background: var(--red); color: #fff; border-color: var(--red); font-size: 18px; }
+.kb-key.go:active { background: #b83026; }

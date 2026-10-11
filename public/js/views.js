@@ -635,6 +635,8 @@ const Views = {
       setTimeout(() => {
         l.offer = null;
         this.closeSellerHaggle();
+        // Seller moved on — pull the listing and replace with a fresh one
+        if (typeof Feed !== "undefined" && Feed.replaceBlocked) Feed.replaceBlocked(l.id);
         if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
         if (this.current === "parts") this.renderParts();
       }, 1200);
@@ -1897,7 +1899,39 @@ const Views = {
         accepted, price, blocked, walkedAway,
       };
     }
+    // Seller declined/moved on — pull the listing and replace with a fresh part
+    if ((blocked || walkedAway) && typeof this.replaceBoneyardPart === "function") {
+      const idx = this.partDetailIdx;
+      setTimeout(() => this.replaceBoneyardPart(idx), 1500);
+    }
     this.renderPartDetail();
+  },
+
+  // Replace a dead Boneyard listing with a fresh random part
+  replaceBoneyardPart(idx) {
+    if (!this.partsShop || idx < 0 || idx >= this.partsShop.length) return;
+    // Don't replace Danny's part
+    if (this.partsShop[idx].isDanny) return;
+    const bike = BIKES[(Math.random() * BIKES.length) | 0];
+    const avail = availableParts(bike.sprite);
+    const part = avail[(Math.random() * avail.length) | 0];
+    const roll = Math.random();
+    const state = roll < 0.08 ? "pristine"
+      : roll < 0.40 ? "used_good"
+      : roll < 0.75 ? "used_bad"
+      : "totaled";
+    const price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
+    this.partsShop[idx] = {
+      id: Date.now(), bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
+      partKey: part.key, partLabel: part.label, state,
+      stateLabel: PART_STATE_LABEL[state],
+      price, wasPrice: null, watchers: 1 + ((Math.random() * 14) | 0),
+      img: partImg(bike.sprite, part.key, state),
+      listingType: "bin",
+    };
+    this.partDetailOffer = null;
+    this.closePartDetail();
+    if (this.current === "parts") this.renderParts();
   },
 
   pickSellerAccept(style, amount) {

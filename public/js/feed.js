@@ -168,7 +168,11 @@ const Feed = {
 
   render() {
     const shown = this.listings.filter(l => this.matchesFilter(l));
-    document.getElementById("feed").innerHTML =
+    const feed = document.getElementById("feed");
+    // Clear first + force reflow to prevent iOS ghost rendering
+    feed.innerHTML = "";
+    void feed.offsetHeight;
+    feed.innerHTML =
       shown.length ? shown.map(l => this.card(l)).join("")
         : `<div class="empty"><strong>No matches</strong>Try a different category or refresh for new listings.</div>`;
     document.querySelectorAll(".card").forEach(c => {

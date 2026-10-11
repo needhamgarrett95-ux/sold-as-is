@@ -1929,6 +1929,7 @@ const Views = {
           Detail._unreadActivity = (Detail._unreadActivity || 0) + 1;
           Detail._unreadBoneyard = (Detail._unreadBoneyard || 0) + 1;
           Detail.updateBellBadge();
+          if (Detail._forceBellDot) Detail._forceBellDot();
         }
       } catch (e) {}
     }

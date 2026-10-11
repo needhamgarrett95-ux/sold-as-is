@@ -61,6 +61,7 @@ const Detail = {
         this._unreadActivity = (this._unreadActivity || 0) + 1;
         this._unreadMarketplace = (this._unreadMarketplace || 0) + 1;
         this.updateBellBadge();
+        this._forceBellDot();
       } catch (e) {}
     }
     // Close detail after a beat so they see the block message, then refresh feed
@@ -739,6 +740,16 @@ const UI = {
       }
     } else if (dot) {
       dot.remove();
+    }
+  },
+  // Force-show the bell dot (for block notifications)
+  _forceBellDot() {
+    const bell = document.getElementById("activity-bell");
+    if (!bell) return;
+    if (!bell.querySelector(".bell-dot")) {
+      const dot = document.createElement("span");
+      dot.className = "bell-dot";
+      bell.appendChild(dot);
     }
   },
   _showNextToast() {

@@ -607,16 +607,20 @@ const Detail = {
     const offerInput = document.getElementById("offer-input");
     const sendBtn = document.getElementById("offer-send");
     if (offerInput && typeof GameKB !== "undefined") {
-      const ask = this.current.price;
       GameKB.attach(offerInput, (val) => {
         if (val > 0) this.sendOffer(String(val));
       }, (typed) => {
-        let html = `Asking <span class="kb-ctx-price">$${ask.toLocaleString()}</span>`;
+        const ask = this.current.price;
+        const counter = this._lastCounter;
+        const target = counter && counter < ask ? counter : ask;
+        let html = counter && counter < ask
+          ? `Seller's at <span class="kb-ctx-price">$${counter.toLocaleString()}</span> · Asking $${ask.toLocaleString()}`
+          : `Asking <span class="kb-ctx-price">$${ask.toLocaleString()}</span>`;
         if (typed > 0) {
-          const diff = ask - typed;
-          if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under asking</span>`;
-          else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over asking</span>`;
-          else html += ` · full asking price`;
+          const diff = target - typed;
+          if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under</span>`;
+          else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over</span>`;
+          else html += ` · meets their price`;
         }
         return html;
       });

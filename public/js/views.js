@@ -523,11 +523,12 @@ const Views = {
     document.getElementById("haggle-decline").addEventListener("click", () => this.declineBuyerOffer());
     const haggleInput = document.getElementById("haggle-counter");
     if (haggleInput && typeof GameKB !== "undefined") {
-      const theirOffer = l.offer ? l.offer.amount : 0;
-      const listPrice = l.askPrice || 0;
       GameKB.attach(haggleInput, (val) => {
         if (val > 0) this.counterBuyerOffer(val);
       }, (typed) => {
+        const hl = this.haggleListing;
+        const theirOffer = hl && hl.offer ? hl.offer.amount : 0;
+        const listPrice = hl ? (hl.askPrice || 0) : 0;
         let html = `Their offer <span class="kb-ctx-price">$${theirOffer.toLocaleString()}</span> · Your listing <span class="kb-ctx-price">$${listPrice.toLocaleString()}</span>`;
         if (typed > 0) {
           const diff = typed - theirOffer;
@@ -1781,8 +1782,6 @@ const Views = {
     if (isAuction) {
       const bidInput = document.getElementById("pd-bid-amount");
       if (bidInput && typeof GameKB !== "undefined") {
-        const curBid = p.currentBid;
-        const minBidNow = p.currentBid + (p.bidIncrement || 1);
         GameKB.attach(bidInput, (kbVal) => {
           const minBid = p.currentBid + (p.bidIncrement || 1);
           if (kbVal >= minBid) {
@@ -1790,6 +1789,9 @@ const Views = {
             this.renderPartDetail();
           }
         }, (typed) => {
+          const live = this.partsShop[this.partDetailIdx] || p;
+          const curBid = live.currentBid;
+          const minBidNow = live.currentBid + (live.bidIncrement || 1);
           let html = `Current bid <span class="kb-ctx-price">$${curBid.toLocaleString()}</span> · Min bid <span class="kb-ctx-price">$${minBidNow.toLocaleString()}</span>`;
           if (typed > 0 && typed < minBidNow) html += `<br><span class="kb-ctx-over">$${(minBidNow - typed).toLocaleString()} short of minimum</span>`;
           return html;
@@ -1823,16 +1825,20 @@ const Views = {
       });
       const offerInput = document.getElementById("pd-offer-amount");
       if (offerInput && typeof GameKB !== "undefined") {
-        const partAsk = p.price;
         GameKB.attach(offerInput, (kbVal) => {
           if (kbVal > 0) this.sendPartOffer(kbVal);
         }, (typed) => {
-          let html = `Asking <span class="kb-ctx-price">$${partAsk.toLocaleString()}</span>`;
+          const partAsk = p.price;
+          const counter = this.partDetailOffer && !this.partDetailOffer.accepted ? this.partDetailOffer.price : null;
+          const target = counter && counter < partAsk ? counter : partAsk;
+          let html = counter && counter < partAsk
+            ? `Seller's at <span class="kb-ctx-price">$${counter.toLocaleString()}</span> · Asking $${partAsk.toLocaleString()}`
+            : `Asking <span class="kb-ctx-price">$${partAsk.toLocaleString()}</span>`;
           if (typed > 0) {
-            const diff = partAsk - typed;
-            if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under asking</span>`;
-            else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over asking</span>`;
-            else html += ` · full asking price`;
+            const diff = target - typed;
+            if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under</span>`;
+            else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over</span>`;
+            else html += ` · meets their price`;
           }
           return html;
         });

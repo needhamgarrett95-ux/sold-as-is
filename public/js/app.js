@@ -55,10 +55,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("settings-reset")?.addEventListener("click", () => {
-      if (confirm("Start over? This wipes your garage, parts, cash, and skills.")) {
+      // Custom confirmation modal (no system dialog)
+      const existing = document.getElementById("reset-confirm");
+      if (existing) existing.remove();
+      const html = `
+      <div class="modal-overlay" id="reset-confirm">
+        <div class="modal-box">
+          <div class="modal-title">Start Over?</div>
+          <div class="modal-desc">This wipes your garage, parts, cash, and skills. There's no going back.</div>
+          <div class="modal-actions">
+            <button class="modal-btn cancel" id="reset-cancel">Keep Playing</button>
+            <button class="modal-btn go" id="reset-go" style="background:#999;border-color:#999;">Wipe It</button>
+          </div>
+        </div>
+      </div>`;
+      document.body.insertAdjacentHTML("beforeend", html);
+      document.getElementById("reset-cancel").addEventListener("click", () => {
+        document.getElementById("reset-confirm").remove();
+      });
+      document.getElementById("reset-confirm").addEventListener("click", (e) => {
+        if (e.target.id === "reset-confirm") document.getElementById("reset-confirm").remove();
+      });
+      document.getElementById("reset-go").addEventListener("click", () => {
         localStorage.removeItem("soldasis_save_v1");
         location.reload();
-      }
+      });
     });
   }
   // Audio: music player + SFX

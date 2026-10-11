@@ -365,7 +365,7 @@ const Views = {
       // Log to activity only (no toast — bell dot handles it)
       try {
         const feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]");
-        feed.unshift({ msg: `${buyerName} bought your ${listing.brand} ${listing.model} at listing price (${money(askPrice)})`, at: Date.now(), cat: "marketplace" });
+        feed.unshift({ msg: `${buyerName} bought your ${listing.brand} ${listing.model} at listing price (${money(askPrice)})`, at: Date.now(), cat: "marketplace", listingId: listing.id, clickable: true, soldView: true });
         if (feed.length > 50) feed.length = 50;
         localStorage.setItem("soldasis_activity", JSON.stringify(feed));
       } catch (e) {}
@@ -431,6 +431,12 @@ const Views = {
   },
 
   // Open the haggle chat for a listing
+  openSoldFromActivity(listingId) {
+    // Go to market > my listings > sold tab
+    this.marketTab = "mine";
+    this.show("market");
+    // The sold listing is visible in My Listings
+  },
   openOfferFromActivity(listingId) {
     // Go to market > my listings, then open the haggle
     this.marketTab = "mine";

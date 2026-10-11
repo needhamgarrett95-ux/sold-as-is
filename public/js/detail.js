@@ -606,16 +606,25 @@ const UI = {
     list.querySelectorAll("[data-atab]").forEach(b => {
       b.addEventListener("click", (e) => { e.stopPropagation(); this.showActivity(b.dataset.atab); });
     });
-    list.querySelectorAll(".activity-item.clickable").forEach(item => {
+    list.querySelectorAll(".activity-item.clickable").forEach((item, idx) => {
       item.addEventListener("click", (e) => {
         e.stopPropagation();
         const listingId = item.dataset.listing;
         if (!listingId) return;
         // Close popup
         document.getElementById("activity-popup")?.classList.add("hidden");
-        // Navigate to My Listings and open the offer
-        if (typeof Views !== "undefined" && Views.openOfferFromActivity) {
-          Views.openOfferFromActivity(listingId);
+        // Check if this was a sold (buy-it-now) notification
+        let feed = [];
+        try { feed = JSON.parse(localStorage.getItem("soldasis_activity") || "[]"); } catch (err) {}
+        const cur = this._activityTab || "marketplace";
+        const filtered = feed.filter(a => (a.cat || "marketplace") === cur);
+        const entry = filtered[idx];
+        if (typeof Views !== "undefined") {
+          if (entry && entry.soldView && Views.openSoldFromActivity) {
+            Views.openSoldFromActivity(listingId);
+          } else if (Views.openOfferFromActivity) {
+            Views.openOfferFromActivity(listingId);
+          }
         }
       });
     });

@@ -1147,3 +1147,24 @@ body.dark-mode .d-hidden { background: #2c3138; color: #9aa0a8; }
 body.dark-mode .desc { color: #ece9e1; }
 body.dark-mode .msg-seller-card { background: #242930; border-color: #3a4048; }
 body.dark-mode .msg-seller-head { color: #ece9e1; }
+
+/* Dark mode: blend everything */
+body.dark-mode .part-missing { background: #2c3138; border-color: #3a4048; }
+body.dark-mode .part-missing .x { background: #333943; color: #9aa0a8; }
+body.dark-mode .garage-photo { background: linear-gradient(135deg, #242930, #1a1d22); }
+body.dark-mode .listing-desc-box { background: #242930; border-color: #3a4048; color: #ece9e1; }
+body.dark-mode .eby-btn-white { background: #2c3138; border-color: #3a4048; color: #e04536; }
+body.dark-mode .auction-timer { background: #2c3138; border-color: #3a4048; }
+body.dark-mode .auction-timer .time { color: #e04536; }
+body.dark-mode .music-popup { background: #242930; }
+body.dark-mode .music-popup .head { color: #ece9e1; }
+body.dark-mode .settings-menu { background: #242930; }
+body.dark-mode .settings-head { color: #ece9e1; }
+body.dark-mode .activity-popup { background: #242930; }
+body.dark-mode .activity-popup .head { background: #2c3138; color: #ece9e1; }
+body.dark-mode .toast { background: #2c3138 !important; color: #ece9e1; border: 1px solid #3a4048; }
+body.dark-mode .cart-popup { background: #242930; }
+body.dark-mode .cart-popup .head { background: #2c3138; color: #ece9e1; }
+body.dark-mode .repair-btn { background: #2c3138; border-color: #b7790e; color: #febc2e; }
+body.dark-mode .music-ctrl { background: #333943; }
+body.dark-mode .music-ctrl svg { fill: #ece9e1; }

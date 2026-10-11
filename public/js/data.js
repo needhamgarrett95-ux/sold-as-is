@@ -257,8 +257,8 @@ const BIDDER_NAMES = ["moped_mike", "rusty_rider", "carb_king", "two_stroke_tom"
 
 function genPartsShop(n = 16) {
   const out = [];
-  for (let i = 0; i < n; i++) {
-    const bike = BIKES[(Math.random() * BIKES.length) | 0];
+  let idc = 0;
+  const mkPart = (bike) => {
     const avail = availableParts(bike.sprite);
     const part = avail[(Math.random() * avail.length) | 0];
     // Randomize condition — pristine is rare on the Boneyard
@@ -272,7 +272,7 @@ function genPartsShop(n = 16) {
     const watchers = 1 + ((Math.random() * 14) | 0);
     const wasPrice = Math.random() < 0.4 ? Math.round(price * (1.1 + Math.random() * 0.25)) : null;
     const item = {
-      id: i, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
+      id: idc++, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
       partKey: part.key, partLabel: part.label, state,
       stateLabel: PART_STATE_LABEL[state],
       price, wasPrice, watchers, img: partImg(bike.sprite, part.key, state),
@@ -302,6 +302,13 @@ function genPartsShop(n = 16) {
       item.bidIncrement = price < 30 ? 1 : price < 75 ? 2 : 5;
     }
     out.push(item);
+  };
+  // Guarantee: at least 1 random part per bike model
+  [...BIKES].sort(() => Math.random() - 0.5).forEach(bike => mkPart(bike));
+  // Fill remaining slots with random bikes (if n > bike count)
+  const extra = Math.max(0, n - BIKES.length);
+  for (let i = 0; i < extra; i++) {
+    mkPart(BIKES[(Math.random() * BIKES.length) | 0]);
   }
   return out;
 }

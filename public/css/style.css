@@ -1235,3 +1235,4 @@ body.dark-mode .roller-pick-row:active { background: #2c3138; }
 body.dark-mode .roller-pick-row img { background: #1a1d22; }
 body.dark-mode .roller-pick-name { color: #ece9e1; }
 body.dark-mode .picker-overlay { background: rgba(0,0,0,.6); }
+body.dark-mode .picker-overlay .roller-picker { background: #242930; border-color: #3a4048; }

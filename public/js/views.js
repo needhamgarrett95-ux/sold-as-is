@@ -3784,7 +3784,7 @@ const Views = {
       id: `assembled-${Date.now()}`,
       bikeId: bikeData.id, brand: bikeData.brand, model: bikeData.name,
       sprite: bikeData.sprite, baseValue: bikeData.base, rarity: bikeData.rarity,
-      condition: "Good", price: bikeData.base, boughtFor: 0,
+      condition: "Good", bornCond: "Good", price: bikeData.base, boughtFor: 0,
       partStates: {}, fairValue: bikeData.base,
       desc: "Assembled from parts. Built, not bought.",
       listed: false, kept: false,

@@ -428,7 +428,16 @@ function recalcFairValue(bike) {
   const cond = (typeof CONDITIONS !== "undefined")
     ? CONDITIONS.find(c => c.name === bike.condition)
     : null;
-  const mult = cond ? cond.mult : 1.0;
+  let mult = cond ? cond.mult : 1.0;
+  // Repainted cap (market model): a bike the player built UP past the
+  // condition it was bought in sells as a repaint, not an original — its
+  // value multiple caps at Clean (1.15), never the Mint 1.35. Bikes born
+  // at their condition are untouched; no bornCond snapshot = no cap.
+  if (bike.bornCond && cond) {
+    const bornIdx = CONDITIONS.findIndex(c => c.name === bike.bornCond);
+    const curIdx = CONDITIONS.findIndex(c => c.name === cond.name);
+    if (bornIdx >= 0 && curIdx >= 0 && curIdx < bornIdx) mult = Math.min(mult, 1.15);
+  }
   const missingCount = bike.partStates
     ? Object.values(bike.partStates).filter(s => s === "missing").length
     : 0;

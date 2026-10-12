@@ -22,6 +22,8 @@ const State = {
     if (!this.canAfford(listing.price)) return false;
     this.cash -= listing.price;
     const boughtBike = { ...listing, boughtFor: listing.price, boughtAt: Date.now() };
+    // Snapshot the as-bought condition: the repainted cap compares against it
+    boughtBike.bornCond = listing.condition || null;
     // Keep the two missing-part ledgers in agreement from the start
     boughtBike.missingParts = Object.keys(boughtBike.partStates || {})
       .filter(k => boughtBike.partStates[k] === "missing");

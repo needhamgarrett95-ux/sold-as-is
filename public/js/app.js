@@ -223,15 +223,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.visibilityState === "hidden") Save.save();
   });
   // Clickable logos: reset to default view of each section
-  document.getElementById("logo-main").addEventListener("click", () => {
+  // Self-heal: if a cached older page left bare text in the tabs, wrap it in
+  // .tab-label spans so the collapse CSS can hide inactive labels
+  document.querySelectorAll("#tabstrip .wtab").forEach(b => {
+    if (b.querySelector(".tab-label")) return;
+    [...b.childNodes].forEach(n => {
+      if (n.nodeType === 3 && n.textContent.trim()) {
+        const s = document.createElement("span");
+        s.className = "tab-label";
+        s.textContent = n.textContent.trim();
+        b.replaceChild(s, n);
+      }
+    });
+  });
+  document.getElementById("logo-main")?.addEventListener("click", () => {
     Views.marketTab = "browse";
     Views.show("market");
   });
-  document.getElementById("logo-boneyard").addEventListener("click", () => {
+  document.getElementById("logo-boneyard")?.addEventListener("click", () => {
     Views.boneyardTab = "buy";
     Views.show("parts");
   });
-  document.getElementById("logo-crate").addEventListener("click", () => {
+  document.getElementById("logo-crate")?.addEventListener("click", () => {
     Views.show("crate");
   });
   // URL bar refresh button: market uses cooldown refresh, others reload their view

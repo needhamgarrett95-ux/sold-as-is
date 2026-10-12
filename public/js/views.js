@@ -25,7 +25,8 @@ const Views = {
     const isCrate = name === "crate";
     document.getElementById("logo-main").classList.toggle("hidden", isBoneyard || isCrate);
     document.getElementById("logo-boneyard").classList.toggle("hidden", !isBoneyard);
-    document.getElementById("logo-crate").classList.toggle("hidden", !isCrate);
+    const logoCrate = document.getElementById("logo-crate");
+    if (logoCrate) logoCrate.classList.toggle("hidden", !isCrate);
     // Swap search bar for the "find parts that fit" bike filter on both parts stores
     document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate);
     document.getElementById("parts-bike-filter").classList.toggle("hidden", !(isBoneyard || isCrate));
@@ -35,7 +36,8 @@ const Views = {
     document.getElementById("cats").style.display = name === "market" && this.marketTab === "browse" ? "" : "none";
     document.getElementById("market-tabs").style.display = name === "market" ? "" : "none";
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
-    document.getElementById("crate-view").classList.toggle("hidden", name !== "crate");
+    const crateView = document.getElementById("crate-view");
+    if (crateView) crateView.classList.toggle("hidden", name !== "crate");
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
     if (name === "market") {

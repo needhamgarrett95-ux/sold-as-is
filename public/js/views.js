@@ -2680,6 +2680,15 @@ const Views = {
     State.stats.nosParts = parts;
     State.stats.nosBuilds = builds;
     State.stats.nosKeptBuilds = keptBuilds;
+    // Brand sets: a set is complete when every model of the brand is kept.
+    // (Same brand+model matching the Collection wall renders.)
+    let sets = 0;
+    const keptBikes = (State.garage || []).filter(b => b.kept);
+    for (const [brand, brandDef] of Object.entries(BRANDS)) {
+      const have = new Set(keptBikes.filter(b => b.brand === brand).map(b => b.model));
+      if (brandDef.models.every(m => have.has(m.name))) sets++;
+    }
+    State.stats.brandSetsCompleted = sets;
   },
 
   // ============ GARAGE ============

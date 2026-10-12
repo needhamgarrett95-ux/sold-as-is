@@ -200,7 +200,7 @@ const Milestones = {
     { id: "profit_50k", name: "Moped Mogul", desc: "Earn $50,000 total profit", check: (s) => s.totalProfit >= 50000 },
     { id: "collect_1", name: "Collector", desc: "Add your first bike to the Collection", check: (s) => s.collected >= 1 },
     { id: "collect_5", name: "Getting Serious", desc: "Collect 5 bikes", check: (s) => s.collected >= 5 },
-    { id: "collect_14", name: "Halfway There", desc: "Collect 14 bikes", check: (s) => s.collected >= 14 },
+    { id: "collect_14", name: "Halfway There", desc: "Collect 18 bikes", check: (s) => s.collected >= 18 },
     { id: "brand_set", name: "Brand Loyalist", desc: "Complete a full brand set", check: (s) => s.brandSetsCompleted >= 1 },
     { id: "all_brands", name: "Completionist", desc: "Complete all 8 brand sets", check: (s) => s.brandSetsCompleted >= 8 },
     { id: "full_collection", name: "Ultimate Collection", desc: "Collect all 37 bikes", check: (s) => s.collected >= 37 },

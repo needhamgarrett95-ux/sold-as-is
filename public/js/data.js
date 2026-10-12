@@ -62,6 +62,14 @@ Object.entries(BRANDS).forEach(([brand, { models }]) => {
   models.forEach((m, i) => BIKES.push({ id: `${brand}-${i}`.replace(/\s/g, ""), brand, ...m }));
 });
 
+// ===== Unique models (framework) =====
+// One-of-one marques that stand outside the 8 brand sets. In the Collection
+// they sit together under a single "Unique" label, and their own milestones
+// revolve around them. Populated at drop-in from the expansion package —
+// EMPTY until then; every system reading this list is inert while empty.
+const UNIQUE_SPRITES = [];
+function isUnique(sprite) { return UNIQUE_SPRITES.includes(sprite); }
+
 const CONDITIONS = [
   { name: "Mint",       mult: 1.35, weight: 5 },
   { name: "Clean",      mult: 1.15, weight: 15 },

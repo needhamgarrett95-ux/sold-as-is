@@ -13,6 +13,7 @@ const State = {
     collected: 0, brandSetsCompleted: 0, auctionsWon: 0,
     successfulHaggles: 0, bikesRestored: 0,
     nosParts: 0, nosBuilds: 0, nosKeptBuilds: 0,
+    uniquesCollected: 0, uniquesSoldForProfit: 0,
   },
 
   canAfford(price) { return this.cash >= price; },

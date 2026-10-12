@@ -506,6 +506,7 @@ const Views = {
       // Stats + XP (same as haggle accept)
       const costBasis = (listing.boughtFor || listing.paidPrice || 0) + (listing.repairSpent || 0);
       if (askPrice > costBasis) State.stats.bikesSoldForProfit = (State.stats.bikesSoldForProfit || 0) + 1;
+      if (askPrice > costBasis && isUnique(listing.sprite)) State.stats.uniquesSoldForProfit = (State.stats.uniquesSoldForProfit || 0) + 1;
       if (typeof Milestones !== "undefined") Milestones.check(State.stats);
       const xpResult = Skills.awardForSale(askPrice, costBasis);
       if (xpResult.xp > 0) XPPopup.show(xpResult.xp, xpResult.newPoints);
@@ -702,6 +703,7 @@ const Views = {
     if (profit > 0) {
       State.stats.totalProfit += profit;
       State.stats.bikesSoldForProfit++;
+      if (isUnique(l.sprite)) State.stats.uniquesSoldForProfit = (State.stats.uniquesSoldForProfit || 0) + 1;
     }
     State.stats.successfulHaggles++;
     if (typeof Milestones !== "undefined") Milestones.check(State.stats);
@@ -2685,10 +2687,14 @@ const Views = {
     let sets = 0;
     const keptBikes = (State.garage || []).filter(b => b.kept);
     for (const [brand, brandDef] of Object.entries(BRANDS)) {
+      const models = brandDef.models.filter(m => !isUnique(m.sprite));
+      if (!models.length) continue;
       const have = new Set(keptBikes.filter(b => b.brand === brand).map(b => b.model));
-      if (brandDef.models.every(m => have.has(m.name))) sets++;
+      if (models.every(m => have.has(m.name))) sets++;
     }
     State.stats.brandSetsCompleted = sets;
+    // Uniques kept (framework: stays 0 until the Unique models drop in)
+    State.stats.uniquesCollected = keptBikes.filter(b => isUnique(b.sprite)).length;
   },
 
   // ============ GARAGE ============
@@ -3791,10 +3797,18 @@ const Views = {
     const el = document.getElementById("collection-view");
     const kept = State.garage.filter(b => b.kept);
     const sets = Object.entries(BRANDS).map(([brand, { models }]) => {
-      const owned = models.filter(m =>
+      const own = models.filter(m => !isUnique(m.sprite));
+      const owned = own.filter(m =>
         kept.some(k => k.brand === brand && k.model === m.name));
-      return { brand, total: models.length, owned: owned.length };
-    });
+      return { brand, total: own.length, owned: owned.length };
+    }).filter(s => s.total > 0);
+    // Unique models share one label on the wall (framework: this row only
+    // renders once Unique models exist in the roster)
+    const uniqueModels = BIKES.filter(b => isUnique(b.sprite));
+    if (uniqueModels.length) {
+      const uOwned = uniqueModels.filter(m => kept.some(k => k.sprite === m.sprite));
+      sets.push({ brand: "Unique", total: uniqueModels.length, owned: uOwned.length });
+    }
     el.innerHTML = `<h2>Collection Wall</h2>
       <div class="sub">${kept.length} of ${BIKES.length} bikes collected</div>` +
       (kept.length === 0

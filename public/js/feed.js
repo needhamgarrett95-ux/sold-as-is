@@ -101,7 +101,7 @@ const Feed = {
     this.blockedIds.add(id);
     try {
       this.listings = this.listings.filter(l => l.id !== id);
-      const fresh = genListings(1, this.nextId);
+      const fresh = genListings(1, this.nextId, null, { exclude: this.listings.map(l => l.sprite), tick: false });
       this.nextId += 1;
       this.listings.push(...fresh);
       this.render();
@@ -110,7 +110,7 @@ const Feed = {
       setTimeout(() => {
         try {
           this.listings = this.listings.filter(l => l.id !== id);
-          const fresh = genListings(1, this.nextId);
+          const fresh = genListings(1, this.nextId, null, { exclude: this.listings.map(l => l.sprite), tick: false });
           this.nextId += 1;
           this.listings.push(...fresh);
           this.render();

@@ -95,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.__soldasisNoSave = true; // same guard: don't let autosave resurrect the wipe
         localStorage.removeItem("soldasis_save_v1");
         localStorage.removeItem("soldasis_save_v1_bak");
+        localStorage.removeItem("soldasis_rotation");
         location.reload();
       });
     });
@@ -218,13 +219,11 @@ document.addEventListener("DOMContentLoaded", () => {
   Feed.init();
   UI.refreshCash();
 
-  Views.initPartsFilter();
-  // show() never runs on the boot path, so sync the parts filter's wrap with
+  Views.initModelPicker();
+  // show() never runs on the boot path, so sync the model pick row with
   // the starting view here — otherwise it sits visible on the Marketplace
-  const pbf0 = document.getElementById("parts-bike-filter");
-  if (pbf0 && pbf0._ddWrap) {
-    pbf0._ddWrap.classList.toggle("hidden", !(Views.current === "parts" || Views.current === "crate"));
-  }
+  const mpr0 = document.getElementById("model-pick-row");
+  if (mpr0) mpr0.classList.toggle("hidden", !(Views.current === "parts" || Views.current === "crate"));
   // Auto-save every 30s and when app goes to background
   setInterval(() => Save.save(), 30000);
   document.addEventListener("visibilitychange", () => {

@@ -98,6 +98,92 @@ function gatedPick(pool, keep) {
   return b;
 }
 
+// ===== Marketplace rotation (aud205) =====
+// Per-model "batches since last seen" counters, kept outside the save.
+// A model only gains spawn weight after missing longer than its fair
+// interval, so droughts die quietly while on-schedule models are
+// untouched. Uniques never rotate — their gate is the point of them.
+const ROT_KEY = "soldasis_rotation";
+function rotLoad() {
+  try { return JSON.parse(localStorage.getItem(ROT_KEY)) || {}; } catch (e) { return {}; }
+}
+function rotSave(rot) { try { localStorage.setItem(ROT_KEY, JSON.stringify(rot)); } catch (e) {} }
+function rotationWeight(misses) {
+  const grace = 4; // ~45 regulars / 16 slots: the fair interval is under 3 batches
+  return Math.min(1 + 0.25 * Math.max(0, (misses || 0) - grace), 3);
+}
+// Rotation-weighted, gate-respecting model pick for the Marketplace.
+// `exclude` holds sprites already in the batch/feed (keeps batches
+// distinct). Never ticks the counters — genListings does that per batch.
+function pickFeedBike(exclude, rot) {
+  const ex = exclude || new Set();
+  const pool = BIKES.filter(b => !ex.has(b.sprite));
+  if (!pool.length) return BIKES[0];
+  const wOf = (b) => isUnique(b.sprite) ? 1 : rotationWeight(rot ? rot[b.sprite] : 0);
+  for (let tries = 0; tries < 60; tries++) {
+    let total = 0;
+    for (const b of pool) total += wOf(b);
+    let r = Math.random() * total, bike = pool[pool.length - 1];
+    for (const b of pool) { r -= wOf(b); if (r <= 0) { bike = b; break; } }
+    if (isUnique(bike.sprite) && Math.random() > UNIQUE_KEEP.market) continue;
+    return bike;
+  }
+  const regulars = pool.filter(b => !isUnique(b.sprite));
+  return regulars.length ? regulars[(Math.random() * regulars.length) | 0] : pool[0];
+}
+function rotTick(seenSprites) {
+  const rot = rotLoad();
+  for (const b of BIKES) {
+    if (isUnique(b.sprite)) continue;
+    rot[b.sprite] = seenSprites.has(b.sprite) ? 0 : (rot[b.sprite] || 0) + 1;
+  }
+  rotSave(rot);
+}
+
+// ===== Garage need (aud205) =====
+// How much an owned model needs parts: missing slots weigh most, then
+// worn parts (totaled > used_bad > used_good). The parts shops lean
+// toward the player's projects with it — quietly, never announced.
+const PART_STATE_RANK = { totaled: 3, used_bad: 2, used_good: 1, pristine: 0, nos: 0 };
+function garageNeedMap() {
+  const map = {}; // sprite -> { score, worstType }
+  if (typeof State === "undefined" || !State.garage) return map;
+  for (const g of State.garage) {
+    if (isUnique(g.sprite)) continue;
+    const states = g.partStates || {};
+    let score = 0, worstType = null, worstRank = -1;
+    for (const def of availableParts(g.sprite)) {
+      const st = states[def.key];
+      const missing = !st || st === "missing" || (g.missingParts || []).includes(def.key);
+      const rank = missing ? 99 : (PART_STATE_RANK[st] || 0);
+      score += missing ? 8 : rank;
+      if (rank > worstRank) { worstRank = rank; worstType = def.key; }
+    }
+    if (!map[g.sprite] || score > map[g.sprite].score) {
+      map[g.sprite] = { score, worstType: worstRank > 0 ? worstType : null };
+    }
+  }
+  return map;
+}
+// Shop draw weight: unowned 1, owned 2, the neediest projects up to 8
+// (in a long list, position is the currency — a missing-slot project
+// should surface in the first screenful, not the fifth).
+function shopWeight(sprite, needMap) {
+  const nd = needMap[sprite];
+  if (!nd) return 1;
+  return 2 + 6 * Math.min(1, nd.score / 12);
+}
+// Part choice for shop stock: leans (65%) toward the model's worst slot.
+function leanedPart(bike, needMap) {
+  const avail = availableParts(bike.sprite);
+  const nd = needMap[bike.sprite];
+  if (nd && nd.worstType && Math.random() < 0.65) {
+    const hit = avail.find(a => a.key === nd.worstType);
+    if (hit) return hit;
+  }
+  return avail[(Math.random() * avail.length) | 0];
+}
+
 const CONDITIONS = [
   { name: "Mint",       mult: 1.35, weight: 5 },
   { name: "Clean",      mult: 1.15, weight: 15 },
@@ -597,9 +683,9 @@ function cratePriceFor(partKey) {
 function genCrateStock(n = 12) {
   const out = [];
   let idc = 0;
+  const needMap = garageNeedMap();
   const mk = (bike) => {
-    const avail = availableParts(bike.sprite);
-    const part = avail[(Math.random() * avail.length) | 0];
+    const part = leanedPart(bike, needMap);
     out.push({
       id: idc++, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
       partKey: part.key, partLabel: part.label, state: "nos",
@@ -609,8 +695,12 @@ function genCrateStock(n = 12) {
       listingType: "bin", seller: "Crate Fresh",
     });
   };
-  const shuffled = [...BIKES].sort(() => Math.random() - 0.5);
-  for (const bike of shuffled) {
+  // Owned projects stock first (neediest on top), then everyone else
+  // shuffled — the shelf quietly leans toward the player's garage
+  const owned = BIKES.filter(b => needMap[b.sprite])
+    .sort((a, b) => (needMap[b.sprite].score - needMap[a.sprite].score) || (Math.random() - 0.5));
+  const rest = BIKES.filter(b => !needMap[b.sprite]).sort(() => Math.random() - 0.5);
+  for (const bike of [...owned, ...rest]) {
     if (out.length >= n) break;
     // The Crate Fresh shelf almost never holds a Unique part
     if (isUnique(bike.sprite) && Math.random() > UNIQUE_KEEP.crate) continue;
@@ -627,9 +717,9 @@ const BIDDER_NAMES = ["moped_mike", "rusty_rider", "carb_king", "two_stroke_tom"
 function genPartsShop(n = 16) {
   const out = [];
   let idc = 0;
+  const needMap = garageNeedMap();
   const mkPart = (bike) => {
-    const avail = availableParts(bike.sprite);
-    const part = avail[(Math.random() * avail.length) | 0];
+    const part = leanedPart(bike, needMap);
     // Randomize condition — pristine is rare on the Boneyard, NOS is an event
     const roll = Math.random();
     const state = roll < 0.007 ? "nos"
@@ -681,12 +771,17 @@ function genPartsShop(n = 16) {
     }
     out.push(item);
   };
-  // Guarantee: at least 1 random part per bike model — except Uniques,
-  // whose parts are trophy-rare in the Boneyard (gated, never guaranteed)
-  [...BIKES].sort(() => Math.random() - 0.5).forEach(bike => {
+  // One candidate part per bike model — except Uniques, whose parts are
+  // trophy-rare in the Boneyard (gated, never guaranteed). Display order
+  // is a weighted shuffle: parts for the player's own projects surface
+  // first (shopWeight), everything else mixes behind them.
+  [...BIKES].forEach(bike => {
     if (isUnique(bike.sprite) && Math.random() > UNIQUE_KEEP.parts) return;
     mkPart(bike);
   });
+  for (const it of out) it._wkey = Math.pow(Math.random(), 1 / shopWeight(it.bikeSprite, needMap));
+  out.sort((a, b) => b._wkey - a._wkey);
+  for (const it of out) delete it._wkey;
   // Eliseo_M lists parts randomly like anyone else (~5% per item)
   for (const item of out) {
     if (Math.random() < 0.05) { item.seller = "Eliseo_M"; item.isDanny = true; }
@@ -709,8 +804,8 @@ function pickWeighted(items, wkey) {
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const money = n => "$" + Math.round(n).toLocaleString();
 
-function makeListing(id) {
-  const bike = gatedPick(BIKES, UNIQUE_KEEP.market);
+function makeListing(id, forcedBike) {
+  const bike = forcedBike || gatedPick(BIKES, UNIQUE_KEEP.market);
   const cond = pickWeighted(CONDITIONS, "weight");
   // Price: base * condition * (0.85–1.25 noise) — sometimes a deal, sometimes overpriced
   const dealFactor = 0.85 + Math.random() * 0.4;
@@ -788,8 +883,8 @@ function makeListing(id) {
 }
 
 // Eliseo_M — Garrett's brother. Always has one listing in each shop. Pure homage.
-function makeDannyListing(id) {
-  const l = makeListing(id);
+function makeDannyListing(id, forcedBike) {
+  const l = makeListing(id, forcedBike);
   l.seller = "Eliseo_M";
   l.sellerRating = (4.8 + Math.random() * 0.2).toFixed(1);
   l.location = "Sequim";
@@ -800,8 +895,7 @@ function makeDannyListing(id) {
 
 function makeDannyPart(id) {
   const bike = gatedPick(BIKES, UNIQUE_KEEP.parts);
-  const avail = availableParts(bike.sprite);
-  const part = avail[(Math.random() * avail.length) | 0];
+  const part = leanedPart(bike, garageNeedMap());
   const roll = Math.random();
   const state = roll < 0.08 ? "pristine"
     : roll < 0.40 ? "used_good"
@@ -826,20 +920,25 @@ function pickTown() {
   return { town, miles: jittered + " mi" };
 }
 
-function genListings(n, startId = 0, prevBikeId = null) {
+function genListings(n, startId = 0, prevBikeId = null, opts = {}) {
+  // Every batch is distinct models, drawn with rotation weights (aud205).
+  // opts.exclude: sprites already in the feed (single replacements);
+  // opts.tick === false: don't advance the rotation counters (also
+  // skipped automatically for one-listing calls).
+  const rot = rotLoad();
+  const used = new Set(opts.exclude || []);
+  if (prevBikeId) {
+    const prev = BIKES.find(b => b.id === prevBikeId);
+    if (prev) used.add(prev.sprite);
+  }
   const out = [];
   for (let i = 0; i < n; i++) {
+    const bike = pickFeedBike(used, rot);
+    used.add(bike.sprite);
     // Eliseo_M shows up randomly like any other seller (~6% per listing)
-    let l = Math.random() < 0.06 ? makeDannyListing(startId + i) : makeListing(startId + i);
-    // Never put the same bike twice in a row (re-roll up to 5x)
-    let tries = 0;
-    while (l.bikeId === prevBikeId && tries < 5) {
-      l = makeListing(startId + i);
-      tries++;
-    }
-    prevBikeId = l.bikeId;
-    out.push(l);
+    out.push(Math.random() < 0.06 ? makeDannyListing(startId + i, bike) : makeListing(startId + i, bike));
   }
   for (const l of out) if (!l.isDanny) l.persona = randomPersona();
+  if (opts.tick !== false && n > 1) rotTick(new Set(out.map(l => l.sprite)));
   return out;
 }

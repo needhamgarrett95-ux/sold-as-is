@@ -112,9 +112,12 @@ const Views = {
     // Swap the "Search by moped" dropdown for the "find parts that fit" bike
     // filter on both parts stores; no search control at all on Collection
     document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate || name === "collection");
-    const pbf = document.getElementById("parts-bike-filter");
-    pbf.classList.toggle("hidden", !(isBoneyard || isCrate));
-    if (pbf._ddWrap) pbf._ddWrap.classList.toggle("hidden", !(isBoneyard || isCrate));
+    const mpr = document.getElementById("model-pick-row");
+    if (mpr) {
+      mpr.classList.toggle("hidden", !(isBoneyard || isCrate));
+      if (isBoneyard || isCrate) this.renderModelPickRow();
+      else this.closeModelPicker();
+    }
     // The moped dropdown shows the filter that belongs to the view you're on
     const bsSel = document.getElementById("bike-search");
     if (bsSel && (name === "market" || name === "garage")) {
@@ -146,7 +149,8 @@ const Views = {
     if (n) n.textContent = State.garage.length ? `${State.garage.length}` : "";
   },
 
-  partsFilter: "all",
+  boneyardPick: "", // Boneyard's own "shop for this garage model" pick
+  cratePick: "",    // Crate Fresh's own pick — the two stores never share
   partsSearch: "",
   garageBikeFilter: null, // header "Search by moped" applied to the garage
   typeFilter: "all", // "all" | "bin" | "auction"
@@ -1744,20 +1748,91 @@ const Views = {
     if (this.current === "parts") this.renderParts(true);
   },
 
-  initPartsFilter() {
-    const sel = document.getElementById("parts-bike-filter");
-    sel.innerHTML = `<option value="all">All bikes</option>` +
-      BIKES.map(b => `<option value="${b.sprite}">${b.brand} ${b.name}</option>`).join("");
-    if (typeof GameDropdown !== "undefined") GameDropdown.enhance(sel, null);
-    sel.addEventListener("change", (e) => {
-      this.partsFilter = e.target.value;
-      // The same "find parts that fit" filter drives both parts stores
+  // ----- "Shop for a garage model" picker (aud205) -----
+  // One header row, per-store picks: each parts store remembers its own
+  // chosen model, and the list only ever shows models in the garage.
+  initModelPicker() {
+    const row = document.getElementById("model-pick-row");
+    if (!row || row._wired) return;
+    row._wired = true;
+    row.addEventListener("click", () => this.toggleModelPicker());
+    document.addEventListener("click", (e) => {
+      const panel = document.getElementById("model-pick-panel");
+      if (panel && !panel.classList.contains("hidden")
+        && !e.target.closest("#model-pick-panel") && !e.target.closest("#model-pick-row")) {
+        this.closeModelPicker();
+      }
+    });
+  },
+  activePick() { return this.current === "crate" ? this.cratePick : this.boneyardPick; },
+  setPick(sprite) {
+    if (this.current === "crate") this.cratePick = sprite;
+    else this.boneyardPick = sprite;
+  },
+  validPick(sprite) {
+    return !!sprite && State.garage.some(g => g.sprite === sprite);
+  },
+  renderModelPickRow() {
+    const row = document.getElementById("model-pick-row");
+    if (!row) return;
+    const pick = this.activePick();
+    const bike = pick ? BIKES.find(b => b.sprite === pick) : null;
+    const empty = !State.garage.length;
+    row.innerHTML = `${Icon.get('scooter')}<span>${bike ? bike.brand + " " + bike.name : (empty ? "No bikes yet" : "Add model")}</span><span class="mp-chev">›</span>`;
+    row.classList.toggle("disabled", empty);
+  },
+  pickHint(sprite, needMap) {
+    const nd = needMap[sprite];
+    if (!nd || !nd.worstType) return "Complete";
+    const def = availableParts(sprite).find(a => a.key === nd.worstType);
+    const states = (State.garage.find(g => g.sprite === sprite) || {}).partStates || {};
+    const missing = !states[nd.worstType] || states[nd.worstType] === "missing";
+    if (missing) return "Missing " + (def ? def.label.toLowerCase() : "parts");
+    let worn = 0;
+    for (const g of State.garage) {
+      if (g.sprite !== sprite) continue;
+      for (const d of availableParts(sprite)) {
+        const r = PART_STATE_RANK[(g.partStates || {})[d.key]] || 0;
+        if (r > 0) worn++;
+      }
+      break;
+    }
+    return worn ? `${worn} worn part${worn > 1 ? "s" : ""}` : "Complete";
+  },
+  toggleModelPicker() {
+    const panel = document.getElementById("model-pick-panel");
+    if (!panel) return;
+    if (!panel.classList.contains("hidden")) { this.closeModelPicker(); return; }
+    if (!State.garage.length) return;
+    const needMap = garageNeedMap();
+    const models = [...new Set(State.garage.map(g => g.sprite))]
+      .map(sp => BIKES.find(b => b.sprite === sp)).filter(Boolean)
+      .sort((a, b) => ((needMap[b.sprite]?.score || 0) - (needMap[a.sprite]?.score || 0)) || a.name.localeCompare(b.name));
+    const pick = this.activePick();
+    panel.innerHTML =
+      `<button class="mp-row${!pick ? " active" : ""}" data-pick=""><span class="mp-name">All models</span><span class="mp-hint">Browse everything</span></button>` +
+      models.map(b => `<button class="mp-row${pick === b.sprite ? " active" : ""}" data-pick="${b.sprite}"><span class="mp-name">${b.brand} ${b.name}</span><span class="mp-hint">${this.pickHint(b.sprite, needMap)}</span></button>`).join("");
+    const row = document.getElementById("model-pick-row");
+    const r = row.getBoundingClientRect();
+    panel.style.top = (r.bottom + 6) + "px";
+    panel.style.left = r.left + "px";
+    panel.style.width = Math.max(r.width, 240) + "px";
+    panel.classList.remove("hidden");
+    panel.querySelectorAll("[data-pick]").forEach(btn => btn.addEventListener("click", () => {
+      this.setPick(btn.dataset.pick);
+      this.closeModelPicker();
+      this.renderModelPickRow();
       if (this.current === "crate") this.renderCrate();
       else this.renderParts();
-    });
+    }));
+  },
+  closeModelPicker() {
+    const panel = document.getElementById("model-pick-panel");
+    if (panel) panel.classList.add("hidden");
   },
 
   renderParts(preserve) {
+    if (this.boneyardPick && !this.validPick(this.boneyardPick)) this.boneyardPick = "";
     if (!this.partsShop.length) {
       this.partsShop = genPartsShop(16);
     }
@@ -1771,7 +1846,7 @@ const Views = {
       .map((p, i) => ({ ...p, idx: i }))
       .filter(p => {
         if (this.typeFilter !== "all" && p.listingType !== this.typeFilter) return false;
-        if (this.partsFilter !== "all" && p.bikeSprite !== this.partsFilter) return false;
+        if (this.boneyardPick && p.bikeSprite !== this.boneyardPick) return false;
         if (this.partsSearch) {
           const q = this.partsSearch.toLowerCase();
           const hay = `${p.partLabel} ${p.bikeBrand} ${p.bikeModel}`.toLowerCase();
@@ -2485,20 +2560,19 @@ const Views = {
     this.crateRefreshesLeft--;
     try { localStorage.setItem(this.CRATE_REFRESHES_KEY, String(this.crateRefreshesLeft)); } catch (e) {}
     this.crateStock = genCrateStock(12);
-    // Guarantee: if a bike is picked in the shared filter, it has something on the shelf
-    if (this.partsFilter !== "all" && !isUnique(this.partsFilter) && !this.crateStock.some(p => p.bikeSprite === this.partsFilter)) {
-      const bike = BIKES.find(b => b.sprite === this.partsFilter);
-      if (bike) {
-        const avail = availableParts(bike.sprite);
-        const part = avail[(Math.random() * avail.length) | 0];
-        this.crateStock[0] = {
-          id: 999, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
-          partKey: part.key, partLabel: part.label, state: "nos", stateLabel: PART_STATE_LABEL.nos,
-          price: cratePriceFor(part.key), wasPrice: null, watchers: 0,
-          img: partImg(bike.sprite, part.key, "pristine"), listingType: "bin", seller: "Crate Fresh",
-        };
+    // Guarantee: the picked model — or, unpicked, the neediest project
+    // in the garage — has its most-needed part on the shelf. Uniques
+    // are exempt: their parts never get conjured.
+    const needMap = garageNeedMap();
+    let target = null;
+    if (this.validPick(this.cratePick) && !isUnique(this.cratePick)) target = this.cratePick;
+    else {
+      let best = 0;
+      for (const sp of Object.keys(needMap)) {
+        if (needMap[sp].score > best) { best = needMap[sp].score; target = sp; }
       }
     }
+    if (target) this.ensureCrateGuarantee(target, needMap);
     Save.save();
     this.renderCrate();
     if (this.crateRefreshesLeft <= 0) {
@@ -2509,6 +2583,32 @@ const Views = {
       } catch (e) {}
     }
     this.updateRefreshBtn();
+  },
+
+  ensureCrateGuarantee(sprite, needMap) {
+    const bike = BIKES.find(b => b.sprite === sprite);
+    if (!bike || !this.crateStock) return;
+    const wantKey = (needMap[sprite] && needMap[sprite].worstType) || null;
+    const idx = this.crateStock.findIndex(p => p.bikeSprite === sprite);
+    if (idx >= 0) {
+      // Already shelved: bend its part type to the slot that's needed
+      if (wantKey && this.crateStock[idx].partKey !== wantKey) {
+        const def = availableParts(sprite).find(a => a.key === wantKey);
+        if (def) this.crateStock[idx] = {
+          ...this.crateStock[idx], partKey: def.key, partLabel: def.label,
+          price: cratePriceFor(def.key), img: partImg(sprite, def.key, "pristine"),
+        };
+      }
+      return;
+    }
+    const avail = availableParts(sprite);
+    const def = (wantKey && avail.find(a => a.key === wantKey)) || avail[(Math.random() * avail.length) | 0];
+    this.crateStock[0] = {
+      id: 999, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
+      partKey: def.key, partLabel: def.label, state: "nos", stateLabel: PART_STATE_LABEL.nos,
+      price: cratePriceFor(def.key), wasPrice: null, watchers: 0,
+      img: partImg(sprite, def.key, "pristine"), listingType: "bin", seller: "Crate Fresh",
+    };
   },
 
   crateRowHTML(p, idx) {
@@ -2527,12 +2627,13 @@ const Views = {
   },
 
   renderCrate() {
+    if (this.cratePick && !this.validPick(this.cratePick)) this.cratePick = "";
     if (!this.crateStock) {
       this.crateStock = genCrateStock(12);
       Save.save();
     }
     const el = document.getElementById("crate-view");
-    const bike = this.partsFilter !== "all" ? BIKES.find(b => b.sprite === this.partsFilter) : null;
+    const bike = this.cratePick ? BIKES.find(b => b.sprite === this.cratePick) : null;
     const q = this.crateSearch.trim().toLowerCase();
     const matchesQ = (label, brand, model) => !q || `${label} ${brand} ${model}`.toLowerCase().includes(q);
     let rows = "";

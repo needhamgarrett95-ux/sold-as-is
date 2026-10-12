@@ -438,6 +438,28 @@ body.dark-mode .haggle-close { background: rgba(255,255,255,.15); }
   color: var(--dim); background: var(--paper); }
 .slot.filled { border-style: solid; border-color: var(--green); background: #e8f5e9;
   color: var(--green); font-weight: 800; }
+/* "Shop for a garage model" picker (aud205) */
+.model-pick { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
+  font-size: .85rem; font-weight: 600; padding: 9px 10px;
+  border: 1.5px solid var(--line); border-radius: 8px; background: var(--paper);
+  color: var(--ink); cursor: pointer; font-family: inherit; text-align: left; }
+.model-pick.hidden { display: none; }
+.model-pick svg { width: 17px; height: 17px; flex-shrink: 0; }
+.model-pick .mp-chev { margin-left: auto; opacity: .65; font-weight: 700; }
+.model-pick.disabled { opacity: .55; cursor: default; }
+.model-pick-panel { position: fixed; z-index: 80; background: var(--card);
+  border: 1.5px solid var(--line); border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(0,0,0,.28); overflow-y: auto; max-height: 55vh; }
+.model-pick-panel.hidden { display: none; }
+.mp-row { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; padding: 11px 14px; background: none; border: none;
+  border-bottom: 1px solid var(--line); color: var(--ink);
+  font-family: inherit; font-size: .9rem; text-align: left; cursor: pointer; }
+.mp-row:last-child { border-bottom: none; }
+.mp-row.active { background: var(--paper); }
+.mp-row .mp-name { font-weight: 600; }
+.mp-row .mp-hint { color: var(--dim); font-size: .75rem; white-space: nowrap; }
+
 /* Unique trophy row — gold treatment (renders with the Unique set) */
 .set-row.unique-set { border-color: var(--amber); }
 .set-row.unique-set .set-name svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 2px; }

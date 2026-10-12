@@ -27,9 +27,18 @@ const Views = {
     document.getElementById("logo-boneyard").classList.toggle("hidden", !isBoneyard);
     const logoCrate = document.getElementById("logo-crate");
     if (logoCrate) logoCrate.classList.toggle("hidden", !isCrate);
-    // Swap search bar for the "find parts that fit" bike filter on both parts stores
-    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate);
-    document.getElementById("parts-bike-filter").classList.toggle("hidden", !(isBoneyard || isCrate));
+    // Swap the "Search by moped" dropdown for the "find parts that fit" bike
+    // filter on both parts stores; no search control at all on Collection
+    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate || name === "collection");
+    const pbf = document.getElementById("parts-bike-filter");
+    pbf.classList.toggle("hidden", !(isBoneyard || isCrate));
+    if (pbf._ddWrap) pbf._ddWrap.classList.toggle("hidden", !(isBoneyard || isCrate));
+    // The moped dropdown shows the filter that belongs to the view you're on
+    const bsSel = document.getElementById("bike-search");
+    if (bsSel && (name === "market" || name === "garage")) {
+      const v = name === "garage" ? (this.garageBikeFilter || "all") : (Feed.bikeFilter || "all");
+      if (bsSel.value !== v) { bsSel.value = v; if (bsSel._ddRender) bsSel._ddRender(); }
+    }
     // Update refresh button for the active tab
     this.updateRefreshBtn();
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
@@ -57,6 +66,7 @@ const Views = {
 
   partsFilter: "all",
   partsSearch: "",
+  garageBikeFilter: null, // header "Search by moped" applied to the garage
   typeFilter: "all", // "all" | "bin" | "auction"
   auctionTimer: null,
   boneyardTab: "buy", // "buy" | "sell"
@@ -1715,7 +1725,7 @@ const Views = {
         <button class="eby-type${this.typeFilter === "bin" ? " active" : ""}" data-type="bin">Buy It Now</button>
         <button class="eby-type${this.typeFilter === "auction" ? " active" : ""}" data-type="auction">Auctions</button>
       </div>
-      <div class="eby-search"><input type="text" id="parts-search" placeholder="Search parts..." value="${this.partsSearch.replace(/"/g, "&quot;")}" autocomplete="off"></div>
+
       <div class="eby-list">` +
       (shown.length ? shown.map(p => {
         if (p.listingType === "auction") {
@@ -1798,18 +1808,6 @@ const Views = {
         if (dy < 10 && dx < 10) buy(e);
       }, { passive: false });
     });
-    // Parts search (preserve focus while typing)
-    const psInput = document.getElementById("parts-search");
-    if (psInput && typeof GameQWERTY !== "undefined") GameQWERTY.attach(psInput, null);
-    if (psInput && !preserve) {
-      psInput.addEventListener("input", (e) => {
-        this.partsSearch = e.target.value;
-        const pos = e.target.selectionStart;
-        this.renderParts();
-        const ni = document.getElementById("parts-search");
-        if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
-      });
-    }
     // Buy/Sell tabs
     el.querySelectorAll("[data-btab]").forEach(t =>
       t.addEventListener("click", () => {
@@ -2556,21 +2554,8 @@ const Views = {
       <div class="eby-head">
         <div class="eby-title">${Icon.get('crate')} NOS Parts Co.</div>
       </div>
-      <div class="crate-promise"><strong>Factory-sealed. Pristine tops out at 95 — this is 100.</strong> Fixed dealer prices. No auctions, no haggling, no gambling.</div>
-      <div class="eby-search"><input type="text" id="crate-search" placeholder="Search parts..." value="${this.crateSearch.replace(/"/g, "&quot;")}" autocomplete="off"></div>
-      <div class="eby-list">${rows || `<div class="empty"><strong>No parts match</strong>Try a different search.</div>`}</div>`;
-    // Search (preserve focus while typing, same pattern as the Boneyard)
-    const csInput = document.getElementById("crate-search");
-    if (csInput && typeof GameQWERTY !== "undefined") GameQWERTY.attach(csInput, null);
-    if (csInput) {
-      csInput.addEventListener("input", (e) => {
-        this.crateSearch = e.target.value;
-        const pos = e.target.selectionStart;
-        this.renderCrate();
-        const ni = document.getElementById("crate-search");
-        if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
-      });
-    }
+      <div class="crate-promise"><strong>Still in the factory plastic.</strong> This is new old stock — parts that sat on a dealer's shelf since the eighties and never got sold. Never mounted, never run. The tag price is the price: no offers, no auctions, no games. When a shelf empties, it stays empty.</div>
+      <div class="eby-list">${rows || `<div class="empty"><strong>Nothing on the shelf</strong>Try a different bike, or refresh for a restock.</div>`}</div>`;
     // Buy buttons + row tap → detail (same tap-guard pattern as the Boneyard)
     el.querySelectorAll("[data-buy-crate]").forEach(btn => {
       const buy = (e) => { e.preventDefault(); e.stopPropagation(); this.buyCratePart(+btn.dataset.buyCrate); };
@@ -2848,14 +2833,16 @@ const Views = {
         <div class="empty"><strong>Empty garage</strong>Hit the market and buy your first flip.</div>`;
     }
     const sortMode = this.garageSort || "recent";
-    const sorted = [...State.garage.map((b, i) => ({ b, i }))].sort((x, y) => {
+    const sorted = [...State.garage.map((b, i) => ({ b, i }))]
+      .filter(({ b }) => !this.garageBikeFilter || b.sprite === this.garageBikeFilter)
+      .sort((x, y) => {
       if (sortMode === "value") return (y.b.fairValue || 0) - (x.b.fairValue || 0);
       if (sortMode === "profit") return ((y.b.fairValue || 0) - (y.b.boughtFor || 0)) - ((x.b.fairValue || 0) - (x.b.boughtFor || 0));
       if (sortMode === "brand") return (x.b.brand || "").localeCompare(y.b.brand || "");
       return y.i - x.i; // recent (default)
     });
     return `<div class="pane-head"><h2>Pending Listings</h2>
-      <div class="sub">${State.garage.length} bike(s) · tap to manage</div>
+      <div class="sub">${sorted.length} bike(s) · tap to manage</div>
       <select id="garage-sort" class="garage-sort">
         <option value="recent"${sortMode === "recent" ? " selected" : ""}>Recently added</option>
         <option value="value"${sortMode === "value" ? " selected" : ""}>Highest value</option>
@@ -3059,16 +3046,10 @@ const Views = {
     }
     return `<div class="pane-head"><h2>Parts Inventory</h2>
       <div class="sub">${parts.length} part(s) in storage · tap ${Icon.get('wrench')} to repair</div>
-      <input type="text" id="parts-search" class="parts-search" placeholder="Search parts or bikes..." value="${this.partsSearch || ""}"></div>
+</div>
       <div class="eby-list" id="parts-list">` +
       parts.map((p, i) => ({ p, i }))
-      .filter(({ p }) => {
-        if (!this.partsSearch) return true;
-        const q = this.partsSearch.toLowerCase();
-        return (p.partLabel || "").toLowerCase().includes(q) ||
-               (p.bikeName || "").toLowerCase().includes(q) ||
-               (p.partKey || "").toLowerCase().includes(q);
-      })
+      .filter(({ p }) => !this.garageBikeFilter || p.bikeSprite === this.garageBikeFilter)
       .map(({ p, i }) => {
         const pct = ensurePct(p);
         const state = p.state === "nos" ? "nos" : pctToState(pct);
@@ -3377,23 +3358,6 @@ const Views = {
       sortSel.addEventListener("change", (e) => {
         this.garageSort = e.target.value;
         this.renderGarage();
-      });
-    }
-    // Parts search (debounced, preserves focus)
-    const search = el.querySelector("#parts-search");
-    if (search && typeof GameQWERTY !== "undefined") GameQWERTY.attach(search, null);
-    if (search) {
-      let debounce = null;
-      search.addEventListener("input", (e) => {
-        this.partsSearch = e.target.value;
-        clearTimeout(debounce);
-        debounce = setTimeout(() => {
-          this.renderGarage();
-          setTimeout(() => {
-            const s2 = document.getElementById("parts-search");
-            if (s2) { s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); }
-          }, 50);
-        }, 300);
       });
     }
     // Bike card taps → detail

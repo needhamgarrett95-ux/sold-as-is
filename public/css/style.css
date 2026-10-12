@@ -1076,6 +1076,7 @@ button.settings-item:active { background: #faf6f1; }
 
 /* Custom dropdown */
 .dd-wrap { position: relative; display: inline-block; width: 100%; }
+.dd-wrap.hidden { display: none; }
 .dd-btn {
   width: 100%; padding: 10px 12px; font-size: 14px; text-align: left;
   background: #fff; border: 1.5px solid var(--line); border-radius: 8px;

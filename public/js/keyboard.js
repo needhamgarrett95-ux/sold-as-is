@@ -224,9 +224,12 @@ const GameDropdown = {
     selectEl.parentNode.insertBefore(wrap, selectEl);
     wrap.appendChild(selectEl);
     selectEl.style.display = 'none';
+    // Visibility is controlled on the WRAP — never let the select's own
+    // "hidden" class leak onto the button (that once hid a filter forever)
+    selectEl._ddWrap = wrap;
 
     const btn = document.createElement('button');
-    btn.className = 'dd-btn ' + (selectEl.className || '');
+    btn.className = 'dd-btn ' + (selectEl.className || '').split(/\s+/).filter(c => c && c !== 'hidden').join(' ');
     btn.type = 'button';
     wrap.appendChild(btn);
 
@@ -243,6 +246,7 @@ const GameDropdown = {
       ).join('');
     };
     render();
+    selectEl._ddRender = render;
 
     btn.addEventListener('click', (e) => {
       e.stopPropagation();

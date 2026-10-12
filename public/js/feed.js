@@ -6,6 +6,7 @@ const Feed = {
   batchSize: 16, // 8 rows x 2 cols, locked
   filter: "all",
   search: "",
+  bikeFilter: null, // "Search by moped" dropdown (sprite key, null = all)
 
   init() {
     this.blockedIds = new Set();
@@ -35,6 +36,8 @@ const Feed = {
       case "projects": ok = ["Rough", "Non-runner", "Parts bike"].includes(l.condition); break;
     }
     if (!ok) return false;
+    // Search-by-moped dropdown
+    if (this.bikeFilter && l.sprite !== this.bikeFilter) return false;
     // Text search
     if (this.search) {
       const q = this.search.toLowerCase();

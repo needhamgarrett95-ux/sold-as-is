@@ -289,11 +289,22 @@ document.addEventListener("DOMContentLoaded", () => {
       c.classList.add("active");
       Feed.setFilter(c.dataset.filter);
     }));
-  // Market search (with custom QWERTY keyboard)
-  const msInput = document.getElementById("market-search");
-  if (msInput && typeof GameQWERTY !== "undefined") GameQWERTY.attach(msInput, null);
-  msInput.addEventListener("input", (e) => {
-    Feed.setSearch(e.target.value);
-  });
+  // Search by moped — custom dropdown; filters whichever view you're on
+  const bsSel = document.getElementById("bike-search");
+  if (bsSel) {
+    bsSel.innerHTML = `<option value="all">Search by moped</option>` +
+      BIKES.map(b => `<option value="${b.sprite}">${b.brand} ${b.name}</option>`).join("");
+    if (typeof GameDropdown !== "undefined") GameDropdown.enhance(bsSel, null);
+    bsSel.addEventListener("change", (e) => {
+      const v = e.target.value === "all" ? null : e.target.value;
+      if (Views.current === "garage") {
+        Views.garageBikeFilter = v;
+        Views.renderGarage();
+      } else {
+        Feed.bikeFilter = v;
+        Feed.render();
+      }
+    });
+  }
   console.log("Sold As-Is: marketplace feed live.");
 });

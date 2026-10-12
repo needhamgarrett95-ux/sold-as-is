@@ -5,6 +5,7 @@ const SITES = {
   crate:      { tab: "Crate Fresh — NOS Parts Co.",  url: "cratefresh.place",            icon: "crate" },
   garage:     { tab: "Sold As-Is — My Garage",       url: "soldasis.place/garage",     icon: "wrench" },
   collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "trophy" },
+  ledger:     { tab: "Sold As-Is — The Ledger",       url: "soldasis.place/ledger",     icon: "ledger" },
 };
 
 // Buyer archetypes (aud196): economy ranges stay inside the aud187 envelope.
@@ -111,7 +112,7 @@ const Views = {
     if (logoCrate) logoCrate.classList.toggle("hidden", !isCrate);
     // Swap the "Search by moped" dropdown for the "find parts that fit" bike
     // filter on both parts stores; no search control at all on Collection
-    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate || name === "collection");
+    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate || name === "collection" || name === "ledger");
     const mpr = document.getElementById("model-pick-row");
     if (mpr) {
       mpr.classList.toggle("hidden", !(isBoneyard || isCrate));
@@ -134,6 +135,7 @@ const Views = {
     if (crateView) crateView.classList.toggle("hidden", name !== "crate");
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
+    document.getElementById("ledger-view").classList.toggle("hidden", name !== "ledger");
     if (name === "market") {
       this.renderMarketTabs(); this.renderMarketFeed();
       if (this.marketTab === "mine") this.clearMarketBadges();
@@ -145,6 +147,7 @@ const Views = {
     if (name === "crate") this.renderCrate();
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
+    if (name === "ledger") this.renderLedger();
     const n = document.getElementById("nav-garage-n");
     if (n) n.textContent = State.garage.length ? `${State.garage.length}` : "";
   },
@@ -718,6 +721,8 @@ const Views = {
       if (isUnique(l.sprite)) State.stats.uniquesSoldForProfit = (State.stats.uniquesSoldForProfit || 0) + 1;
     }
     State.stats.successfulHaggles++;
+    // A negotiated sale (not buy-it-now, not auction) is a struck deal
+    State.stats.dealsStruck = (State.stats.dealsStruck || 0) + 1;
     if (typeof Milestones !== "undefined") Milestones.check(State.stats);
     const xpResult = Skills.awardForSale(amount, costBasis);
     if (xpResult.xp > 0) XPPopup.show(xpResult.xp, xpResult.newPoints);
@@ -2250,6 +2255,7 @@ const Views = {
       response = HAGGLE.say(persona, "met", offerAmount);
     } else if (ratio < 0.50 && Math.random() < blockRisk) {
       blocked = true;
+      State.stats.timesBlocked = (State.stats.timesBlocked || 0) + 1;
       response = HAGGLE.say(persona, "block", offerAmount);
     } else if (ratio >= 0.95) {
       // Near asking — motivated accepts fast, firm might squeeze, flaky might ghost
@@ -3949,5 +3955,61 @@ const Views = {
     return `<h2 style="margin-top:24px">Milestones</h2>
       <div class="sub">${done.size} of ${Milestones.defs.length} completed</div>
       <div class="milestones">${items}</div>`;
+  },
+
+  // The Ledger — career stats: the grind, the glory, the shame
+  renderLedger() {
+    const el = document.getElementById("ledger-view");
+    const st = State.stats;
+    const num = n => (n || 0).toLocaleString();
+    const cash = n => "$" + Math.round(n || 0).toLocaleString();
+    // Best flip / biggest loss, computed live from flip history
+    let bestFlip = null, worstFlip = null;
+    (State.sold || []).forEach(s => {
+      const basis = (s.boughtFor || s.paidPrice || 0) + (s.repairSpent || 0);
+      const profit = (s.soldFor || 0) - basis;
+      const name = `${s.brand || ""} ${s.model || ""}`.trim();
+      if (!bestFlip || profit > bestFlip.profit) bestFlip = { profit, name };
+      if (!worstFlip || profit < worstFlip.profit) worstFlip = { profit, name };
+    });
+    // Favorite seller: most bikes bought from one handle
+    const sb = st.sellerBikes || {};
+    let favSeller = null, favCount = 0;
+    Object.entries(sb).forEach(([name, c]) => {
+      if (c > favCount) { favCount = c; favSeller = name; }
+    });
+    const kept = State.garage.filter(b => b.kept);
+    const row = (label, value, sub) => `
+      <div class="ledger-row">
+        <div class="ledger-label">${label}${sub ? `<div class="ledger-sub">${sub}</div>` : ""}</div>
+        <div class="ledger-value">${value}</div>
+      </div>`;
+    const section = (title, rows) => `
+      <div class="ledger-section">
+        <div class="ledger-sec-title">${title}</div>
+        ${rows}
+      </div>`;
+    el.innerHTML = `<h2>The Ledger</h2>
+      <div class="sub">Every deal, every dollar, every door slammed in your face.</div>` +
+      section("The Grind",
+        row("Deals struck", num(st.dealsStruck), "haggles that ended in a sale") +
+        row("Bikes bought", num(st.bikesBought)) +
+        row("Bikes sold", num((State.sold || []).length)) +
+        row("Lifetime profit", cash(st.totalProfit)) +
+        row("Best flip", bestFlip && bestFlip.profit > 0 ? cash(bestFlip.profit) : "—",
+            bestFlip && bestFlip.profit > 0 ? bestFlip.name : "") +
+        row("Favorite seller", favSeller ? favSeller : "—",
+            favSeller ? `${favCount} bike${favCount === 1 ? "" : "s"} bought` : "")) +
+      section("The Glory",
+        row("Collection", `${kept.length} / ${BIKES.length}`,
+            `${Math.round(kept.length / BIKES.length * 100)}% complete`) +
+        row("Brand sets completed", num(st.brandSetsCompleted)) +
+        row("Uniques found", num(st.uniquesCollected)) +
+        row("NOS factory builds", num(st.nosBuilds))) +
+      section("The Shame",
+        row("Times blocked", num(st.timesBlocked), "wear it with pride") +
+        row("Biggest loss", worstFlip && worstFlip.profit < 0 ? cash(worstFlip.profit) : "—",
+            worstFlip && worstFlip.profit < 0 ? worstFlip.name : "")) +
+      `<div class="ledger-foot">Deal and block counters start with this update —<br>history before today isn't counted.</div>`;
   },
 };

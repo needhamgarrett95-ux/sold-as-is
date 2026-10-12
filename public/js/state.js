@@ -14,6 +14,7 @@ const State = {
     successfulHaggles: 0, bikesRestored: 0,
     nosParts: 0, nosBuilds: 0, nosKeptBuilds: 0,
     uniquesCollected: 0, uniquesSoldForProfit: 0,
+    dealsStruck: 0, timesBlocked: 0, sellerBikes: {},
   },
 
   canAfford(price) { return this.cash >= price; },
@@ -29,6 +30,10 @@ const State = {
       .filter(k => boughtBike.partStates[k] === "missing");
     this.garage.push(boughtBike);
     this.stats.bikesBought++;
+    // Favorite-seller ledger: count bikes bought per seller handle
+    const seller = listing.seller || "unknown";
+    const sb = this.stats.sellerBikes || (this.stats.sellerBikes = {});
+    sb[seller] = (sb[seller] || 0) + 1;
     if (typeof Milestones !== "undefined") Milestones.check(this.stats);
     Save.save();
     return true;

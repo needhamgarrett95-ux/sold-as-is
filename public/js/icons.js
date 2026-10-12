@@ -27,6 +27,10 @@ const Icon = (() => {
     trophy: S(`<path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 5H4a3 3 0 0 0 3 5M16 5h4a3 3 0 0 1-3 5"/>
       <path d="M12 13v4M8 20h8M10 17h4"/>`),
 
+    // Ledger — stats tab (account book with entry lines)
+    ledger: S(`<path d="M5 3h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V3z"/><path d="M5 19V5"/>
+      <path d="M9 8h6M9 12h6M9 16h4"/>`),
+
     // Scooter — boneyard header (vespa-style)
     scooter: S(`<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/>
       <path d="M6 17h7l2-6h3"/><path d="M13 11l-2-4H8"/><path d="M18 17l-1.5-7"/>`),

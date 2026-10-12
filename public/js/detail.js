@@ -42,6 +42,8 @@ const Detail = {
 
   _removeBlockedListing(passedListing) {
     // Seller blocked you — listing is replaced with a fresh one
+    // Single choke point: every marketplace block path funnels through here
+    State.stats.timesBlocked = (State.stats.timesBlocked || 0) + 1;
     const l = passedListing || this.current;
     if (l && typeof Feed !== "undefined" && Feed.replaceBlocked) {
       Feed.replaceBlocked(l.id);
@@ -262,12 +264,16 @@ const Detail = {
         revealedParts = scored.slice(0, count).map(x => x.p.key);
       }
     }
+    // A price that came out of back-and-forth (accept or counter) is a
+    // struck deal; a straight asking-price buy is not.
+    const negotiated = !!(this.haggleResponse && this.haggleResponse.price);
     const buyResult = State.buy({ ...l, price, revealedParts });
     if (!buyResult) {
       this.notice = "Purchase failed.";
       this.render();
       return;
     }
+    if (negotiated) State.stats.dealsStruck = (State.stats.dealsStruck || 0) + 1;
     Feed.remove(l.id);
     this.close();
     UI.refreshCash();

@@ -1300,13 +1300,16 @@ const Views = {
         </div>
       </div>`;
       const input = el.querySelector(`#sell-price-${idx}`);
-      const fv = part.fairValue || 0;
+      const paidPrice = part && part.paidPrice ? part.paidPrice : 0;
       if (input && typeof GameKB !== "undefined") GameKB.attach(input, null, (typed) => {
-        let html = fv ? `Fair value <span class="kb-ctx-price">~$${Math.round(fv).toLocaleString()}</span>` : '';
-        if (typed > 0 && fv) {
-          const diff = typed - Math.round(fv);
-          if (diff > 0) html += ` · <span class="kb-ctx-over">$${diff.toLocaleString()} over fair</span>`;
-          else if (diff < 0) html += ` · <span class="kb-ctx-under">$${(-diff).toLocaleString()} under fair</span>`;
+        let html = `Fair market <span class="kb-ctx-price">~$${marketPrice.toLocaleString()}</span>`;
+        html += paidPrice
+          ? ` · You paid <span class="kb-ctx-price">$${paidPrice.toLocaleString()}</span>`
+          : ` · You paid <span class="kb-ctx-price">—</span>`;
+        if (typed > 0 && paidPrice) {
+          const diff = typed - paidPrice;
+          if (diff > 0) html += `<br><span class="kb-ctx-under">+$${diff.toLocaleString()} profit if it sells</span>`;
+          else if (diff < 0) html += `<br><span class="kb-ctx-over">-$${(-diff).toLocaleString()} loss if it sells</span>`;
         }
         return html;
       });
@@ -2282,7 +2285,7 @@ const Views = {
         if (UI.updateBellBadge) UI.updateBellBadge();
       }
     } catch (e) {}
-    const bike = BIKES[(Math.random() * BIKES.length) | 0];
+    const bike = gatedPick(BIKES, UNIQUE_KEEP.parts);
     const avail = availableParts(bike.sprite);
     const part = avail[(Math.random() * avail.length) | 0];
     const roll = Math.random();
@@ -2483,7 +2486,7 @@ const Views = {
     try { localStorage.setItem(this.CRATE_REFRESHES_KEY, String(this.crateRefreshesLeft)); } catch (e) {}
     this.crateStock = genCrateStock(12);
     // Guarantee: if a bike is picked in the shared filter, it has something on the shelf
-    if (this.partsFilter !== "all" && !this.crateStock.some(p => p.bikeSprite === this.partsFilter)) {
+    if (this.partsFilter !== "all" && !isUnique(this.partsFilter) && !this.crateStock.some(p => p.bikeSprite === this.partsFilter)) {
       const bike = BIKES.find(b => b.sprite === this.partsFilter);
       if (bike) {
         const avail = availableParts(bike.sprite);
@@ -3703,7 +3706,7 @@ const Views = {
       partKey, partLabel: pDef.label,
       bikeBrand: bike.brand, bikeModel: bike.model, bikeSprite: bike.sprite,
       state, stateLabel: PART_STATE_LABEL[state],
-      conditionPct: { pristine: 95, used_good: 60, used_bad: 35, totaled: 10, nos: 100 }[state] || 50,
+      conditionPct: { pristine: 95, used_good: 80, used_bad: 55, totaled: 20, nos: 100 }[state] || 50,
       paidPrice: 0, // pulled from own bike, no cost
       img: partImg(bike.sprite, partKey, state),
     });

@@ -70,6 +70,20 @@ Object.entries(BRANDS).forEach(([brand, { models }]) => {
 const UNIQUE_SPRITES = [];
 function isUnique(sprite) { return UNIQUE_SPRITES.includes(sprite); }
 
+// Spawn gates: when a generator roll lands on a Unique, it survives only
+// with these probabilities — otherwise the roll re-picks a regular model.
+// Uniques are collection trophies, not stock. (Inert while the registry
+// is empty: isUnique is false for every sprite in the game.)
+const UNIQUE_KEEP = { market: 0.10, parts: 0.05, crate: 0.04 };
+function gatedPick(pool, keep) {
+  let b = pool[(Math.random() * pool.length) | 0];
+  if (b && isUnique(b.sprite) && Math.random() > keep) {
+    const reg = pool.filter(x => !isUnique(x.sprite));
+    if (reg.length) b = reg[(Math.random() * reg.length) | 0];
+  }
+  return b;
+}
+
 const CONDITIONS = [
   { name: "Mint",       mult: 1.35, weight: 5 },
   { name: "Clean",      mult: 1.15, weight: 15 },
@@ -575,9 +589,11 @@ function genCrateStock(n = 12) {
   const shuffled = [...BIKES].sort(() => Math.random() - 0.5);
   for (const bike of shuffled) {
     if (out.length >= n) break;
+    // The Crate Fresh shelf almost never holds a Unique part
+    if (isUnique(bike.sprite) && Math.random() > UNIQUE_KEEP.crate) continue;
     mk(bike);
   }
-  while (out.length < n) mk(BIKES[(Math.random() * BIKES.length) | 0]);
+  while (out.length < n) mk(gatedPick(BIKES, UNIQUE_KEEP.crate));
   return out;
 }
 
@@ -642,8 +658,12 @@ function genPartsShop(n = 16) {
     }
     out.push(item);
   };
-  // Guarantee: at least 1 random part per bike model
-  [...BIKES].sort(() => Math.random() - 0.5).forEach(bike => mkPart(bike));
+  // Guarantee: at least 1 random part per bike model — except Uniques,
+  // whose parts are trophy-rare in the Boneyard (gated, never guaranteed)
+  [...BIKES].sort(() => Math.random() - 0.5).forEach(bike => {
+    if (isUnique(bike.sprite) && Math.random() > UNIQUE_KEEP.parts) return;
+    mkPart(bike);
+  });
   // Eliseo_M lists parts randomly like anyone else (~5% per item)
   for (const item of out) {
     if (Math.random() < 0.05) { item.seller = "Eliseo_M"; item.isDanny = true; }
@@ -651,7 +671,7 @@ function genPartsShop(n = 16) {
   // Fill remaining slots with random bikes (if n > bike count)
   const extra = Math.max(0, n - BIKES.length);
   for (let i = 0; i < extra; i++) {
-    mkPart(BIKES[(Math.random() * BIKES.length) | 0]);
+    mkPart(gatedPick(BIKES, UNIQUE_KEEP.parts));
   }
   for (const it of out) it.persona = randomPersona();
   return out;
@@ -667,7 +687,7 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const money = n => "$" + Math.round(n).toLocaleString();
 
 function makeListing(id) {
-  const bike = pick(BIKES);
+  const bike = gatedPick(BIKES, UNIQUE_KEEP.market);
   const cond = pickWeighted(CONDITIONS, "weight");
   // Price: base * condition * (0.85–1.25 noise) — sometimes a deal, sometimes overpriced
   const dealFactor = 0.85 + Math.random() * 0.4;
@@ -756,7 +776,7 @@ function makeDannyListing(id) {
 }
 
 function makeDannyPart(id) {
-  const bike = BIKES[(Math.random() * BIKES.length) | 0];
+  const bike = gatedPick(BIKES, UNIQUE_KEEP.parts);
   const avail = availableParts(bike.sprite);
   const part = avail[(Math.random() * avail.length) | 0];
   const roll = Math.random();

@@ -540,7 +540,11 @@ const Views = {
     const style = rollBuyerStyle();
     const econ = BUYER_ECON[style] || BUYER_ECON.haggler;
     const offerPct = econ.open[0] + Math.random() * (econ.open[1] - econ.open[0]);
-    const offerAmount = Math.round((askPrice * offerPct) / 5) * 5;
+    // Offers anchor to true value, never to a fantasy ask (aud208): the
+    // opener is a % of whichever is lower — your ask or the fair value —
+    // and can never exceed the buyer's own ceiling.
+    const fairBase = listing.fairValue || listing.boughtFor || askPrice;
+    const offerAmount = Math.round((Math.min(askPrice, fairBase) * offerPct) / 5) * 5;
     const buyerName = this.buyerNames[(Math.random() * this.buyerNames.length) | 0];
     const maxPct = econ.max[0] + Math.random() * (econ.max[1] - econ.max[0]);
     // Smooth Talker: buyers open higher and stretch further
@@ -548,11 +552,11 @@ const Views = {
     // Good copy earns buyers' trust (sell score 0-3 → up to +9%, capped by fair value)
     const sellScore = this.descSellScore(listing.desc || "");
     const sellBonus = sellScore * 0.03;
-    const boostedOffer = Math.round((offerAmount * (1 + stBonus + sellBonus)) / 5) * 5;
-    let boostedMax = Math.round((askPrice * maxPct * (1 + stBonus)) / 5) * 5;
+    let boostedMax = Math.round((fairBase * maxPct * (1 + stBonus)) / 5) * 5;
     // Hard cap: buyers won't pay more than 1.5x fair value, no matter the asking price
-    const fairCap = Math.round(((listing.fairValue || listing.boughtFor || 500) * 1.5) / 5) * 5;
+    const fairCap = Math.round((fairBase * 1.5) / 5) * 5;
     boostedMax = Math.min(boostedMax, fairCap);
+    const boostedOffer = Math.min(Math.round((offerAmount * (1 + stBonus + sellBonus)) / 5) * 5, boostedMax);
     listing.offer = {
       amount: offerAmount,
       buyerName,

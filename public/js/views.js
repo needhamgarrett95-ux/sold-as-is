@@ -2,6 +2,7 @@
 const SITES = {
   market:     { tab: "Sold As-Is — Mopeds for sale", url: "soldasis.place/mopeds",     icon: "moped" },
   parts:      { tab: "Boneyard — Moped parts",       url: "boneyard.place",              icon: "gear" },
+  crate:      { tab: "Crate Fresh — NOS Parts Co.",  url: "cratefresh.place",            icon: "crate" },
   garage:     { tab: "Sold As-Is — My Garage",       url: "soldasis.place/garage",     icon: "wrench" },
   collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "trophy" },
 };
@@ -19,19 +20,22 @@ const Views = {
     const site = SITES[name];
     const urlEl = document.querySelector(".urlbar .url");
     if (urlEl) urlEl.textContent = site.url;
-    // Swap header logo for Boneyard (feels like a different site)
+    // Swap header logo per site (Boneyard / Crate Fresh feel like different sites)
     const isBoneyard = name === "parts";
-    document.getElementById("logo-main").classList.toggle("hidden", isBoneyard);
+    const isCrate = name === "crate";
+    document.getElementById("logo-main").classList.toggle("hidden", isBoneyard || isCrate);
     document.getElementById("logo-boneyard").classList.toggle("hidden", !isBoneyard);
-    // Swap search bar for bike filter on Boneyard
-    document.getElementById("site-search").classList.toggle("hidden", isBoneyard);
-    document.getElementById("parts-bike-filter").classList.toggle("hidden", !isBoneyard);
+    document.getElementById("logo-crate").classList.toggle("hidden", !isCrate);
+    // Swap search bar for the "find parts that fit" bike filter on both parts stores
+    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate);
+    document.getElementById("parts-bike-filter").classList.toggle("hidden", !(isBoneyard || isCrate));
     // Update refresh button for the active tab
     this.updateRefreshBtn();
     document.getElementById("feed").style.display = name === "market" ? "" : "none";
     document.getElementById("cats").style.display = name === "market" && this.marketTab === "browse" ? "" : "none";
     document.getElementById("market-tabs").style.display = name === "market" ? "" : "none";
     document.getElementById("parts-view").classList.toggle("hidden", name !== "parts");
+    document.getElementById("crate-view").classList.toggle("hidden", name !== "crate");
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
     if (name === "market") {
@@ -42,6 +46,7 @@ const Views = {
       this.renderParts();
       if (this.boneyardTab === "sell") this.clearPartsBadges();
     }
+    if (name === "crate") this.renderCrate();
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
     const n = document.getElementById("nav-garage-n");
@@ -60,6 +65,10 @@ const Views = {
   partDetailIdx: -1,
   partDetailOffer: null,
   cart: [], // shopping cart for parts
+  crateStock: null, // Crate Fresh NOS stock (persisted in the save); null = not rolled yet
+  crateSearch: "",
+  partDetailSource: "shop", // "shop" (Boneyard) | "crate" (Crate Fresh) for the part detail page
+  crateDetailIdx: -1,
   bikeListingFilter: "active", // "active" | "sold"
   partListingFilter: "active", // "active" | "sold"
   marketTab: "browse", // "browse" | "mine"
@@ -161,7 +170,7 @@ const Views = {
     }
     const btn = document.getElementById("refresh-btn");
     if (!btn) return;
-    if (this.current === "parts") {
+    if (this.current === "parts" || this.current === "crate") {
       const now = Date.now();
       if (now < this.partsCooldownUntil) {
         // Parts cooldown active — ensure display timer is running
@@ -173,7 +182,9 @@ const Views = {
       btn.disabled = false;
       btn.classList.remove("cooling");
       btn.innerHTML = "↻";
-      btn.title = `Refresh Boneyard (${this.partsRefreshesLeft} free left)`;
+      btn.title = this.current === "crate"
+        ? `Restock Crate Fresh (${this.partsRefreshesLeft} free left)`
+        : `Refresh Boneyard (${this.partsRefreshesLeft} free left)`;
     } else if (this.current === "market") {
       // Clear parts cooldown display, restore market state
       clearInterval(this.partsCooldownTimer);
@@ -1233,7 +1244,7 @@ const Views = {
     }
     parts.splice(invIdx, 1);
     const pct = ensurePct(p);
-    const state = pctToState(pct);
+    const state = p.state === "nos" ? "nos" : pctToState(pct); // NOS is a state, never derived from %
     // Generate bidders with secret budgets
     const bidderCount = 2 + ((Math.random() * 3) | 0);
     const bidders = [];
@@ -1404,7 +1415,7 @@ const Views = {
       shown.map((l) => {
         const i = l.idx;
         const pct = ensurePct(l);
-        const state = pctToState(pct);
+        const state = l.state === "nos" ? "nos" : pctToState(pct);
         const img = partImg(l.bikeSprite, l.partKey, state);
         const isAuction = l.listingType === "auction";
         if (isAuction) {
@@ -1415,7 +1426,7 @@ const Views = {
           <div class="eby-auc-badge">⏱ ${secs}s</div></div>
         <div class="eby-info">
           <div class="eby-name">${l.partLabel} for ${l.bikeBrand} ${l.bikeModel}</div>
-          <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
+          <div class="eby-cond${state === "nos" ? " nos" : ""}">${PART_STATE_LABEL[state]} · ${pct}%</div>
           <div class="eby-price-row">
             <span class="eby-price">${money(l.currentBid)}</span>
             <span class="eby-bids">${l.highBidder ? `High bidder: ${l.highBidder}` : "No bids yet"}</span>
@@ -1431,7 +1442,7 @@ const Views = {
         <div class="eby-thumb"><img src="${img}" alt="${l.partLabel}" loading="lazy"></div>
         <div class="eby-info">
           <div class="eby-name">${l.partLabel} for ${l.bikeBrand} ${l.bikeModel}</div>
-          <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
+          <div class="eby-cond${state === "nos" ? " nos" : ""}">${PART_STATE_LABEL[state]} · ${pct}%</div>
           <div class="eby-price-row">
             <span class="eby-price">${l.sold ? money(l.soldFor) : money(l.askPrice)}</span>
             ${l.sold ? `<span class="sold-tag">SOLD</span>` : ""}
@@ -1616,7 +1627,9 @@ const Views = {
     if (typeof GameDropdown !== "undefined") GameDropdown.enhance(sel, null);
     sel.addEventListener("change", (e) => {
       this.partsFilter = e.target.value;
-      this.renderParts();
+      // The same "find parts that fit" filter drives both parts stores
+      if (this.current === "crate") this.renderCrate();
+      else this.renderParts();
     });
   },
 
@@ -1676,11 +1689,12 @@ const Views = {
           return `
       <div class="eby-item eby-auction" data-part-detail="${p.idx}">
         <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy">
+          ${p.state === "nos" ? `<div class="nos-badge">${Icon.get('star')} NOS</div>` : ""}
           <div class="eby-auc-badge" data-auc-timer="${p.idx}">⏱ ${mins}:${String(secs).padStart(2, "0")}</div>
         </div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
-          <div class="eby-cond">${p.stateLabel} · Auction</div>
+          <div class="eby-cond${p.state === "nos" ? " nos" : ""}">${p.stateLabel} · Auction</div>
           <div class="eby-blurb">${this.partBlurb(p.state)}</div>
           ${Skills.marketTag(p)}
           <div class="eby-price-row">
@@ -1696,10 +1710,10 @@ const Views = {
         }
         return `
       <div class="eby-item" data-part-detail="${p.idx}">
-        <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy"></div>
+        <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy">${p.state === "nos" ? `<div class="nos-badge">${Icon.get('star')} NOS</div>` : ""}</div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
-          <div class="eby-cond">${p.stateLabel}</div>
+          <div class="eby-cond${p.state === "nos" ? " nos" : ""}">${p.stateLabel}</div>
           <div class="eby-blurb">${this.partBlurb(p.state)}</div>
           ${Skills.marketTag(p)}
           <div class="eby-price-row">
@@ -1794,6 +1808,7 @@ const Views = {
   openPartDetail(idx) {
     const p = this.partsShop[idx];
     if (!p) return;
+    this.partDetailSource = "shop";
     this.partDetailIdx = idx;
     this.partDetailOffer = null;
     this.renderPartDetail();
@@ -1804,6 +1819,8 @@ const Views = {
     document.getElementById("part-detail").classList.add("hidden");
     this.partDetailIdx = -1;
     this.partDetailOffer = null;
+    this.partDetailSource = "shop";
+    this.crateDetailIdx = -1;
   },
 
   renderPartDetail() {
@@ -2401,6 +2418,241 @@ const Views = {
     this.renderParts();
   },
 
+  // ---------- Crate Fresh (NOS dealer) ----------
+  // Finite factory-sealed stock, fixed prices. Restock shares the Boneyard
+  // refresh economy (3 free, then a 30s cooldown) so neither store can be farmed.
+  refreshCrate() {
+    const now = Date.now();
+    if (now < this.partsCooldownUntil) return;
+    if (this.partsRefreshesLeft <= 0) {
+      this.partsCooldownUntil = now + 30 * 1000;
+      try {
+        localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
+        localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
+      } catch (e) {}
+      this.tickPartsCooldown();
+      return;
+    }
+    this.partsRefreshesLeft--;
+    try { localStorage.setItem(this.PARTS_REFRESHES_KEY, String(this.partsRefreshesLeft)); } catch (e) {}
+    this.crateStock = genCrateStock(12);
+    // Guarantee: if a bike is picked in the shared filter, it has something on the shelf
+    if (this.partsFilter !== "all" && !this.crateStock.some(p => p.bikeSprite === this.partsFilter)) {
+      const bike = BIKES.find(b => b.sprite === this.partsFilter);
+      if (bike) {
+        const avail = availableParts(bike.sprite);
+        const part = avail[(Math.random() * avail.length) | 0];
+        this.crateStock[0] = {
+          id: 999, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
+          partKey: part.key, partLabel: part.label, state: "nos", stateLabel: PART_STATE_LABEL.nos,
+          price: cratePriceFor(part.key), wasPrice: null, watchers: 0,
+          img: partImg(bike.sprite, part.key, "pristine"), listingType: "bin", seller: "Crate Fresh",
+        };
+      }
+    }
+    Save.save();
+    this.renderCrate();
+    if (this.partsRefreshesLeft <= 0) {
+      this.partsCooldownUntil = Date.now() + 30 * 1000;
+      try {
+        localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
+        localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
+      } catch (e) {}
+      this.tickPartsCooldown();
+    } else {
+      this.updateRefreshBtn();
+    }
+  },
+
+  crateRowHTML(p, idx) {
+    return `
+      <div class="eby-item" data-crate-detail="${idx}">
+        <div class="eby-thumb"><img src="${p.img}" alt="${p.partLabel}" loading="lazy"><div class="nos-badge">${Icon.get('star')} NOS</div></div>
+        <div class="eby-info">
+          <div class="eby-name">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
+          <div class="eby-cond nos">NOS · Factory-sealed · 100%</div>
+          <div class="eby-price-row"><span class="eby-price">${money(p.price)}</span></div>
+          <div class="eby-meta">Fixed dealer price · Free delivery</div>
+          <div class="eby-meta">Only 1 in stock</div>
+          <button class="eby-buy crate-buy" data-buy-crate="${idx}">Buy It Now</button>
+        </div>
+      </div>`;
+  },
+
+  renderCrate() {
+    if (!this.crateStock) {
+      this.crateStock = genCrateStock(12);
+      Save.save();
+    }
+    const el = document.getElementById("crate-view");
+    const bike = this.partsFilter !== "all" ? BIKES.find(b => b.sprite === this.partsFilter) : null;
+    const q = this.crateSearch.trim().toLowerCase();
+    const matchesQ = (label, brand, model) => !q || `${label} ${brand} ${model}`.toLowerCase().includes(q);
+    let rows = "";
+    if (bike) {
+      // Catalog mode (the shared "find parts that fit" filter): every part type for
+      // the chosen bike — in stock and buyable, or honestly out of stock
+      rows = availableParts(bike.sprite).map(def => {
+        const idx = this.crateStock.findIndex(p => p.bikeSprite === bike.sprite && p.partKey === def.key);
+        if (idx >= 0) {
+          const p = this.crateStock[idx];
+          return matchesQ(p.partLabel, p.bikeBrand, p.bikeModel) ? this.crateRowHTML(p, idx) : "";
+        }
+        if (!matchesQ(def.label, bike.brand, bike.name)) return "";
+        return `
+      <div class="eby-item oos">
+        <div class="eby-thumb"><img src="${partImg(bike.sprite, def.key, "pristine")}" alt="${def.label}" loading="lazy"></div>
+        <div class="eby-info">
+          <div class="eby-name">${def.label} for ${bike.brand} ${bike.name}</div>
+          <div class="eby-cond nos">NOS · Factory-sealed · 100%</div>
+          <div class="eby-price-row"><span class="eby-price">${money(cratePriceFor(def.key))}</span></div>
+          <div class="eby-meta">Fixed dealer price</div>
+          <div class="eby-oos-btn">Out of stock — restocks on refresh</div>
+        </div>
+      </div>`;
+      }).join("");
+    } else {
+      const shown = this.crateStock
+        .map((p, i) => ({ ...p, idx: i }))
+        .filter(p => matchesQ(p.partLabel, p.bikeBrand, p.bikeModel));
+      rows = shown.length
+        ? shown.map(p => this.crateRowHTML(p, p.idx)).join("")
+        : `<div class="empty"><strong>Sold out</strong>Every crate's empty. Refresh to restock.</div>`;
+    }
+    el.innerHTML = `
+      <div class="eby-head">
+        <div class="eby-title">${Icon.get('crate')} NOS Parts Co.</div>
+      </div>
+      <div class="crate-promise"><strong>Factory-sealed. Pristine tops out at 95 — this is 100.</strong> Fixed dealer prices. No auctions, no haggling, no gambling.</div>
+      <div class="eby-search"><input type="text" id="crate-search" placeholder="Search parts..." value="${this.crateSearch.replace(/"/g, "&quot;")}" autocomplete="off"></div>
+      <div class="eby-list">${rows || `<div class="empty"><strong>No parts match</strong>Try a different search.</div>`}</div>`;
+    // Search (preserve focus while typing, same pattern as the Boneyard)
+    const csInput = document.getElementById("crate-search");
+    if (csInput && typeof GameQWERTY !== "undefined") GameQWERTY.attach(csInput, null);
+    if (csInput) {
+      csInput.addEventListener("input", (e) => {
+        this.crateSearch = e.target.value;
+        const pos = e.target.selectionStart;
+        this.renderCrate();
+        const ni = document.getElementById("crate-search");
+        if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
+      });
+    }
+    // Buy buttons + row tap → detail (same tap-guard pattern as the Boneyard)
+    el.querySelectorAll("[data-buy-crate]").forEach(btn => {
+      const buy = (e) => { e.preventDefault(); e.stopPropagation(); this.buyCratePart(+btn.dataset.buyCrate); };
+      btn.addEventListener("click", buy);
+      let ty = 0, tx = 0;
+      btn.addEventListener("touchstart", (e) => { ty = e.touches[0].clientY; tx = e.touches[0].clientX; }, { passive: true });
+      btn.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - ty);
+        const dx = Math.abs(e.changedTouches[0].clientX - tx);
+        if (dy < 10 && dx < 10) buy(e);
+      }, { passive: false });
+    });
+    el.querySelectorAll("[data-crate-detail]").forEach(item => {
+      const open = (e) => {
+        if (e.target.closest("button")) return;
+        e.preventDefault();
+        this.openCrateDetail(+item.dataset.crateDetail);
+      };
+      item.addEventListener("click", open);
+      let ty = 0, tx = 0;
+      item.addEventListener("touchstart", (e) => { ty = e.touches[0].clientY; tx = e.touches[0].clientX; }, { passive: true });
+      item.addEventListener("touchend", (e) => {
+        const dy = Math.abs(e.changedTouches[0].clientY - ty);
+        const dx = Math.abs(e.changedTouches[0].clientX - tx);
+        if (dy < 10 && dx < 10) open(e);
+      }, { passive: false });
+    });
+  },
+
+  openCrateDetail(idx) {
+    const p = (this.crateStock || [])[idx];
+    if (!p) return;
+    this.partDetailSource = "crate";
+    this.crateDetailIdx = idx;
+    this.renderCrateDetail();
+    document.getElementById("part-detail").classList.remove("hidden");
+  },
+
+  renderCrateDetail() {
+    const p = (this.crateStock || [])[this.crateDetailIdx];
+    if (!p) return;
+    const el = document.getElementById("part-detail");
+    el.innerHTML = `
+      <div class="pd-modal">
+        <div class="pd-head">
+          <button class="haggle-close" id="pd-close">${Icon.get('close')}</button>
+        </div>
+        <div class="pd-photo"><img src="${p.img}" alt="${p.partLabel}"><div class="nos-badge">${Icon.get('star')} NOS</div></div>
+        <div class="pd-body">
+          <div class="pd-title">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
+          <div class="pd-price-row">
+            <span class="pd-price">${money(p.price)}</span>
+            <span class="pd-bo">fixed dealer price</span>
+          </div>
+          <div class="pd-ship">Free shipping</div>
+          <div class="pd-ship">Free delivery</div>
+          <div class="pd-cond-row">Condition <strong>NOS — factory-sealed</strong></div>
+          <div class="pd-actions">
+            <button class="pd-btn-primary" id="pd-crate-buy">Buy It Now</button>
+            <div class="pd-hint">No offers. No auctions. The price is the price.</div>
+          </div>
+          <div class="pd-about">
+            <div class="pd-about-head">About this item</div>
+            <div class="pd-spec"><span>Condition</span><span>NOS (100%)</span></div>
+            <div class="pd-spec"><span>Fits</span><span>${p.bikeBrand} ${p.bikeModel}</span></div>
+            <div class="pd-spec"><span>Part</span><span>${p.partLabel}</span></div>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById("pd-close").addEventListener("click", () => this.closePartDetail());
+    document.getElementById("pd-crate-buy").addEventListener("click", () => {
+      const idx = this.crateDetailIdx; // read BEFORE closing (close resets it)
+      this.closePartDetail();
+      this.buyCratePart(idx);
+    });
+  },
+
+  buyCratePart(i) {
+    const p = (this.crateStock || [])[i];
+    if (!p) return;
+    // Browser Extension discount applies at checkout, same as Boneyard purchases
+    const discount = (typeof Skills !== "undefined") ? Skills.partsDiscount() : 0;
+    const price = Math.round(p.price * (1 - discount));
+    if (State.cash < price) return;
+    State.cash -= price;
+    State.parts = State.parts || [];
+    p.paidPrice = price; // track what we paid (after discount)
+    p.conditionPct = 100;
+    State.parts.push(p);
+    this.crateStock.splice(i, 1);
+    UI.refreshCash();
+    Save.save();
+    this.renderCrate();
+  },
+
+  // NOS challenge tracking: installed NOS parts and complete NOS builds
+  refreshNosStats() {
+    let parts = 0, builds = 0, keptBuilds = 0;
+    const owned = [...(State.garage || []), ...(State.rollers || [])];
+    for (const b of owned) {
+      const avail = availableParts(b.sprite);
+      if (!avail.length) continue;
+      let n = 0, all = true;
+      for (const def of avail) {
+        if ((b.partStates || {})[def.key] === "nos") n++;
+        else all = false;
+      }
+      parts += n;
+      if (all) { builds++; if (b.kept) keptBuilds++; }
+    }
+    State.stats.nosParts = parts;
+    State.stats.nosBuilds = builds;
+    State.stats.nosKeptBuilds = keptBuilds;
+  },
+
   // ============ GARAGE ============
   garageTab: "bikes", // "bikes" | "parts"
   garageDetailIdx: -1,
@@ -2503,6 +2755,11 @@ const Views = {
         "For parts or art projects. Maybe both.",
         "Technically a part. Spiritually a paperweight.",
         "Sold as-is. No, really. As-is.",
+      ],
+      nos: [
+        "Factory-sealed NOS. Bought to flip, priced like it.",
+        "Still in the wrap. Unicorn stuff — don't think, just buy.",
+        "New old stock. Someone's rainy-day part, cashed in.",
       ],
     };
     const arr = blurbs[state] || blurbs.used_good;
@@ -2616,7 +2873,7 @@ const Views = {
             <img src="${m.img}" alt="${m.partLabel}" loading="lazy">
             <div class="roller-pick-info">
               <div class="roller-pick-name">${m.partLabel}</div>
-              <div class="roller-pick-cond state-${m.state}">${m.stateLabel} · ${m.conditionPct || "?"}%</div>
+              <div class="roller-pick-cond state-${m.state}">${m.state === "nos" ? `<span class="nos-tag">${Icon.get('star')} NOS · 100%</span>` : `${m.stateLabel} · ${m.conditionPct || "?"}%`}</div>
             </div>
             <button class="eby-buy roller-pick-btn">Install</button>
           </div>`).join("") + `</div>`;
@@ -2660,7 +2917,9 @@ const Views = {
                 </div>`;
               }
               const revealed = (b.revealedParts || []).includes(p.key);
-              const label = revealed ? PART_STATE_LABEL[st] : `<span class="cond-hidden">???</span>`;
+              const label = revealed
+                ? (st === "nos" ? `<span class="nos-tag">${Icon.get('star')} NOS</span>` : PART_STATE_LABEL[st])
+                : `<span class="cond-hidden">???</span>`;
               return `<div class="part-cell state-${revealed ? st : "hidden"}${this.stripMode ? " strip-mode" : ""}" data-inspect-part="${p.key}">
                 <img src="${partImg(b.sprite, p.key, revealed ? st : "pristine")}" alt="${p.label}" loading="lazy">
                 <div class="part-label">${p.label}</div>
@@ -2779,19 +3038,19 @@ const Views = {
       })
       .map(({ p, i }) => {
         const pct = ensurePct(p);
-        const state = pctToState(pct);
+        const state = p.state === "nos" ? "nos" : pctToState(pct);
         const img = partImg(p.bikeSprite, p.partKey, state);
-        const canRepair = pct >= 25 && pct < 70;
+        const canRepair = state !== "nos" && pct >= 25 && pct < 70;
         const tooFarGone = pct < 25;
         const cost = repairCost(p);
         // Color the bar by condition
         const barColor = pct >= 70 ? "#4caf50" : pct >= 40 ? "#ff9800" : "#f44336";
         return `
       <div class="eby-item">
-        <div class="eby-thumb"><img src="${img}" alt="${p.partLabel}" loading="lazy" data-part-img="${i}"></div>
+        <div class="eby-thumb"><img src="${img}" alt="${p.partLabel}" loading="lazy" data-part-img="${i}">${state === "nos" ? `<div class="nos-badge">${Icon.get('star')} NOS</div>` : ""}</div>
         <div class="eby-info">
           <div class="eby-name">${p.partLabel} — ${p.bikeBrand} ${p.bikeModel}</div>
-          <div class="eby-cond">${PART_STATE_LABEL[state]} · ${pct}%</div>
+          <div class="eby-cond${state === "nos" ? " nos" : ""}">${PART_STATE_LABEL[state]} · ${pct}%</div>
           <div class="cond-bar"><div class="cond-fill" style="width:${pct}%;background:${barColor}"></div></div>
           ${(() => {
             const attempts = p.repairAttempts || 0;
@@ -2948,7 +3207,7 @@ const Views = {
             <img src="${m.img}" alt="${m.partLabel}" loading="lazy">
             <div class="roller-pick-info">
               <div class="roller-pick-name">${m.partLabel}</div>
-              <div class="roller-pick-cond state-${m.state}">${m.stateLabel} · ${m.conditionPct || "?"}%</div>
+              <div class="roller-pick-cond state-${m.state}">${m.state === "nos" ? `<span class="nos-tag">${Icon.get('star')} NOS · 100%</span>` : `${m.stateLabel} · ${m.conditionPct || "?"}%`}</div>
             </div>
             <button class="eby-buy roller-pick-btn">Install</button>
           </div>`).join("") + `</div>`;
@@ -2964,7 +3223,7 @@ const Views = {
           return `<div class="part-cell state-${st}" data-roller-part="${p.key}" data-roller="${idx}" style="cursor:pointer" title="Tap to remove or swap">
             <img src="${partImg(r.sprite, p.key, st)}" alt="${p.label}" loading="lazy">
             <div class="part-label">${p.label}</div>
-            <div class="part-state">${PART_STATE_LABEL[st] || st}</div>
+            <div class="part-state">${st === "nos" ? `<span class="nos-tag">${Icon.get('star')} NOS</span>` : (PART_STATE_LABEL[st] || st)}</div>
           </div>`;
         }
         const count = parts.filter(sp => sp.bikeSprite === r.sprite && sp.partKey === p.key).length;
@@ -3002,6 +3261,8 @@ const Views = {
     if (!b.revealedParts.includes(partKey)) b.revealedParts.push(partKey);
     if (typeof calcBikeCondition !== "undefined") b.condition = calcBikeCondition(b.partStates, b.sprite);
     if (typeof recalcFairValue !== "undefined") recalcFairValue(b);
+    this.refreshNosStats();
+    if (typeof Milestones !== "undefined") Milestones.check(State.stats);
     Save.save();
     this.renderGarage();
   },
@@ -3040,6 +3301,8 @@ const Views = {
     // Track install cost for XP basis
     r.installedCost = (r.installedCost || 0) + (part.paidPrice || 0);
     Save.save();
+    this.refreshNosStats();
+    if (typeof Milestones !== "undefined") Milestones.check(State.stats);
         _recalc();
     this.renderGarage();
   },
@@ -3307,7 +3570,7 @@ const Views = {
         const p = (State.parts || [])[idx];
         if (!p) return;
         const pct = ensurePct(p);
-        const state = pctToState(pct);
+        const state = p.state === "nos" ? "nos" : pctToState(pct);
         const marketPrice = Math.round((PART_BASE_PRICE[p.partKey] || 20) * (PART_COND_MULT[state] || 0.3));
         // Show listing type choice
         b.outerHTML = `<div class="sell-type-row">
@@ -3361,17 +3624,19 @@ const Views = {
       }
     } else if (act === "keep") {
       if (!bike.kept) {
-        // Collection requires ALL pristine parts
+        // Collection requires ALL pristine parts — NOS counts (it's pristine, perfected)
         const avail = availableParts(bike.sprite);
         const bad = avail.filter(p => {
           if ((bike.missingParts || []).includes(p.key)) return true;
-          return ((bike.partStates && bike.partStates[p.key]) || "pristine") !== "pristine";
+          const st = (bike.partStates && bike.partStates[p.key]) || "pristine";
+          return st !== "pristine" && st !== "nos";
         });
         if (bad.length) {
           return;
         }
       }
       bike.kept = !bike.kept;
+      this.refreshNosStats();
       if (bike.kept) {
         State.stats.collected++;
         // Check brand set completion
@@ -3415,7 +3680,7 @@ const Views = {
       partKey, partLabel: pDef.label,
       bikeBrand: bike.brand, bikeModel: bike.model, bikeSprite: bike.sprite,
       state, stateLabel: PART_STATE_LABEL[state],
-      conditionPct: { pristine: 95, used_good: 60, used_bad: 35, totaled: 10 }[state] || 50,
+      conditionPct: { pristine: 95, used_good: 60, used_bad: 35, totaled: 10, nos: 100 }[state] || 50,
       paidPrice: 0, // pulled from own bike, no cost
       img: partImg(bike.sprite, partKey, state),
     });
@@ -3427,6 +3692,7 @@ const Views = {
       bike.condition = calcBikeCondition(bike.partStates, bike.sprite);
     }
     if (typeof recalcFairValue !== "undefined") recalcFairValue(bike);
+    this.refreshNosStats();
     Save.save();
     this.renderGarage();
   },

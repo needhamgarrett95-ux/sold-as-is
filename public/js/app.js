@@ -93,8 +93,87 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       document.getElementById("reset-go").addEventListener("click", () => {
         localStorage.removeItem("soldasis_save_v1");
+        localStorage.removeItem("soldasis_save_v1_bak");
         location.reload();
       });
+    });
+
+    // Backup save — download everything that matters as one JSON file
+    document.getElementById("settings-backup")?.addEventListener("click", () => {
+      const keys = ["soldasis_save_v1", "soldasis_activity", "soldasis_milestones", "soldasis_tutorial_done", "soldasis_audio", "soldasis_darkmode"];
+      const bundle = { app: "sold-as-is", v: 1, exportedAt: new Date().toISOString(), keys: {} };
+      for (const k of keys) {
+        try { bundle.keys[k] = localStorage.getItem(k); } catch (e) {}
+      }
+      const blob = new Blob([JSON.stringify(bundle)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "sold-as-is-save-backup.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    });
+
+    // Restore backup — validate the file first, confirm in the game's own modal,
+    // and only then swap the save in (a bad file changes nothing)
+    const restoreInput = document.getElementById("restore-file");
+    document.getElementById("settings-restore")?.addEventListener("click", () => restoreInput?.click());
+    restoreInput?.addEventListener("change", () => {
+      const file = restoreInput.files && restoreInput.files[0];
+      restoreInput.value = "";
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let bundle = null;
+        try { bundle = JSON.parse(reader.result); } catch (e) {}
+        const saveRaw = bundle && bundle.keys ? bundle.keys["soldasis_save_v1"] : null;
+        let saveOk = false;
+        try {
+          const s = saveRaw ? JSON.parse(saveRaw) : null;
+          saveOk = !!(bundle && bundle.app === "sold-as-is" && bundle.v === 1 && s && typeof s.cash === "number" && Array.isArray(s.garage));
+        } catch (e) {}
+        document.getElementById("restore-confirm")?.remove();
+        const when = bundle && bundle.exportedAt ? new Date(bundle.exportedAt).toLocaleDateString() : "an earlier session";
+        const html = saveOk ? `
+      <div class="modal-overlay" id="restore-confirm">
+        <div class="modal-box">
+          <div class="modal-title">Restore Backup?</div>
+          <div class="modal-desc">This replaces your current game with the backup from ${when}. Current progress will be overwritten.</div>
+          <div class="modal-actions">
+            <button class="modal-btn cancel" id="restore-cancel">Keep Current Game</button>
+            <button class="modal-btn go" id="restore-go">Restore</button>
+          </div>
+        </div>
+      </div>` : `
+      <div class="modal-overlay" id="restore-confirm">
+        <div class="modal-box">
+          <div class="modal-title">That File Won't Work</div>
+          <div class="modal-desc">It isn't a Sold As-Is backup, or it's damaged. Your current game is untouched.</div>
+          <div class="modal-actions">
+            <button class="modal-btn cancel" id="restore-cancel">OK</button>
+          </div>
+        </div>
+      </div>`;
+        document.body.insertAdjacentHTML("beforeend", html);
+        document.getElementById("restore-cancel").addEventListener("click", () => {
+          document.getElementById("restore-confirm").remove();
+        });
+        document.getElementById("restore-confirm").addEventListener("click", (e) => {
+          if (e.target.id === "restore-confirm") document.getElementById("restore-confirm").remove();
+        });
+        const go = document.getElementById("restore-go");
+        if (go) go.addEventListener("click", () => {
+          for (const [k, v] of Object.entries(bundle.keys)) {
+            try {
+              if (v === null || v === undefined) localStorage.removeItem(k);
+              else localStorage.setItem(k, v);
+            } catch (e) {}
+          }
+          location.reload();
+        });
+      };
+      reader.readAsText(file);
     });
   }
   // Audio: music player + SFX
@@ -152,12 +231,16 @@ document.addEventListener("DOMContentLoaded", () => {
     Views.boneyardTab = "buy";
     Views.show("parts");
   });
+  document.getElementById("logo-crate").addEventListener("click", () => {
+    Views.show("crate");
+  });
   // URL bar refresh button: market uses cooldown refresh, others reload their view
   const refreshBtn = document.getElementById("refresh-btn");
   const doRefresh = (e) => {
     if (e) e.preventDefault();
     if (Views.current === "market") Feed.refresh();
     else if (Views.current === "parts") Views.refreshParts();
+    else if (Views.current === "crate") Views.refreshCrate();
     else Views.show(Views.current);
   };
   refreshBtn.addEventListener("click", doRefresh);

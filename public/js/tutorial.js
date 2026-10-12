@@ -207,6 +207,10 @@ const Milestones = {
     { id: "auction_win", name: "Auction Hunter", desc: "Win a Boneyard auction", check: (s) => s.auctionsWon >= 1 },
     { id: "haggle_10", name: "Negotiator", desc: "Complete 10 successful haggles", check: (s) => s.successfulHaggles >= 10 },
     { id: "restore_1", name: "Wrench Turner", desc: "Restore your first bike", check: (s) => s.bikesRestored >= 1 },
+    { id: "nos_first", name: "Factory Sealed", desc: "Install your first NOS part", check: (s) => (s.nosParts || 0) >= 1 },
+    { id: "nos_build_1", name: "Time Capsule", desc: "Build a bike with every part NOS", check: (s) => (s.nosBuilds || 0) >= 1 },
+    { id: "nos_build_3", name: "Sealed Row", desc: "Own 3 all-NOS bikes", check: (s) => (s.nosBuilds || 0) >= 3 },
+    { id: "nos_kept", name: "Untouchable", desc: "Add an all-NOS bike to your Collection", check: (s) => (s.nosKeptBuilds || 0) >= 1 },
   ],
 
   check(stats) {

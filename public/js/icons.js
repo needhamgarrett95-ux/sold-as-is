@@ -16,6 +16,10 @@ const Icon = (() => {
     gear: S(`<circle cx="12" cy="12" r="3.2"/>
       <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>`),
 
+    // Crate — crate fresh tab (factory crate with seal tag)
+    crate: S(`<path d="M12 3l8 4v10l-8 4-8-4V7l8-4z"/><path d="M4 7l8 4 8-4"/><path d="M12 11v10"/>
+      <circle cx="16.8" cy="14.6" r="1.3"/>`),
+
     // Wrench — garage tab
     wrench: S(`<path d="M21 6.5a5 5 0 0 1-6.8 4.7L7 18.4a2 2 0 0 1-2.8-2.8l7.2-7.2A5 5 0 0 1 17.5 3l-2.6 2.6 3.5 3.5L21 6.5z"/>`),
 

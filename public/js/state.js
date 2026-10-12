@@ -12,6 +12,7 @@ const State = {
     bikesBought: 0, bikesSoldForProfit: 0, totalProfit: 0,
     collected: 0, brandSetsCompleted: 0, auctionsWon: 0,
     successfulHaggles: 0, bikesRestored: 0,
+    nosParts: 0, nosBuilds: 0, nosKeptBuilds: 0,
   },
 
   canAfford(price) { return this.cash >= price; },
@@ -50,8 +51,15 @@ const Save = {
         myBikeListings: Views.myBikeListings || [],
         myPartListings: Views.myPartListings || [],
         cart: Views.cart || [],
+        crateStock: Views.crateStock || null,
         skills: (typeof Skills !== "undefined") ? Skills.toJSON() : undefined,
       };
+      // Mirror backup: stash the previous save before overwriting, so a corrupt
+      // write can never take the game with it — load() falls back to the mirror
+      try {
+        const prev = localStorage.getItem(SAVE_KEY);
+        if (prev && JSON.parse(prev)) localStorage.setItem(SAVE_KEY + "_bak", prev);
+      } catch (e) {}
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
     } catch (e) {
       console.warn("Save failed:", e);
@@ -61,8 +69,15 @@ const Save = {
   load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) return false;
-      const data = JSON.parse(raw);
+      let data = null;
+      try { data = raw ? JSON.parse(raw) : null; } catch (e) { data = null; }
+      if (!data || data.v !== 1) {
+        // Main save missing or corrupt — fall back to the mirror of the last good save
+        try {
+          const bak = localStorage.getItem(SAVE_KEY + "_bak");
+          data = bak ? JSON.parse(bak) : null;
+        } catch (e) { data = null; }
+      }
       if (!data || data.v !== 1) return false;
 
       State.cash = data.cash ?? 1500;
@@ -80,6 +95,7 @@ const Save = {
         return true;
       });
       Views.cart = (data.cart || []).filter(idx => typeof idx === "number");
+      Views.crateStock = Array.isArray(data.crateStock) ? data.crateStock : null;
       if (typeof Skills !== "undefined") Skills.init(data.skills);
       Views.myPartListings = (data.myPartListings || []).map(l => {
         // Resolve auctions that ended while away
@@ -108,6 +124,7 @@ const Save = {
         return l;
       }).filter(Boolean);
 
+      if (typeof Views !== "undefined" && Views.refreshNosStats) Views.refreshNosStats();
       return true;
     } catch (e) {
       console.warn("Load failed:", e);

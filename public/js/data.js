@@ -128,6 +128,15 @@ function recalcFairValue(bike) {
     ? Object.values(bike.partStates).filter(s => s === "missing").length
     : 0;
   bike.fairValue = Math.round(bike.baseValue * mult * Math.pow(0.92, missingCount) / 5) * 5;
+  // NOS showpiece premium: the market pays something for factory-sealed parts on a bike,
+  // but never full dealer retail — half the premium over pristine value
+  if (bike.partStates) {
+    let nosBonus = 0;
+    for (const [k, s] of Object.entries(bike.partStates)) {
+      if (s === "nos") nosBonus += (PART_BASE_PRICE[k] || 0) * (CRATE_PREMIUM - 1.0) * 0.5;
+    }
+    if (nosBonus) bike.fairValue += Math.round(nosBonus / 5) * 5;
+  }
 }
 
 // Calculate a bike's overall condition from its individual part states.
@@ -138,7 +147,7 @@ function calcBikeCondition(partStates, sprite) {
     engine: 4, wheel_front: 2, wheel_rear: 2, exhaust: 1.5,
     fuel_tank: 1, headlight: 0.5, handlebars: 1, turn_signals: 0.5,
   };
-  const scores = { pristine: 100, used_good: 75, used_bad: 40, totaled: 10, missing: 0 };
+  const scores = { pristine: 100, nos: 100, used_good: 75, used_bad: 40, totaled: 10, missing: 0 };
   let totalWeight = 0, weightedSum = 0;
   let worstCritical = 100;
 
@@ -169,7 +178,7 @@ function calcBikeCondition(partStates, sprite) {
   if (avg >= 10) return "Non-runner";
   return "Parts bike";
 }
-const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot", missing: "Missing" };
+const PART_STATE_LABEL = { pristine: "Pristine", used_good: "Good", used_bad: "Worn", totaled: "Shot", missing: "Missing", nos: "NOS" };
 
 // Condition % → state mapping (0-100)
 function pctToState(pct) {
@@ -180,7 +189,7 @@ function pctToState(pct) {
 }
 // Default % for a given state (midpoint of its band)
 function stateToPct(state) {
-  return { pristine: 95, used_good: 80, used_bad: 55, totaled: 20 }[state] ?? 50;
+  return { pristine: 95, used_good: 80, used_bad: 55, totaled: 20, nos: 100 }[state] ?? 50;
 }
 // Ensure a part has a conditionPct (backfill for older parts)
 function ensurePct(p) {
@@ -240,7 +249,7 @@ function partImg(sprite, partKey, state) {
   if (state === "missing") return null; // no image — part isn't there
   // Map game sprite names to parts folder names (zuma uses underscore)
   const folder = sprite.replace(/-/g, "_");
-  const suffix = state === "pristine" ? "" : "_" + state;
+  const suffix = (state === "pristine" || state === "nos") ? "" : "_" + state;
   return `assets/bikes/parts/${folder}/${partKey}${suffix}.png`;
 }
 
@@ -249,7 +258,37 @@ const PART_BASE_PRICE = {
   engine: 220, exhaust: 90, wheel_front: 70, wheel_rear: 70,
   fuel_tank: 80, headlight: 45, handlebars: 35, turn_signals: 25,
 };
-const PART_COND_MULT = { pristine: 1.0, used_good: 0.55, used_bad: 0.28, totaled: 0.1 };
+const PART_COND_MULT = { pristine: 1.0, used_good: 0.55, used_bad: 0.28, totaled: 0.1, nos: 1.65 };
+
+// Crate Fresh — NOS dealer pricing: fixed premium over base, rounded to $5 (printed MSRP, no jitter)
+const CRATE_PREMIUM = 1.65;
+function cratePriceFor(partKey) {
+  return Math.max(10, Math.round((PART_BASE_PRICE[partKey] || 20) * CRATE_PREMIUM / 5) * 5);
+}
+// Crate Fresh stock: finite NOS parts, spread across bikes like the Boneyard guarantee
+function genCrateStock(n = 12) {
+  const out = [];
+  let idc = 0;
+  const mk = (bike) => {
+    const avail = availableParts(bike.sprite);
+    const part = avail[(Math.random() * avail.length) | 0];
+    out.push({
+      id: idc++, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
+      partKey: part.key, partLabel: part.label, state: "nos",
+      stateLabel: PART_STATE_LABEL.nos,
+      price: cratePriceFor(part.key), wasPrice: null, watchers: 0,
+      img: partImg(bike.sprite, part.key, "pristine"),
+      listingType: "bin", seller: "Crate Fresh",
+    });
+  };
+  const shuffled = [...BIKES].sort(() => Math.random() - 0.5);
+  for (const bike of shuffled) {
+    if (out.length >= n) break;
+    mk(bike);
+  }
+  while (out.length < n) mk(BIKES[(Math.random() * BIKES.length) | 0]);
+  return out;
+}
 
 const BIDDER_NAMES = ["moped_mike", "rusty_rider", "carb_king", "two_stroke_tom",
   "barnfind_betty", "alpen_amy", "dolce_vince", "throttle_jockey", "grease_monkey",
@@ -261,16 +300,25 @@ function genPartsShop(n = 16) {
   const mkPart = (bike) => {
     const avail = availableParts(bike.sprite);
     const part = avail[(Math.random() * avail.length) | 0];
-    // Randomize condition — pristine is rare on the Boneyard
+    // Randomize condition — pristine is rare on the Boneyard, NOS is an event
     const roll = Math.random();
-    const state = roll < 0.08 ? "pristine"
+    const state = roll < 0.007 ? "nos"
+      : roll < 0.08 ? "pristine"
       : roll < 0.40 ? "used_good"
       : roll < 0.75 ? "used_bad"
       : "totaled";
-    const price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
-    // eBay flavor: watchers + strikethrough "was" price
-    const watchers = 1 + ((Math.random() * 14) | 0);
-    const wasPrice = Math.random() < 0.4 ? Math.round(price * (1.1 + Math.random() * 0.25)) : null;
+    let price, watchers, wasPrice;
+    if (state === "nos") {
+      // Flipper listing: someone bought a NOS part to resell it — dealer price plus markup
+      price = Math.round(cratePriceFor(part.key) * (1.15 + Math.random() * 0.2));
+      watchers = 18 + ((Math.random() * 22) | 0);
+      wasPrice = null;
+    } else {
+      price = Math.max(5, Math.round(PART_BASE_PRICE[part.key] * PART_COND_MULT[state] * (0.85 + Math.random() * 0.3)));
+      // eBay flavor: watchers + strikethrough "was" price
+      watchers = 1 + ((Math.random() * 14) | 0);
+      wasPrice = Math.random() < 0.4 ? Math.round(price * (1.1 + Math.random() * 0.25)) : null;
+    }
     const item = {
       id: idc++, bikeBrand: bike.brand, bikeModel: bike.name, bikeSprite: bike.sprite,
       partKey: part.key, partLabel: part.label, state,

@@ -54,6 +54,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
   flex: 1; min-width: 0; overflow: hidden; }
 .wtab .tab-icon { font-size: .8rem; flex-shrink: 0; }
 .wtab.active { background: var(--tab); color: #fff; font-weight: 600; }
+/* Safari-style tab collapse: inactive tabs shrink to their icon, active keeps its name */
+#tabstrip .wtab { transition: flex .18s ease; }
+#tabstrip .wtab:not(.active) { flex: 0 0 48px; }
+#tabstrip .wtab:not(.active) .tab-label { display: none; }
 .urlbar { background: #1b1e23; border-radius: 8px; margin: 0 0 10px; padding: 9px 14px;
   display: flex; gap: 10px; align-items: center; color: #cfd4da; font-size: .85rem; }
 .urlbar .lock { font-size: .75rem; }
@@ -68,6 +72,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .logo { font-weight: 800; font-size: 1.25rem; color: var(--ink); letter-spacing: -.5px; white-space: nowrap; }
 .logo span { color: var(--blue); }
 .logo-boneyard span { color: #b5651d; }
+.logo-crate span { color: #4caf50; }
 .logo.hidden { display: none; }
 .search { flex: 2; min-width: 140px; }
 .search input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--line);
@@ -218,6 +223,28 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 .eby-info { flex: 1; min-width: 0; }
 .eby-name { font-size: .9rem; font-weight: 600; color: var(--ink); line-height: 1.25; }
 .eby-cond { font-size: .8rem; color: var(--dim); margin-top: 2px; }
+/* NOS — gold star treatment (pristine photo, special mark) */
+.eby-cond.nos { color: #a87b00; font-weight: 700; }
+body.dark-mode .eby-cond.nos { color: #febc2e; }
+.nos-badge { position: absolute; top: 6px; left: 6px; z-index: 2; background: #febc2e; color: #241a00;
+  font-size: .62rem; font-weight: 800; letter-spacing: .04em; padding: 2.5px 6px; border-radius: 6px;
+  display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.nos-badge svg { width: 11px; height: 11px; }
+.nos-tag { color: #a87b00; font-weight: 700; white-space: nowrap; }
+.nos-tag svg { width: 11px; height: 11px; vertical-align: -1px; }
+body.dark-mode .nos-tag { color: #febc2e; }
+/* Crate Fresh storefront */
+.crate-promise { margin: 0 12px 10px; padding: 9px 12px; border: 1px solid var(--line);
+  border-radius: 10px; background: #f4f2ec; color: var(--dim); font-size: .83rem; }
+.crate-promise strong { color: var(--ink); }
+body.dark-mode .crate-promise { background: #242930; border-color: #3a4048; color: #9aa0a8; }
+body.dark-mode .crate-promise strong { color: #ece9e1; }
+.eby-item.oos { opacity: .55; }
+.eby-oos-btn { margin-top: 8px; background: #e7e2d6; color: var(--dim); border: none;
+  padding: 9px 16px; border-radius: 8px; font-size: .85rem; font-weight: 700;
+  width: 100%; text-align: center; }
+body.dark-mode .eby-oos-btn { background: #333943; color: #9aa0a8; }
+.eby-buy.crate-buy { background: #4caf50; }
 .eby-price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
 .eby-price { font-size: 1.2rem; font-weight: 800; color: var(--ink); }
 .eby-was { font-size: .85rem; color: var(--dim); text-decoration: line-through; }
@@ -315,6 +342,9 @@ button svg { vertical-align: -3px; }
 #logo-boneyard { display: inline-flex; align-items: center; gap: 4px; }
 #logo-boneyard svg { width: 20px; height: 20px; flex-shrink: 0; }
 #logo-boneyard.hidden { display: none; }
+#logo-crate { display: inline-flex; align-items: center; gap: 4px; }
+#logo-crate svg { width: 20px; height: 20px; flex-shrink: 0; }
+#logo-crate.hidden { display: none; }
 /* seller card star */
 .seller .meta svg { width: 14px !important; height: 14px !important; vertical-align: -2px; display: inline-block; }
 /* message seller header */
@@ -443,7 +473,7 @@ body.dark-mode .haggle-close { background: rgba(255,255,255,.15); }
 .pd-title { font-weight: 800; font-size: 1.05rem; padding-right: 30px; }
 .pd-sub { font-size: .85rem; color: #666; margin-top: 2px; }
 .pd-photo { height: 200px; display: flex; align-items: center; justify-content: center;
-  background: #f5f2ea; padding: 12px; }
+  background: #f5f2ea; padding: 12px; position: relative; }
 .pd-photo img { max-height: 180px; max-width: 90%; object-fit: contain; image-rendering: pixelated; }
 .pd-info { padding: 12px 16px; border-bottom: 1px solid #eee; }
 .pd-cond { font-weight: 700; color: #b5651d; }
@@ -657,6 +687,7 @@ button:focus { outline: none !important; box-shadow: none !important; }
   border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
 }
 .cond-locked-note svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; }
+.part-cell.state-nos { border-color: #febc2e; box-shadow: inset 0 0 0 1px #febc2e; }
 .part-cell.state-hidden { cursor: default; }
 .part-cell.state-hidden img { filter: grayscale(.4) brightness(.96); }
 .part-cell[data-inspect-part] { cursor: pointer; }

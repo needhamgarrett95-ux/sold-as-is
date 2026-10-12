@@ -8,8 +8,8 @@
 <title>Sold As-Is</title>
 <link rel="icon" type="image/png" href="app-icon.png">
 <link rel="apple-touch-icon" href="app-icon.png">
-<link rel="stylesheet" href="css/style.css?v=aud188">
-<link rel="stylesheet" href="css/login.css?v=aud188">
+<link rel="stylesheet" href="css/style.css?v=aud189">
+<link rel="stylesheet" href="css/login.css?v=aud189">
 </head>
 <body>
 <!-- Login / splash screen -->
@@ -58,14 +58,18 @@
     <div class="settings-menu hidden" id="settings-menu">
       <div class="settings-head">Settings</div>
       <button class="settings-item" id="settings-darkmode">Dark mode <span class="settings-sub" id="darkmode-sub">off</span></button>
+      <button class="settings-item" id="settings-backup">Backup save <span class="settings-sub">download a save file</span></button>
+      <button class="settings-item" id="settings-restore">Restore backup <span class="settings-sub">load a save file</span></button>
+      <input type="file" id="restore-file" accept="application/json,.json" class="hidden">
       <button class="settings-item" id="settings-reset">Start over <span class="settings-sub">wipe save, fresh $1,500</span></button>
       <div class="settings-item settings-about">Sold As-Is v1.0<br><span class="settings-sub">No warranties, no take-backs.</span><br><span class="settings-sub" style="font-size:0.75em">Keystroke SFX: "Typing on Keychron V1 Ultra (Red Linear Switch).wav" by C40115, CC BY 4.0, via Wikimedia Commons</span></div>
     </div>
     <div id="tabstrip">
-      <button class="wtab active" data-view="market"><span class="tab-icon" data-icon="moped"></span> Sold As-Is</button>
-      <button class="wtab" data-view="parts"><span class="tab-icon" data-icon="bone"></span> Boneyard</button>
-      <button class="wtab" data-view="garage"><span class="tab-icon" data-icon="wrench"></span> Garage</button>
-      <button class="wtab" data-view="collection"><span class="tab-icon" data-icon="trophy"></span> Collection</button>
+      <button class="wtab active" data-view="market"><span class="tab-icon" data-icon="moped"></span><span class="tab-label">Sold As-Is</span></button>
+      <button class="wtab" data-view="parts"><span class="tab-icon" data-icon="bone"></span><span class="tab-label">Boneyard</span></button>
+      <button class="wtab" data-view="crate"><span class="tab-icon" data-icon="crate"></span><span class="tab-label">Crate Fresh</span></button>
+      <button class="wtab" data-view="garage"><span class="tab-icon" data-icon="wrench"></span><span class="tab-label">Garage</span></button>
+      <button class="wtab" data-view="collection"><span class="tab-icon" data-icon="trophy"></span><span class="tab-label">Collection</span></button>
     </div>
     <div class="urlbar">
       <span class="lock" data-icon="lock"></span><span class="url">soldasis.place/mopeds</span>
@@ -77,6 +81,7 @@
     <header id="site-header">
       <div class="logo logo-clickable" id="logo-main">sold <span>as-is</span></div>
       <div class="logo logo-boneyard logo-clickable hidden" id="logo-boneyard"><span data-icon="bone"></span> bone<span>yard</span></div>
+      <div class="logo logo-crate logo-clickable hidden" id="logo-crate"><span data-icon="crate"></span> crate<span>fresh</span></div>
       <div class="search" id="site-search"><input type="text" id="market-search" placeholder="Search mopeds, brands..." autocomplete="off"></div>
       <select id="parts-bike-filter" class="eby-filter hidden"></select>
     </header>
@@ -87,6 +92,7 @@
     <div id="feed"></div>
     <div id="detail" class="hidden"></div>
     <div id="parts-view" class="pane hidden"></div>
+    <div id="crate-view" class="pane hidden"></div>
     <div id="seller-haggle" class="hidden"></div>
     <div id="part-detail" class="hidden"></div>
     <div id="cart-view" class="hidden"></div>
@@ -95,18 +101,18 @@
     <footer id="site-footer">Sold As-Is © 2026 · Sold as-is. No warranties, no take-backs. · <a>Terms</a> · <a>Privacy</a></footer>
   </div>
 </div>
-<script src="js/data.js?v=aud188"></script>
-<script src="js/parts_manifest.js?v=aud188"></script>
-<script src="js/state.js?v=aud188"></script>
-<script src="js/skills.js?v=aud188"></script>
-<script src="js/icons.js?v=aud188"></script>
-<script src="js/feed.js?v=aud188"></script>
-<script src="js/detail.js?v=aud188"></script>
-<script src="js/keyboard.js?v=aud188"></script>
-<script src="js/views.js?v=aud188"></script>
-<script src="js/app.js?v=aud188"></script>
-<script src="js/login.js?v=aud188"></script>
-<script src="js/audio.js?v=aud188"></script>
-<script src="js/tutorial.js?v=aud188"></script>
+<script src="js/data.js?v=aud189"></script>
+<script src="js/parts_manifest.js?v=aud189"></script>
+<script src="js/state.js?v=aud189"></script>
+<script src="js/skills.js?v=aud189"></script>
+<script src="js/icons.js?v=aud189"></script>
+<script src="js/feed.js?v=aud189"></script>
+<script src="js/detail.js?v=aud189"></script>
+<script src="js/keyboard.js?v=aud189"></script>
+<script src="js/views.js?v=aud189"></script>
+<script src="js/app.js?v=aud189"></script>
+<script src="js/login.js?v=aud189"></script>
+<script src="js/audio.js?v=aud189"></script>
+<script src="js/tutorial.js?v=aud189"></script>
 </body>
 </html>

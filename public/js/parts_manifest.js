@@ -369,5 +369,105 @@ const PARTS_MANIFEST = {
     "headlight",
     "handlebars",
     "turn_signals"
+  ],
+  "yamaha_razz": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "honda_elite50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "tomos_streetmate": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "puch_magnum_x": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "piaggio_typhoon": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "suzuki_katana": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "motobecane_poney": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "derbi_gp1": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "kreidler_florett_rs": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "harley_m50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
   ]
 };

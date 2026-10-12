@@ -34,7 +34,7 @@ const Tutorial = {
     },
     {
       title: "Your Collection",
-      text: "The endgame. Restore bikes to pristine condition and fill all 8 brand sets — 37 bikes total. Your milestones live here too. Take a look.",
+      text: "The endgame. Restore bikes to pristine condition and fill all 8 brand sets — 47 bikes total, plus a pair of one-of-one Uniques. Your milestones live here too. Take a look.",
       action: '[data-view="collection"]',
     },
     {
@@ -200,10 +200,10 @@ const Milestones = {
     { id: "profit_50k", name: "Moped Mogul", desc: "Earn $50,000 total profit", check: (s) => s.totalProfit >= 50000 },
     { id: "collect_1", name: "Collector", desc: "Add your first bike to the Collection", check: (s) => s.collected >= 1 },
     { id: "collect_5", name: "Getting Serious", desc: "Collect 5 bikes", check: (s) => s.collected >= 5 },
-    { id: "collect_14", name: "Halfway There", desc: "Collect 18 bikes", check: (s) => s.collected >= 18 },
+    { id: "collect_14", name: "Halfway There", desc: "Collect 23 bikes", check: (s) => s.collected >= 23 },
     { id: "brand_set", name: "Brand Loyalist", desc: "Complete a full brand set", check: (s) => s.brandSetsCompleted >= 1 },
     { id: "all_brands", name: "Completionist", desc: "Complete all 8 brand sets", check: (s) => s.brandSetsCompleted >= 8 },
-    { id: "full_collection", name: "Ultimate Collection", desc: "Collect all 37 bikes", check: (s) => s.collected >= 37 },
+    { id: "full_collection", name: "Ultimate Collection", desc: "Collect all 47 bikes", check: (s) => s.collected >= 47 },
     { id: "unique_first", name: "One of One", desc: "Add a Unique to your Collection", bounty: 1000, check: (s) => (s.uniquesCollected || 0) >= 1 },
     { id: "unique_pair", name: "Pair of Unicorns", desc: "Collect every Unique", bounty: 5000, check: (s) => typeof UNIQUE_SPRITES !== "undefined" && UNIQUE_SPRITES.length > 0 && (s.uniquesCollected || 0) >= UNIQUE_SPRITES.length },
     { id: "unique_flip", name: "Let a Unicorn Go", desc: "Sell a Unique for profit", check: (s) => (s.uniquesSoldForProfit || 0) >= 1 },

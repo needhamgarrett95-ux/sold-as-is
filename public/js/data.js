@@ -7,6 +7,7 @@ const BRANDS = {
     { name: "Roadster", base: 900, rarity: 3, sprite: "yamaha_rd50", desc: "Two-stroke screamer in a tiny package." },
     { name: "Trailblazer", base: 750, rarity: 2, sprite: "yamaha_dt50", desc: "Enduro-styled 50. Trail-ready." },
     { name: "Dart", base: 700, rarity: 2, sprite: "yamaha_jog", desc: "The '89 original. Boxy, white, everywhere in Japan." },
+    { name: "Zinger", base: 550, rarity: 2, sprite: "yamaha_razz", desc: "Tiny Yamaha two-stroke. Zippier than it has any right to be." },
   ]},
   Kestrel:    { models: [
     { name: "Firebrand", base: 1600, rarity: 4, sprite: "honda_mb5", desc: "The holy grail. Black/red or nothing." },
@@ -14,6 +15,7 @@ const BRANDS = {
     { name: "Courier",   base: 550, rarity: 2, sprite: "honda_express", desc: "Noped royalty. Everyone's first." },
     { name: "Cubby",     base: 1100, rarity: 3, sprite: "honda_cub_c70", desc: "Step-through icon. Runs forever." },
     { name: "Trunk",     base: 1500, rarity: 4, sprite: "honda_motocompo", desc: "Folding trunk bike. The collector's fever dream." },
+    { name: "Crown",     base: 800, rarity: 3, sprite: "honda_elite50", desc: "Honda's little royalty. Smooth, quiet, was everywhere once." },
   ]},
   Vostok:    { models: [
     { name: "Sprinter", base: 450, rarity: 1, sprite: "tomos_sprint", desc: "The workhorse. Parts everywhere." },
@@ -21,6 +23,7 @@ const BRANDS = {
     { name: "Standard", base: 400, rarity: 1, sprite: "tomos_st", desc: "Basic, honest, cheap." },
     { name: "Pony",     base: 500, rarity: 2, sprite: "tomos_colt", desc: "Underrated. Snappy motor." },
     { name: "Comet",    base: 850, rarity: 3, sprite: "tomos_golden_bullet", desc: "Black and gold. The Bullet with the good wheels." },
+    { name: "Drifter",  base: 950, rarity: 3, sprite: "tomos_streetmate", desc: "The cruiser Tomos. Low, long, and laid back." },
   ]},
   Alpen:     { models: [
     { name: "Max",     base: 500, rarity: 1, sprite: "puch_maxi", desc: "The people's moped. Millions made." },
@@ -28,6 +31,7 @@ const BRANDS = {
     { name: "Harbor",  base: 450, rarity: 1, sprite: "puch_newport", desc: "Max's sibling. Same guts." },
     { name: "Viper",   base: 700, rarity: 3, sprite: "puch_cobra", desc: "Rare bird. Weird and wonderful." },
     { name: "Summit",  base: 900, rarity: 3, sprite: "puch_korado", desc: "Piaggio-era Puch. Streamlined and scarce." },
+    { name: "Ridge",   base: 1200, rarity: 4, sprite: "puch_magnum_x", desc: "Magnum in dirt clothes. Knobbies and a number plate." },
   ]},
   Dolce:    { models: [
     { name: "Bello",  base: 600, rarity: 2, sprite: "vespa_ciao", desc: "Italian charm, bicycle pedals." },
@@ -35,24 +39,34 @@ const BRANDS = {
     { name: "Sport",  base: 550, rarity: 2, sprite: "vespa_bravo", desc: "The sporty one. Kinda." },
     { name: "Mono",   base: 650, rarity: 2, sprite: "vespa_si", desc: "Monoshock style. Cool factor high." },
     { name: "Volta",  base: 1000, rarity: 3, sprite: "piaggio_nrg", desc: "Liquid-cooled 50 sport scoot. Tuners love it." },
+    { name: "Tempesta", base: 900, rarity: 3, sprite: "piaggio_typhoon", desc: "Chunky-tired storm scoot. Built for bad roads." },
   ]},
   Hayate:   { models: [
     { name: "Shuttle", base: 450, rarity: 1, sprite: "suzuki_fa50", desc: "Shaft drive. Weird in a good way." },
     { name: "Junior",  base: 350, rarity: 1, sprite: "suzuki_jr50", desc: "Kids' dirt bike. Tiny ripper." },
     { name: "Outback", base: 500, rarity: 2, sprite: "suzuki_or50", desc: "Moped oddity. Collectors notice." },
     { name: "Metro",   base: 600, rarity: 2, sprite: "suzuki_address50", desc: "Sharp little commuter. All angles, all business." },
+    { name: "Tanto",   base: 850, rarity: 3, sprite: "suzuki_katana", desc: "Named for the short blade. Sharp nose, sharper handling." },
   ]},
   Citadelle: { models: [
     { name: "Moby", base: 550, rarity: 2, sprite: "motobecane_50v", desc: "French classic. Variator magic." },
     { name: "88",   base: 650, rarity: 3, sprite: "motobecane_av88", desc: "Vintage French. Beautiful rust." },
     { name: "X",    base: 400, rarity: 1, sprite: "motobecane_moby_x", desc: "Later Moby. Still French." },
     { name: "Circuit", base: 1100, rarity: 4, sprite: "motobecane_sebring", desc: "Top-tank French-American rarity. Stripes for days." },
+    { name: "Relic",   base: 1800, rarity: 5, sprite: "motobecane_poney", desc: "1947. A bicycle with a motor and eighty years of patina." },
   ]},
   Toro:    { models: [
     { name: "Variante", base: 600, rarity: 2, sprite: "derbi_variant", desc: "Spanish flair. Reed-valve pep." },
     { name: "Diablo",   base: 500, rarity: 2, sprite: "derbi_ds50", desc: "Sporty 50. Handles great." },
     { name: "Lagoon",   base: 700, rarity: 3, sprite: "derbi_laguna", desc: "Sleek and rare. Head-turner." },
     { name: "Corsa",    base: 1600, rarity: 4, sprite: "derbi_gpr50", desc: "Full-fairing GP replica. A 50 that thinks it's a 125." },
+    { name: "Apex",     base: 1500, rarity: 4, sprite: "derbi_gp1", desc: "Open-face GP replica. Predator eyes, race heart." },
+  ]},
+  Falke:   { models: [
+    { name: "Rapier", base: 3000, rarity: 5, sprite: "kreidler_florett_rs", desc: "German precision, chrome tank. The connoisseur's moped." },
+  ]},
+  Ironwood: { models: [
+    { name: "Ember", base: 2800, rarity: 5, sprite: "harley_m50", desc: "Milwaukee's only moped. Italian-built, American-badged." },
   ]},
 };
 
@@ -62,12 +76,12 @@ Object.entries(BRANDS).forEach(([brand, { models }]) => {
   models.forEach((m, i) => BIKES.push({ id: `${brand}-${i}`.replace(/\s/g, ""), brand, ...m }));
 });
 
-// ===== Unique models (framework) =====
+// ===== Unique models (framework, populated aud204) =====
 // One-of-one marques that stand outside the 8 brand sets. In the Collection
 // they sit together under a single "Unique" label, and their own milestones
-// revolve around them. Populated at drop-in from the expansion package —
-// EMPTY until then; every system reading this list is inert while empty.
-const UNIQUE_SPRITES = [];
+// revolve around them. Every system reading this list (wall group, set
+// math, spawn gates, catalog guarantee) keys off these sprite ids.
+const UNIQUE_SPRITES = ["kreidler_florett_rs", "harley_m50"];
 function isUnique(sprite) { return UNIQUE_SPRITES.includes(sprite); }
 
 // Spawn gates: when a generator roll lands on a Unique, it survives only

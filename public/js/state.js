@@ -37,6 +37,9 @@ const State = {
 // Save/load system
 const Save = {
   save() {
+    // Restore/wipe in progress: the page is about to reload into a different
+    // save — never let a last-moment autosave overwrite it with the old game
+    if (window.__soldasisNoSave) return;
     try {
       const data = {
         v: 1,

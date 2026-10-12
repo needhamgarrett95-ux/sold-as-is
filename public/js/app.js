@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target.id === "reset-confirm") document.getElementById("reset-confirm").remove();
       });
       document.getElementById("reset-go").addEventListener("click", () => {
+        window.__soldasisNoSave = true; // same guard: don't let autosave resurrect the wipe
         localStorage.removeItem("soldasis_save_v1");
         localStorage.removeItem("soldasis_save_v1_bak");
         location.reload();
@@ -164,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         const go = document.getElementById("restore-go");
         if (go) go.addEventListener("click", () => {
+          window.__soldasisNoSave = true; // block the reload-time autosave from clobbering this
           for (const [k, v] of Object.entries(bundle.keys)) {
             try {
               if (v === null || v === undefined) localStorage.removeItem(k);

@@ -500,8 +500,12 @@ const Views = {
 
   makeBuyerOffer(listing, type) {
     const askPrice = listing.askPrice;
-    // 20%: buyer just pays asking price, no haggling
-    if (Math.random() < 0.20) {
+    // 20%: buyer just pays asking price, no haggling — but only when the
+    // ask is sane (<= 1.15x fair value). Absurd asks never get an instant
+    // buy; they only draw negotiated offers, which are capped (aud206).
+    const fair = listing.fairValue || listing.boughtFor || askPrice;
+    const saneAsk = askPrice <= Math.round((fair * 1.15) / 5) * 5;
+    if (saneAsk && Math.random() < 0.20) {
       const buyerName = this.buyerNames[(Math.random() * this.buyerNames.length) | 0];
       listing.sold = true; listing.soldFor = askPrice; listing.soldAt = Date.now();
       State.cash += askPrice;

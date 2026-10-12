@@ -438,6 +438,12 @@ body.dark-mode .haggle-close { background: rgba(255,255,255,.15); }
   color: var(--dim); background: var(--paper); }
 .slot.filled { border-style: solid; border-color: var(--green); background: #e8f5e9;
   color: var(--green); font-weight: 800; }
+/* Unique trophy row — gold treatment (renders with the Unique set) */
+.set-row.unique-set { border-color: var(--amber); }
+.set-row.unique-set .set-name svg { width: 15px; height: 15px; vertical-align: -2px; margin-right: 2px; }
+.set-row.unique-set .set-name { color: var(--amber); }
+.set-row.unique-set .slot.filled { border-color: var(--amber);
+  background: rgba(254, 188, 46, .18); color: var(--amber); }
 #site-footer { background: var(--card); border-top: 1px solid var(--line); padding: 10px;
   text-align: center; font-size: .72rem; color: var(--dim); }
 #site-footer a { color: var(--blue); cursor: pointer; }

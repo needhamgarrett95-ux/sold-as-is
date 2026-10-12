@@ -204,8 +204,8 @@ const Milestones = {
     { id: "brand_set", name: "Brand Loyalist", desc: "Complete a full brand set", check: (s) => s.brandSetsCompleted >= 1 },
     { id: "all_brands", name: "Completionist", desc: "Complete all 8 brand sets", check: (s) => s.brandSetsCompleted >= 8 },
     { id: "full_collection", name: "Ultimate Collection", desc: "Collect all 37 bikes", check: (s) => s.collected >= 37 },
-    { id: "unique_first", name: "One of One", desc: "Add a Unique to your Collection", check: (s) => (s.uniquesCollected || 0) >= 1 },
-    { id: "unique_pair", name: "Pair of Unicorns", desc: "Collect every Unique", check: (s) => typeof UNIQUE_SPRITES !== "undefined" && UNIQUE_SPRITES.length > 0 && (s.uniquesCollected || 0) >= UNIQUE_SPRITES.length },
+    { id: "unique_first", name: "One of One", desc: "Add a Unique to your Collection", bounty: 1000, check: (s) => (s.uniquesCollected || 0) >= 1 },
+    { id: "unique_pair", name: "Pair of Unicorns", desc: "Collect every Unique", bounty: 5000, check: (s) => typeof UNIQUE_SPRITES !== "undefined" && UNIQUE_SPRITES.length > 0 && (s.uniquesCollected || 0) >= UNIQUE_SPRITES.length },
     { id: "unique_flip", name: "Let a Unicorn Go", desc: "Sell a Unique for profit", check: (s) => (s.uniquesSoldForProfit || 0) >= 1 },
     { id: "auction_win", name: "Auction Hunter", desc: "Win a Boneyard auction", check: (s) => s.auctionsWon >= 1 },
     { id: "haggle_10", name: "Negotiator", desc: "Complete 10 successful haggles", check: (s) => s.successfulHaggles >= 10 },
@@ -225,6 +225,12 @@ const Milestones = {
       if (!completed.includes(def.id) && def.check(stats)) {
         completed.push(def.id);
         this.celebrate(def);
+        // Cash bounty milestones pay out on grant
+        if (def.bounty && typeof State !== "undefined") {
+          State.cash += def.bounty;
+          if (typeof UI !== "undefined" && UI.refreshCash) UI.refreshCash();
+          if (typeof Save !== "undefined") Save.save();
+        }
       }
     }
     try {
@@ -234,7 +240,7 @@ const Milestones = {
 
   celebrate(def) {
     if (typeof UI !== "undefined" && UI.toast) {
-      UI.toast(`🏆 Milestone: ${def.name} — ${def.desc}`);
+      UI.toast(`🏆 Milestone: ${def.name} — ${def.desc}${def.bounty ? ` · +$${def.bounty.toLocaleString()} bounty` : ""}`);
     }
   },
 

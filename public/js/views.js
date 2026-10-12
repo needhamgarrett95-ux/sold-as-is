@@ -3810,7 +3810,7 @@ const Views = {
     const uniqueModels = BIKES.filter(b => isUnique(b.sprite));
     if (uniqueModels.length) {
       const uOwned = uniqueModels.filter(m => kept.some(k => k.sprite === m.sprite));
-      sets.push({ brand: "Unique", total: uniqueModels.length, owned: uOwned.length });
+      sets.push({ brand: "Unique", total: uniqueModels.length, owned: uOwned.length, cls: " unique-set", icon: Icon.get('trophy') + " " });
     }
     el.innerHTML = `<h2>Collection Wall</h2>
       <div class="sub">${kept.length} of ${BIKES.length} bikes collected</div>` +
@@ -3818,8 +3818,8 @@ const Views = {
         ? `<div class="empty"><strong>No keepers yet</strong>Hit "Keep" on a bike in your garage to add it to the wall.</div>`
         : "") +
       sets.map(s => `
-      <div class="set-row">
-        <div class="set-name">${s.brand} — ${s.owned}/${s.total}</div>
+      <div class="set-row${s.cls || ""}">
+        <div class="set-name">${s.icon || ""}${s.brand} — ${s.owned}/${s.total}</div>
         <div class="set-slots">${Array.from({ length: s.total }, (_, i) =>
           `<div class="slot ${i < s.owned ? "filled" : ""}">${i < s.owned ? Icon.get('check') : "?"}</div>`).join("")}
         </div>
@@ -3834,7 +3834,7 @@ const Views = {
       const isDone = done.has(d.id);
       return `<div class="milestone ${isDone ? "done" : ""}">
         <div class="milestone-icon">${isDone ? "🏆" : "○"}</div>
-        <div><strong>${d.name}</strong><div class="milestone-desc">${d.desc}</div></div>
+        <div><strong>${d.name}</strong><div class="milestone-desc">${d.desc}${d.bounty ? ` · <strong>Bounty $${d.bounty.toLocaleString()}</strong>` : ""}</div></div>
       </div>`;
     }).join("");
     return `<h2 style="margin-top:24px">Milestones</h2>

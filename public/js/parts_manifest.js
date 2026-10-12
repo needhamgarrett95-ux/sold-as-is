@@ -289,5 +289,85 @@ const PARTS_MANIFEST = {
     "headlight",
     "handlebars",
     "turn_signals"
+  ],
+  "yamaha_jog": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "honda_motocompo": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "tomos_golden_bullet": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "puch_korado": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "piaggio_nrg": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "suzuki_address50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "motobecane_sebring": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
+  ],
+  "derbi_gpr50": [
+    "engine",
+    "exhaust",
+    "wheel_front",
+    "wheel_rear",
+    "fuel_tank",
+    "headlight",
+    "handlebars",
+    "turn_signals"
   ]
 };

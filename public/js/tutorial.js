@@ -34,7 +34,7 @@ const Tutorial = {
     },
     {
       title: "Your Collection",
-      text: "The endgame. Restore bikes to pristine condition and fill all 8 brand sets — 29 bikes total. Your milestones live here too. Take a look.",
+      text: "The endgame. Restore bikes to pristine condition and fill all 8 brand sets — 37 bikes total. Your milestones live here too. Take a look.",
       action: '[data-view="collection"]',
     },
     {
@@ -203,7 +203,7 @@ const Milestones = {
     { id: "collect_14", name: "Halfway There", desc: "Collect 14 bikes", check: (s) => s.collected >= 14 },
     { id: "brand_set", name: "Brand Loyalist", desc: "Complete a full brand set", check: (s) => s.brandSetsCompleted >= 1 },
     { id: "all_brands", name: "Completionist", desc: "Complete all 8 brand sets", check: (s) => s.brandSetsCompleted >= 8 },
-    { id: "full_collection", name: "Ultimate Collection", desc: "Collect all 29 bikes", check: (s) => s.collected >= 29 },
+    { id: "full_collection", name: "Ultimate Collection", desc: "Collect all 37 bikes", check: (s) => s.collected >= 37 },
     { id: "auction_win", name: "Auction Hunter", desc: "Win a Boneyard auction", check: (s) => s.auctionsWon >= 1 },
     { id: "haggle_10", name: "Negotiator", desc: "Complete 10 successful haggles", check: (s) => s.successfulHaggles >= 10 },
     { id: "restore_1", name: "Wrench Turner", desc: "Restore your first bike", check: (s) => s.bikesRestored >= 1 },

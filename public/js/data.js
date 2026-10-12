@@ -77,6 +77,132 @@ const SELLERS = ["mike_rides", "2stroke_dan", "barnfind_betty", "moped_mike", "s
   "garage_greg", "alpen_amy", "dolce_dan", "vostok_vic", "kestrel_kyle", "rusty_rides",
   "clean_clara", "deal_dave", "moto_maria", "spareparts_sam", "og_rider_88"];
 
+// --- Seller personas -------------------------------------------------------
+// Every username is a person, and they haggle like it. The persona drives
+// the voice in every negotiation on every platform (bikes and parts alike).
+const SELLER_PERSONAS = {
+  og_rider_88: "oldtimer", "2stroke_dan": "oldtimer",
+  deal_dave: "flipper", scoot_king: "flipper",
+  mike_rides: "hobbyist", garage_greg: "hobbyist", moped_mike: "hobbyist",
+  barnfind_betty: "purist", clean_clara: "purist", alpen_amy: "purist",
+  kestrel_kyle: "kid", rusty_rides: "kid", Eliseo_M: "kid",
+  spareparts_sam: "mechanic", moto_maria: "mechanic", dolce_dan: "mechanic", vostok_vic: "mechanic",
+};
+function personaOf(seller) { return SELLER_PERSONAS[seller] || "hobbyist"; }
+
+// A counteroffer lives strictly between the standing offer and the seller's
+// anchor, on the given step. Returns 0 when the gap is too small to counter
+// — the standing offer should simply be accepted instead.
+function haggleCounter(offer, anchor, raw, step) {
+  let c = Math.round(Math.min(raw, anchor) / step) * step;
+  if (c <= offer) {
+    c = offer + step;
+    if (c > anchor) return 0;
+  }
+  return c;
+}
+
+// --- Haggle dialogue --------------------------------------------------------
+// Bands: accept / grudging / counter / firm / reject / block / generous / met
+// {O} = the player's offer, {C} = the counter. Lines are written the way
+// people actually type at each other on marketplace apps — not ad copy.
+const HAGGLE = {
+  _recent: [],
+  say(persona, band, offer, counter) {
+    const mine = (this.PERSONA[persona] || {})[band];
+    const shared = this.SHARED[band] || [];
+    let pool = shared;
+    if (mine && mine.length && (shared.length === 0 || Math.random() < 0.75)) pool = mine;
+    let fresh = pool.filter(l => !this._recent.includes(l));
+    if (!fresh.length) {
+      // Chosen pool is exhausted — borrow the other pool before repeating
+      const alt = pool === mine ? shared : (mine || []);
+      const altFresh = alt.filter(l => !this._recent.includes(l));
+      if (altFresh.length) { pool = alt; fresh = altFresh; }
+    }
+    if (!fresh.length) fresh = pool;
+    if (!fresh.length) return "";
+    const line = fresh[(Math.random() * fresh.length) | 0];
+    this._recent.push(line);
+    if (this._recent.length > 5) this._recent.shift();
+    return '"' + line
+      .replaceAll("{O}", money(offer))
+      .replaceAll("{C}", money(counter == null ? offer : counter)) + '"';
+  },
+  PERSONA: {
+    oldtimer: {
+      accept: ["yeah, {O} works. come get it", "{O}. fine. cash", "ok. {O}. you pick it up though, i ain't delivering", "that'll do. {O}", "sold. bring cash and a way to haul it"],
+      grudging: ["{O}... alright. don't make a habit of it", "you're wearing me down, son. {O}", "fine. {O}. my loss", "take it for {O} before i think it over", "{O}. ok. but you're loading it yourself"],
+      counter: ["{C} is where i'm at", "meet me at {C}. that's fair", "i can do {C}. nothing under", "{C}. had the listing up a day and got six messages already", "come up to {C} and it's yours"],
+      firm: ["{C}. price is the price", "i know what i got. {C}", "nope. {C} or i keep it", "{C}. i don't need to sell it", "that's the number. {C}"],
+      reject: ["{O}? no.", "son, that's not an offer", "{O} doesn't buy the tires", "come back when you're serious", "i get {O} offers in my sleep. no"],
+      block: ["that's enough. goodbye", "we're done here", "don't message me again"],
+      generous: ["ah hell. {O}. take it", "you seem like a straight shooter. {O}", "wife wants the space back. {O}, come get it"],
+      met: ["there you go. {O}, done", "knew you'd come around. {O}", "{O}. see, that wasn't so hard"],
+    },
+    flipper: {
+      accept: ["{O} works. cash today?", "done. {O}. i can meet after 5", "{O} — deal. no holds though, first cash gets it", "sold at {O}. when you grabbing it", "{O}. good. i got another one coming in anyway"],
+      grudging: ["{O}. fine. you're cutting my margin but ok", "ok {O}. i don't sit on inventory", "{O} works. barely. deal", "take it. {O}. priced to move and you moved it", "{O}... my spreadsheet hates this. deal"],
+      counter: ["{C}. that's split right down the middle", "i can move at {C}. not below", "{C} cash today and i stop talking to the other guy", "your {O}, my ask — {C} lands it", "{C}. i priced in some room, but not that much room"],
+      firm: ["{C}. i know the market on these", "can't. {C} is under what i'd get parting it out", "{C} firm. i've got watchers on this", "no. {C}. these sell", "{C}. final. i don't chase"],
+      reject: ["{O} lol no", "i buy at {O}, i don't sell at {O}", "that's a wholesale number. this ain't wholesale", "{O} is a flipper's offer. from one to another: no", "pass. come back with a real number"],
+      block: ["blocked. waste someone else's afternoon", "yeah no. we're done", "{O}. conversation's over"],
+      generous: ["you know what, {O}. i like movers", "{O}. rather move it than store it", "fine, {O}. quick sale, no drama. respect"],
+      met: ["there it is. {O}. deal", "{O}. knew we'd land there", "done at {O}. see how easy that was"],
+    },
+    hobbyist: {
+      accept: ["{O} works! i'll pull it out of the garage", "deal! {O}. you're gonna love it", "{O} — great. i'll throw in the spare plug too", "sounds good, {O}! come by this weekend?", "{O} it is. i'll have the title on the seat"],
+      grudging: ["ahh alright, {O}. my wife will be thrilled it's gone either way", "{O}... fine. garage space wins", "ok {O}. too many projects, ask my wife lol", "{O} it is. don't tell her what i paid for it originally", "fine, {O}. you haggled, i folded, let's eat"],
+      counter: ["how about {C}? i think that's fair for both of us", "meet me at {C} and i'll help you load it", "{C} and i'll throw in a can of premix", "let's do {C}. just want it going to someone who'll ride it", "i could do {C}. i've seen worse deals at the swap meet"],
+      firm: ["{C} is really my bottom — i've got more than that in parts", "can't go below {C}, sorry. the carb alone was $80", "{C}. promised my wife i wouldn't give it away lol", "firm at {C}. ride it and you'll see why", "{C}. i priced it honest, i swear"],
+      reject: ["{O}? oof. can't do that, sorry", "ha, no. {O} doesn't cover the tires", "{O} is a no from me. cool that you're looking though", "i appreciate it but {O} is way off"],
+      block: ["ok we're done here. good luck out there", "{O}... yeah, i'm gonna end this chat", "i don't block people, but... yeah. we're done"],
+      generous: ["you know what — {O}. you seem like you'll actually ride it", "{O}! deal. i like your energy", "my wife literally just texted 'get it gone' so... {O}, it's yours"],
+      met: ["perfect, {O}! knew we'd get there", "deal! {O}. see you at pickup", "{O}! and that's how you haggle, folks"],
+    },
+    purist: {
+      accept: ["{O}. fine. take care of her", "ok. {O}. she's a good one — don't hack her up", "{O} works. original paint, keep it that way", "deal at {O}", "{O}. she's yours. treat her right"],
+      grudging: ["{O}... alright. promise me you'll actually ride her", "i can't believe i'm saying yes to {O}", "{O}. fine. but no parting her out, seriously", "ok {O}. my heart hurts a little", "{O}. you drive a hard bargain and she deserves better, but ok"],
+      counter: ["{C}. she's worth it and we both know it", "i'll meet you at {C}. that's me being reasonable", "{C}. try finding another one this clean", "{C} — the condition speaks for itself", "come up to {C}. you won't regret it"],
+      firm: ["{C}. i know exactly what i have", "no. {C}. i'd rather keep her", "{C} firm. they don't make them like this anymore", "i'm not desperate. {C}", "{C}. final. she's not a project, she's a survivor"],
+      reject: ["{O}? absolutely not", "you're not the right buyer for her. no", "{O} is an insult to the bike, honestly", "no. she deserves better than {O}"],
+      block: ["we're done. she stays with me", "blocked. unbelievable", "{O}. yeah no. goodbye"],
+      generous: ["...fine. {O}. i can tell you'll take care of her", "{O}. against my instincts, but ok", "you get it. {O}. she's yours"],
+      met: ["{O}. alright. take good care of her", "there. {O}. don't make me regret it", "{O}. done. she picked you, apparently"],
+    },
+    kid: {
+      accept: ["yeah ok {O} lol", "{O} works. can u pick up tmrw", "deal {O}. need it gone before my landlord notices lol", "{O} bet. cash?", "{O} ok done. bring a truck i don't have one"],
+      grudging: ["ugh fine {O}", "{O}... ok i need the money anyway lol", "fineee {O}. u win", "{O} i guess. rent is rent", "ok {O} but u pick up today"],
+      counter: ["{C} tho?", "meet at {C}?", "i can do {C}. that's like my actual bottom", "{C} and u pick up today?", "bro {C}. please. my car needs an alternator"],
+      firm: ["{C} firm sorry", "can't go lower than {C} fr", "{C}. i already dropped it once", "nah {C}. i know what it's worth"],
+      reject: ["{O} lol no", "bro {O}??", "that's not even close lol", "{O} buys u the seat maybe", "nahhh {O} is crazy"],
+      block: ["blocked lol bye", "yeah we're done", "{O}. ok bye forever"],
+      generous: ["u know what {O}. i like u lol", "{O} fine. just want it gone", "deal {O}. don't tell my roommate i went this low lol"],
+      met: ["ok {O}. deal lol", "see that wasn't hard. {O}", "{O} done. pickup tmrw?"],
+    },
+    mechanic: {
+      accept: ["{O} works. fresh rings, cleaned carb — you're getting a runner", "deal. {O}. i'll have it idling when you get here", "{O}. fine. paperwork's in the folder", "ok {O}. solid deal for a sorted bike", "{O}. done. she needs nothing"],
+      grudging: ["{O}... alright. you're paying for the bike, the labor was free apparently", "{O}. fine. i've got three more on stands anyway", "ok {O}. don't come back asking me to jet it for free though", "{O}. i'll regret this at the parts counter. deal"],
+      counter: ["{C}. i've got receipts for the top end alone", "meet at {C}. the work's already done — that's the value", "{C}. carb's rebuilt, new petcock, fresh plug. it's sorted", "i can do {C}. not lower, the parts bill says no", "{C}. you won't find a wrench mark out of place on it"],
+      firm: ["{C}. i know what the labor's worth", "no. {C}. i don't sell my work cheap", "{C} firm. find another one with a fresh top end at that price", "{C}. the number's the number", "i'm at {C}. it's worth every dime and i can prove it with receipts"],
+      reject: ["{O} doesn't cover the gasket set", "{O}? no. i've got more than that in it", "that's a parts-bike offer on a running bike. no", "{O} lol. no"],
+      block: ["we're done here", "{O}. blocked. i don't work for free", "yeah no. goodbye"],
+      generous: ["{O}. fine. rather it goes to someone local", "you know your stuff, i can tell. {O}", "{O}. deal. bring cash, i'll throw in the jet kit"],
+      met: ["{O}. there we go. sorted", "{O}. good. that's a fair price for good work", "deal at {O}. she'll run for years"],
+    },
+  },
+  SHARED: {
+    accept: ["{O}? yeah, i can do that", "{O} — deal. when can you pick up", "you got it for {O}", "done at {O}. cash talks", "{O} works. it's yours", "sold at {O}. come get it before i change my mind"],
+    grudging: ["hmm... {O}. alright, it's yours", "{O}? fine. you drive a hard bargain", "i was hoping for more, but {O} — sold", "okay okay, {O}. don't tell my wife", "{O}. ugh. fine. i need the space anyway", "you're killing me. {O} — deal"],
+    counter: ["{O}? i could do {C}", "nah, but i'll meet you at {C}", "{C} and we shake on it", "split the difference — {C}", "{C}. meet me halfway and it's done", "i can do {C}. that's my middle ground"],
+    firm: ["{O}? come on. {C} and we've got a deal", "i can't do {O}. {C} is my floor", "look, i need {C} out of this. that's already a steal", "{C}. i've had other people ask about this one", "my bottom dollar is {C}. i won't budge"],
+    reject: ["{O}?? no lowballs, come on", "{O}? be serious", "{O} wouldn't buy the seat. try again", "lol. {O}. good one", "i'm gonna pretend you didn't send {O}", "{O}? what is this, a yard sale"],
+    block: ["{O}?? yeah, we're done here", "get out of my messages with that {O} nonsense", "{O}. blocked", "i'd rather keep it than sell it for {O}. blocked", "blocked. go lowball someone with less patience"],
+    generous: ["you know what? {O} — it's yours", "ah hell, i like you. {O} and we skip the dance", "fine — {O}. i was tired of looking at the listing anyway", "you messaged like a human instead of a bot. {O}, deal"],
+    met: ["deal. {O}. knew we'd get there", "{O} — there we go. done", "ok, {O}. that's the number. sold"],
+  },
+};
+
 // Real Olympic Peninsula towns with road distances from Port Angeles, WA
 const LOCAL_TOWNS = [
   ["Port Angeles, WA", 0], ["Agnew, WA", 8], ["Carlsborg, WA", 12],

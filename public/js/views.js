@@ -738,7 +738,10 @@ const Views = {
         offer.ultimatum = true;
         response = this.randomUltimatumResponse(max, style);
       } else {
-        offer.amount = Math.round((max * 0.97) / 5) * 5;
+        let plant = Math.round((max * 0.97) / 5) * 5;
+        if (plant <= offer.amount) plant = Math.min(max, offer.amount + 5);
+        offer.amount = plant;
+        if (plant >= max) offer.ultimatum = true;
         response = this.randomCounterBackResponse(offer.amount, style);
       }
     } else {
@@ -1002,29 +1005,18 @@ const Views = {
       `${money(amount)}. dont ask me to go higher i'll simply perish`,
     ]);
     return this.pickBuyerReply([
-      `That's a bit steep for me. How about ${money(amount)}?`,
-      `I can't go that high. ${money(amount)} is my best.`,
-      `Meet me at ${money(amount)}?`,
-      `I hear you, but ${money(amount)} is where I land.`,
-      `What about ${money(amount)}? I'm trying to stay in budget.`,
-      `${money(amount)} is my max. I wish I could go higher.`,
-      `Could we do ${money(amount)}? That's a stretch for me already.`,
-      `I'd love to say yes, but ${money(amount)} is all I've got.`,
-      `${money(amount)}. That's me meeting you in the middle.`,
-      `How's ${money(amount)}? I think that's fair for both of us.`,
-      `I can come up to ${money(amount)}. That's genuinely my ceiling.`,
-      `How about ${money(amount)}? I'm being straight with you.`,
-      `${money(amount)} — and I'll pick up today, no hassle.`,
-      `Let's settle at ${money(amount)}. I think that's right.`,
-      `My final is ${money(amount)}. I hope we can make it work.`,
-      `I'll go ${money(amount)}. That's a fair number for both of us.`,
-      `What do you say to ${money(amount)}? Cash, today.`,
-      `${money(amount)} is the best I can do — and it's a good offer.`,
-      `Split the difference at ${money(amount)}? I'm trying here.`,
-      `Okay, ${money(amount)}. That's me stretching. Your move.`,
-      `${money(amount)} — and I won't tell my wife. That's the real negotiation here.`,
-      `I'll go ${money(amount)}. My accountant is screaming, but here we are.`,
-      `${money(amount)}. You negotiate like my mother-in-law. Respect.`,
+      `best i can do is ${money(amount)}`,
+      `${money(amount)}. thats me meeting you more than halfway`,
+      `i can come up to ${money(amount)}. thats it tho`,
+      `${money(amount)} cash today, i pick up, no drama`,
+      `look, ${money(amount)}. i want it but i aint overpaying`,
+      `${money(amount)} is real money. the other guys are offering trades and stories`,
+      `meet me at ${money(amount)} and we both stop typing`,
+      `${money(amount)}. final-ish. dont make me say final`,
+      `i got ${money(amount)} in hand right now. not hypothetical money, actual money`,
+      `${money(amount)}. check what the others are listed at if u want. mines fair`,
+      `ok ${money(amount)}. thats me climbing. your turn to come down`,
+      `${money(amount)} and i wont ask about the title, the carb, or your life choices`,
     ]);
   },
 
@@ -1099,12 +1091,12 @@ const Views = {
       `i can do ${money(amount)} and thats like, it it`,
     ]);
     return this.pickBuyerReply([
-      `${money(amount)}. That's my ceiling — the wall, the roof, all of it. Take it or leave it.`,
-      `Final answer: ${money(amount)}. I don't say that lightly.`,
-      `I'll plant my flag at ${money(amount)}. There's nothing above it.`,
-      `${money(amount)} is where my budget ends and my pride begins. Final.`,
-      `That's my absolute ceiling — ${money(amount)}. The ball's in your court now.`,
-      `One number left in me: ${money(amount)}. After that we're just pen pals.`,
+      `${money(amount)}. thats the ceiling. like, the actual ceiling`,
+      `final answer: ${money(amount)}. i dont say that lightly`,
+      `${money(amount)} is where my budget ends. plant the flag, whatever. its the number`,
+      `one number left in me: ${money(amount)}. after that, we are just pen pals`,
+      `${money(amount)}. take it and i come today. leave it and i buy the other one tmrw`,
+      `my wall is ${money(amount)}. ran into it twice already today`,
     ]);
   },
 
@@ -2071,6 +2063,7 @@ const Views = {
       p.sellerStyle = r < 0.35 ? "motivated" : r < 0.70 ? "firm" : "flaky";
     }
     const style = p.sellerStyle;
+    const persona = personaOf(p.seller);
     // Track rounds
     p.offerRounds = (p.offerRounds || 0) + 1;
     const rounds = p.offerRounds;
@@ -2081,54 +2074,62 @@ const Views = {
 
     // Block risk ramps up with lowballs and rounds (like marketplace sellers)
     const blockRisk = rounds === 1 ? 0 : rounds === 2 ? 0.10 : rounds === 3 ? 0.25 : rounds === 4 ? 0.50 : 0.75;
-    if (ratio < 0.50 && Math.random() < blockRisk) {
+    if (p.lastCounter && offerAmount >= p.lastCounter) {
+      // He met the seller's last counter — that's a deal, not another round
+      accepted = true; price = offerAmount;
+      response = HAGGLE.say(persona, "met", offerAmount);
+    } else if (ratio < 0.50 && Math.random() < blockRisk) {
       blocked = true;
-      response = this.pickPartReply([
-        `"${money(offerAmount)}?? Stop wasting my time."`,
-        `"Blocked. Don't lowball me again."`,
-        `"${money(offerAmount)} for this? We're done here."`,
-        `"I'm not selling to you at ${money(offerAmount)}. Goodbye."`,
-      ]);
+      response = HAGGLE.say(persona, "block", offerAmount);
     } else if (ratio >= 0.95) {
       // Near asking — motivated accepts fast, firm might squeeze, flaky might ghost
       if (style === "firm" && rounds < 2 && Math.random() < 0.3) {
-        const squeeze = Math.round(((offerAmount + p.price) / 2) / 5) * 5;
-        price = squeeze;
-        response = `"Almost... ${money(squeeze)} and it's yours. I know what I got."`;
+        const squeeze = haggleCounter(offerAmount, p.price, (offerAmount + p.price) / 2, 5);
+        if (squeeze) {
+          p.lastCounter = squeeze;
+          price = squeeze;
+          response = HAGGLE.say(persona, "counter", offerAmount, squeeze);
+        } else {
+          accepted = true; price = offerAmount;
+          response = HAGGLE.say(persona, "accept", offerAmount);
+        }
       } else if (style === "flaky" && Math.random() < 0.15) {
         walkedAway = true;
         response = `"Sorry man, someone just messaged me about this. Gotta go."`;
       } else {
         accepted = true; price = offerAmount;
-        response = this.pickSellerAccept(style, offerAmount);
+        response = HAGGLE.say(persona, "accept", offerAmount);
       }
     } else if (ratio >= 0.70) {
       // Reasonable — accept on 2nd+ round, or counter once based on personality
       if (rounds >= 2) {
         accepted = true; price = offerAmount;
-        response = this.pickSellerAccept(style, offerAmount);
+        response = HAGGLE.say(persona, "grudging", offerAmount);
       } else {
         const patience = style === "motivated" ? 0.6 : style === "firm" ? 0.3 : 0.5;
         if (Math.random() < patience) {
-          const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
-          price = counter;
-          response = this.pickSellerCounter(style, offerAmount, counter);
+          const anchor = p.lastCounter && p.lastCounter < p.price ? p.lastCounter : p.price;
+          const counter = haggleCounter(offerAmount, anchor, (offerAmount + anchor) / 2, 5);
+          if (!counter) { accepted = true; price = offerAmount; response = HAGGLE.say(persona, "met", offerAmount); }
+          else { p.lastCounter = counter; price = counter; response = HAGGLE.say(persona, "counter", offerAmount, counter); }
         } else {
           accepted = true; price = offerAmount;
-          response = this.pickSellerAccept(style, offerAmount);
+          response = HAGGLE.say(persona, "grudging", offerAmount);
         }
       }
     } else if (ratio >= 0.50) {
       // Low — firm sellers hold the line, others might deal
       const holdFirm = style === "firm" ? 0.8 : style === "motivated" ? 0.3 : 0.5;
       if (Math.random() < holdFirm) {
-        const counter = Math.round((p.price * 0.9) * (1 - stDisc) / 5) * 5;
-        price = counter;
-        response = this.pickSellerFirm(style, offerAmount, counter);
+        const anchor = p.lastCounter && p.lastCounter < p.price ? p.lastCounter : p.price;
+        const counter = haggleCounter(offerAmount, anchor, anchor * 0.9, 5);
+        if (!counter) { accepted = true; price = offerAmount; response = HAGGLE.say(persona, "met", offerAmount); }
+        else { p.lastCounter = counter; price = counter; response = HAGGLE.say(persona, "firm", offerAmount, counter); }
       } else {
-        const counter = Math.round(((offerAmount + p.price) / 2) * (1 - stDisc) / 5) * 5;
-        price = counter;
-        response = this.pickSellerCounter(style, offerAmount, counter);
+        const anchor = p.lastCounter && p.lastCounter < p.price ? p.lastCounter : p.price;
+        const counter = haggleCounter(offerAmount, anchor, (offerAmount + anchor) / 2, 5);
+        if (!counter) { accepted = true; price = offerAmount; response = HAGGLE.say(persona, "met", offerAmount); }
+        else { p.lastCounter = counter; price = counter; response = HAGGLE.say(persona, "counter", offerAmount, counter); }
       }
     } else {
       // Insulting — walk away chance
@@ -2141,13 +2142,7 @@ const Views = {
           `"Is this a joke? ${money(offerAmount)}?"`,
         ]);
       } else {
-        response = this.pickPartReply([
-          `"${money(offerAmount)}. My scrap guy pays more than that."`,
-          `"${money(offerAmount)}? I paid more for the bubble wrap."`,
-          `"Do you do this at the grocery store too? ${money(offerAmount)} — no."`,
-          `"That's not an offer, that's a typo. Try again."`,
-          `"${money(offerAmount)}? I think you misread the listing."`,
-        ]);
+        response = HAGGLE.say(persona, "reject", offerAmount);
       }
     }
 
@@ -2223,72 +2218,6 @@ const Views = {
     this.partDetailOffer = null;
     this.closePartDetail();
     if (this.current === "parts") this.renderParts();
-  },
-
-  pickSellerAccept(style, amount) {
-    if (style === "motivated") return this.pickPartReply([
-      `"${money(amount)}? Yeah, I can do that."`,
-      `"${money(amount)} — sold. It's boxed and ready."`,
-      `"Done. ${money(amount)} and it's yours."`,
-      `"${money(amount)}. I'll get it in the mail today."`,
-      `"Sure, ${money(amount)}. Good part, good price."`,
-    ]);
-    if (style === "firm") return this.pickPartReply([
-      `"${money(amount)}. Fine. You drive a hard bargain."`,
-      `"Alright, ${money(amount)}. Don't tell anyone I went this low."`,
-      `"${money(amount)}... I wanted more, but okay."`,
-      `"Fine. ${money(amount)}. You're lucky I need shelf space."`,
-    ]);
-    return this.pickPartReply([
-      `"${money(amount)}? Eh... fine. Take it."`,
-      `"You got me at ${money(amount)}. Don't push it."`,
-      `"Ugh, okay. ${money(amount)}. It's yours."`,
-      `"${money(amount)} and we never speak of this discount again."`,
-    ]);
-  },
-
-  pickSellerCounter(style, offer, counter) {
-    if (style === "motivated") return this.pickPartReply([
-      `"Can't do ${money(offer)}. How about ${money(counter)}?"`,
-      `"${money(offer)}'s light. ${money(counter)} gets it shipped today."`,
-      `"Meet me at ${money(counter)} and we got a deal."`,
-      `"How's ${money(counter)} sound? I'm already losing money here."`,
-      `"${money(counter)} and I'll throw in a firm handshake and zero eye contact."`,
-      `"Meet me at ${money(counter)} — my storage unit rent is due and so is this deal."`,
-    ]);
-    if (style === "firm") return this.pickPartReply([
-      `"${money(offer)}? No. ${money(counter)}, firm."`,
-      `"I've got three watchers on this. ${money(counter)} or it goes to one of them."`,
-      `"${money(counter)}. That's already below market and you know it."`,
-      `"My price is ${money(counter)}. It's worth it, trust me."`,
-      `"${money(counter)}. I priced it while angry and I stand by it."`,
-    ]);
-    return this.pickPartReply([
-      `"I could do ${money(counter)} if you pay today."`,
-      `"${money(counter)} and I'll upgrade you to priority shipping."`,
-      `"How about ${money(counter)}? Meet me there."`,
-      `"Split it with me at ${money(counter)}. Fair?"`,
-      `"${money(counter)}, and I'll pretend this negotiation never hurt me."`,
-    ]);
-  },
-
-  pickSellerFirm(style, offer, counter) {
-    if (style === "motivated") return this.pickPartReply([
-      `"${money(offer)}? That's insulting. ${money(counter)} and not a penny less."`,
-      `"For ${money(offer)}? Nah. ${money(counter)}, firm."`,
-    ]);
-    if (style === "firm") return this.pickPartReply([
-      `"${money(counter)}. I know what I got."`,
-      `"${money(offer)} is a joke. ${money(counter)}, take it or leave it."`,
-      `"Nope. ${money(counter)}. I don't haggle on the good stuff."`,
-      `"${money(counter)}, firm. Good parts aren't cheap."`,
-      `"${money(counter)}. The price has a family. Don't make me call them."`,
-    ]);
-    return this.pickPartReply([
-      `"Look, ${money(counter)} is already a deal. Take it."`,
-      `"No can do at ${money(offer)}. ${money(counter)} is my line."`,
-      `"${money(offer)} doesn't work. ${money(counter)} does."`,
-    ]);
   },
 
   // Place a custom bid amount on auction

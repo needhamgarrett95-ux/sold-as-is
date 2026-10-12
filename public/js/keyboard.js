@@ -225,7 +225,9 @@ const GameDropdown = {
     wrap.appendChild(selectEl);
     selectEl.style.display = 'none';
     // Visibility is controlled on the WRAP — never let the select's own
-    // "hidden" class leak onto the button (that once hid a filter forever)
+    // "hidden" class leak onto the button (that once hid a filter forever),
+    // but DO start the wrap hidden when the select starts hidden
+    if (selectEl.classList.contains('hidden')) wrap.classList.add('hidden');
     selectEl._ddWrap = wrap;
 
     const btn = document.createElement('button');

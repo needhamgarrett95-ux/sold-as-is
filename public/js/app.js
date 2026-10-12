@@ -219,6 +219,12 @@ document.addEventListener("DOMContentLoaded", () => {
   UI.refreshCash();
 
   Views.initPartsFilter();
+  // show() never runs on the boot path, so sync the parts filter's wrap with
+  // the starting view here — otherwise it sits visible on the Marketplace
+  const pbf0 = document.getElementById("parts-bike-filter");
+  if (pbf0 && pbf0._ddWrap) {
+    pbf0._ddWrap.classList.toggle("hidden", !(Views.current === "parts" || Views.current === "crate"));
+  }
   // Auto-save every 30s and when app goes to background
   setInterval(() => Save.save(), 30000);
   document.addEventListener("visibilitychange", () => {

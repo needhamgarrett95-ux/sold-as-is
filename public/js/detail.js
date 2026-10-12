@@ -153,7 +153,7 @@ const Detail = {
       return;
     }
     this.offer = offerPrice;
-    const persona = personaOf(l.seller);
+    const persona = l.persona || personaOf(l.seller);
     // Smooth Talker: discount boosts effective offer ratio
     const stDiscount = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
     const effectiveOffer = offerPrice * (1 + stDiscount);

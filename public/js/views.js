@@ -7,6 +7,88 @@ const SITES = {
   collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "trophy" },
 };
 
+// Buyer archetypes (aud196): economy ranges stay inside the aud187 envelope.
+// open/max are fractions of the asking price; walk/accept multiply the base chances.
+const BUYER_ECON = {
+  eager:      { open: [0.78, 0.90], max: [0.95, 1.05], walk: 0.6,  accept: 1.15, w: 0.20 },
+  haggler:    { open: [0.60, 0.75], max: [0.85, 0.97], walk: 1.0,  accept: 0.8,  w: 0.30 },
+  flaky:      { open: [0.65, 0.85], max: [0.80, 0.95], walk: 1.3,  accept: 1.0,  w: 0.12 },
+  lowballer:  { open: [0.45, 0.58], max: [0.68, 0.80], walk: 1.2,  accept: 0.85, w: 0.08 },
+  collector:  { open: [0.80, 0.92], max: [0.98, 1.10], walk: 0.5,  accept: 1.1,  w: 0.06 },
+  dad:        { open: [0.72, 0.84], max: [0.90, 0.98], walk: 0.8,  accept: 1.0,  w: 0.07 },
+  reseller:   { open: [0.58, 0.68], max: [0.80, 0.88], walk: 1.0,  accept: 0.9,  w: 0.07 },
+  tirekicker: { open: [0.70, 0.85], max: [0.85, 0.95], walk: 1.8,  accept: 0.9,  w: 0.05 },
+  neighbor:   { open: [0.78, 0.88], max: [0.92, 1.00], walk: 0.55, accept: 1.1,  w: 0.05 },
+};
+function rollBuyerStyle() {
+  let r = Math.random();
+  for (const [k, v] of Object.entries(BUYER_ECON)) { if ((r -= v.w) <= 0) return k; }
+  return "haggler";
+}
+// Whacky buyer voices for the six new archetypes. {A} = the money amount in play.
+const BUYER_LINES = {
+  lowballer: {
+    opener: ["still got it? {A} cash", "{A} and I come now. not a dollar more", "{A}. that's real money, most people offer nothing", "whats ur lowest. actually just take {A}"],
+    counterAccept: ["fine. {A}. your lucky day", "ok {A}. don't tell anyone I paid that", "{A} done. I usually get these cheaper but whatever"],
+    generous: ["fine fine {A}. take it before I remember my principles", "{A}. I'm being generous and I hate it"],
+    counterBack: ["{A}. I don't go higher, that's my whole thing", "{A}. final. I've got three more tabs open with these", "thats still above {A} in my book. {A}. take it"],
+    walk: ["lol ok good luck getting more", "pass. they never sell at that", "too rich. I'll check back when it drops"],
+    ultimatum: ["{A}. ceiling. I've bought six of these, I know", "last: {A}. the market is me and I have spoken"],
+    ultimatumWalk: ["told you. bye", "good luck then lol"]
+  },
+  collector: {
+    opener: ["I've been looking for this exact one. {A}?", "finally, one of these in the wild. {A}, and I won't play games under it", "you have no idea how long I've searched. {A} fair?"],
+    counterAccept: ["{A}. done. she completes the set", "deal at {A}. she'll be garaged with her sisters", "{A}. yes. these deserve to be kept together"],
+    generous: ["{A}. gladly. condition like this is getting rare", "{A}. fine — originality is worth paying for"],
+    counterBack: ["I can do {A}. I know what these are worth — that's respect, not a lowball", "{A}. check the auctions. I'm above all of them", "come to {A} and she goes to a real collection"],
+    walk: ["a shame. if you reconsider, my offer stands", "I'll pass, with genuine regret", "keep my name. these come back around"],
+    ultimatum: ["{A}. that's top of market and we both know it", "my ceiling is {A}, and it's a collector's ceiling"],
+    ultimatumWalk: ["understood. the hunt continues", "I said my number. good luck — truly"]
+  },
+  dad: {
+    opener: ["hi! looking for my kid — first bike. {A}?", "{A}? it's for my son, he's been saving all summer", "is it a good beginner bike? also {A}?", "dad here. {A} for my daughter's first ride?"],
+    counterAccept: ["{A}. deal. he's going to lose his mind", "done at {A}. father of the year, locked in", "{A}. yes! don't tell him, it's a surprise"],
+    generous: ["{A}. alright — his grades earned it", "{A}. fine. a good first bike is worth it"],
+    counterBack: ["{A}? that's the birthday fund AND the christmas fund", "I can do {A}. help a dad out", "{A} is everything he saved plus what I promised to match"],
+    walk: ["too steep for us. thanks anyway!", "we'll keep saving. good luck!", "can't swing it. he's gonna be bummed lol"],
+    ultimatum: ["{A}. that's the whole budget, I triple-checked with my wife", "my ceiling is {A} — any higher needs spousal approval and a meeting"],
+    ultimatumWalk: ["I said the number... thanks anyway", "understood. the search continues. pray for me"]
+  },
+  reseller: {
+    opener: ["{A} cash, I pick up today, no stories", "{A}. I buy these every week. quick close?", "what's your real number. mine's {A}", "{A}, cash in hand, gone within the hour"],
+    counterAccept: ["{A}. done. I don't waste time", "deal. {A}. where am I going", "{A} works. see you in an hour"],
+    generous: ["{A}. fine. margins thin but volume is volume", "{A}. ok. you negotiate like a pro"],
+    counterBack: ["{A} is my number. I've got margin math on this", "can't. {A}. I resell, I don't retail", "{A} today or I buy the other one tomorrow. simple"],
+    walk: ["no hard feelings. business", "pass. if it sits, my number stands", "I'm out at that price. good luck"],
+    ultimatum: ["{A}. ceiling. after that the numbers stop working", "final: {A}. take it or I redeploy the cash"],
+    ultimatumWalk: ["told you it was the ceiling. bye", "business is business. later"]
+  },
+  tirekicker: {
+    opener: ["{A}? maybe. is the seat comfy", "thinking about {A}. no rush. I'm always thinking about bikes", "{A}. let me think about it. also can I sit on it first", "I could see myself on this. {A}?"],
+    counterAccept: ["ok {A}. wait — yeah. ok. {A}", "{A}. fine. I think. yes. probably yes", "deal at {A}. don't let me back out lol"],
+    generous: ["{A}?? ok wow I'm doing this. I'm buying a bike", "{A}. fine!! impulsive but fine"],
+    counterBack: ["{A}? eh. let me sleep on it. but like, probably {A}", "I could do {A}. or the other one I saw. yours has better vibes", "{A}. maybe. ask me again tomorrow, I might feel richer"],
+    walk: ["yeah I'm gonna pass for now. or forever. unclear", "nvm I just measured my garage. tragic", "I'm out. I was never fully in. but good luck"],
+    ultimatum: ["{A}. my final. subject to me changing my mind. but final", "{A} — ceiling. I asked my group chat and they said that's enough"],
+    ultimatumWalk: ["I said final-ish. bye I guess", "yeah ok bye. nice bike tho"]
+  },
+  neighbor: {
+    opener: ["hey neighbor! I'm over by the water tower. {A}?", "{A} and I can walk over with cash today", "seen this listed — I'm 10 min away. {A}?", "howdy. local here. {A} and a handshake?"],
+    counterAccept: ["{A}! done. I'll bring the truck around", "deal — {A}. small town, good bikes", "{A}. yes! see you shortly"],
+    generous: ["{A}. gladly. rather buy local anyway", "{A}. fine — you keep the town riding"],
+    counterBack: ["{A} and I throw in a six pack for the trouble", "can you do {A}? I'm right here in town, easy pickup", "{A} is my number, neighbor. no shipping, no drama"],
+    walk: ["ah well. if it doesn't sell, I'm right here in town!", "too rich for me. good luck, neighbor", "I'll wave when I see it riding around town lol"],
+    ultimatum: ["{A}. that's the whole cookie jar", "{A} final — and I'll still wave at you in town"],
+    ultimatumWalk: ["said my number. take care neighbor", "no hard feelings. small town!"]
+  }
+};
+function buyerLine(style, kind, amount) {
+  const pool = BUYER_LINES[style] && BUYER_LINES[style][kind];
+  if (!pool || !pool.length) return null;
+  const a = amount != null ? money(amount) : "";
+  return pool.map((t) => t.split("{A}").join(a));
+}
+
 const Views = {
   current: "market",
   partsShop: [],
@@ -394,7 +476,7 @@ const Views = {
   },
 
   // --- seller-side haggling: buyers make offers on player listings ---
-  buyerNames: ["Mike R.", "Sarah K.", "Dave", "Jen T.", "Tommy", "Alex P.", "Chris", "Sam", "Jordan", "Pat"],
+  buyerNames: ["Mike R.", "Sarah K.", "Dave", "Jen T.", "Tommy", "Alex P.", "Chris", "Sam", "Jordan", "Pat", "Marcus", "Priya S.", "Big Mike", "Lorraine", "Chad", "Deborah W.", "Hank", "Yuki T.", "Omar F.", "Greta", "Pastor John", "Becca", "Rosa M.", "Kenny", "Jeb", "Marisol", "Craig L.", "Nadia", "Old Man Jenkins", "Aunt Sharon"],
 
   // Generate a buyer offer for a listing (called periodically)
   maybeMakeOffer() {
@@ -445,18 +527,13 @@ const Views = {
       if (this.current === "market") { this.renderMarketFeed(); this.renderMarketTabs(); }
       return;
     }
-    // Buyer personality: eager | haggler | flaky
-    const styleRoll = Math.random();
-    const style = styleRoll < 0.35 ? "eager" : styleRoll < 0.75 ? "haggler" : "flaky";
-    // Opening offer varies by style
-    const offerPct = style === "eager" ? 0.78 + Math.random() * 0.12
-      : style === "haggler" ? 0.60 + Math.random() * 0.15
-      : 0.65 + Math.random() * 0.20;
+    // Buyer archetype (aud196): nine styles, econ from BUYER_ECON
+    const style = rollBuyerStyle();
+    const econ = BUYER_ECON[style] || BUYER_ECON.haggler;
+    const offerPct = econ.open[0] + Math.random() * (econ.open[1] - econ.open[0]);
     const offerAmount = Math.round((askPrice * offerPct) / 5) * 5;
     const buyerName = this.buyerNames[(Math.random() * this.buyerNames.length) | 0];
-    const maxPct = style === "eager" ? 0.95 + Math.random() * 0.10
-      : style === "haggler" ? 0.85 + Math.random() * 0.12
-      : 0.80 + Math.random() * 0.15;
+    const maxPct = econ.max[0] + Math.random() * (econ.max[1] - econ.max[0]);
     // Smooth Talker: buyers open higher and stretch further
     const stBonus = (typeof Skills !== "undefined") ? Skills.haggleDiscount() : 0;
     // Good copy earns buyers' trust (sell score 0-3 → up to +9%, capped by fair value)
@@ -682,8 +759,7 @@ const Views = {
     // Buyers are cheap too — walk risk grows every round, mirroring seller patience
     const walkTable = [0, 0.10, 0.25, 0.50, 0.75];
     let walkChance = walkTable[Math.min(offer.rounds, 4)];
-    if (style === "flaky") walkChance = Math.min(0.9, walkChance * 1.3);
-    if (style === "eager") walkChance *= 0.6;
+    walkChance = Math.min(0.9, walkChance * ((BUYER_ECON[style] || {}).walk || 1));
     // Generous buyer: rare early on, Smooth Talker warms people up (+4%/tier)
     const stTier = (typeof Skills !== "undefined") ? Skills.tier("smoothtalker") : 0;
     const generousChance = 0.03 + stTier * 0.04;
@@ -711,8 +787,7 @@ const Views = {
         const gap = max - offer.amount;
         const prog = gap > 0 ? (counterAmount - offer.amount) / gap : 1;
         let acceptChance = 0.85 - prog * 0.55;
-        if (style === "haggler") acceptChance *= 0.8;
-        if (style === "eager") acceptChance = Math.min(0.95, acceptChance * 1.15);
+        acceptChance = Math.min(0.95, acceptChance * ((BUYER_ECON[style] || {}).accept || 1));
         if (Math.random() < acceptChance) {
           accepted = true;
           offer.amount = counterAmount;
@@ -788,6 +863,7 @@ const Views = {
   },
 
   randomOpener(style, amount) {
+    const bl = buyerLine(style, "opener", amount); if (bl) return this.pickBuyerReply(bl);
     if (style === "eager") return this.pickBuyerReply([
       `Hi! I love this bike. Would you take ${money(amount)}? I can pick up today.`,
       `This is exactly what I've been looking for! Is ${money(amount)} fair?`,
@@ -899,6 +975,7 @@ const Views = {
   },
 
   randomCounterAcceptResponse(amount, style) {
+    const bl = buyerLine(style, "counterAccept", amount); if (bl) return this.pickBuyerReply(bl);
     if (style === "eager") return this.pickBuyerReply([
       `Yes! ${money(amount)} — I'll take it!`,
       `Deal! ${money(amount)}. When can I come get it?`,
@@ -962,6 +1039,7 @@ const Views = {
   },
 
   randomCounterBackResponse(amount, style) {
+    const bl = buyerLine(style, "counterBack", amount); if (bl) return this.pickBuyerReply(bl);
     if (style === "eager") return this.pickBuyerReply([
       `I can stretch to ${money(amount)} — that's really my limit.`,
       `${money(amount)} is the absolute most I can do. Please?`,
@@ -1021,6 +1099,7 @@ const Views = {
   },
 
   randomWalkAwayResponse(style) {
+    const bl = buyerLine(style, "walk", null); if (bl) return this.pickBuyerReply(bl);
     if (style === "flaky") return this.pickBuyerReply([
       "lol no. bye.",
       "Yeah I'm out.",
@@ -1074,6 +1153,7 @@ const Views = {
   },
 
   randomUltimatumResponse(amount, style) {
+    const bl = buyerLine(style, "ultimatum", amount); if (bl) return this.pickBuyerReply(bl);
     if (style === "eager") return this.pickBuyerReply([
       `Okay — ${money(amount)}. That's truly everything I can scrape together. Please?`,
       `${money(amount)} is me emptying the couch cushions AND the car console. That's my wall.`,
@@ -1101,6 +1181,7 @@ const Views = {
   },
 
   randomUltimatumWalkResponse(style) {
+    const bl = buyerLine(style, "ultimatumWalk", null); if (bl) return this.pickBuyerReply(bl);
     if (style === "eager") return this.pickBuyerReply([
       `I told you that was my ceiling... I really wanted this one. Good luck.`,
       `Man. I said take it or leave it and you left it. I'm crushed. Bye.`,
@@ -1123,6 +1204,7 @@ const Views = {
   },
 
   randomGenerousAcceptResponse(amount, style) {
+    const bl = buyerLine(style, "generous", amount); if (bl) return this.pickBuyerReply(bl);
     if (style === "eager") return this.pickBuyerReply([
       `You know what? I just want it. ${money(amount)}. Done. No more games!`,
       `Life's short. ${money(amount)} — I'll take it!`,
@@ -2063,7 +2145,7 @@ const Views = {
       p.sellerStyle = r < 0.35 ? "motivated" : r < 0.70 ? "firm" : "flaky";
     }
     const style = p.sellerStyle;
-    const persona = personaOf(p.seller);
+    const persona = p.persona || personaOf(p.seller);
     // Track rounds
     p.offerRounds = (p.offerRounds || 0) + 1;
     const rounds = p.offerRounds;

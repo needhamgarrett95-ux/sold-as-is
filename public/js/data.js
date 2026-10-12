@@ -75,7 +75,7 @@ const TAGS = ["runs great", "RUNS GR8", "needs carb work", "barn find", "one own
 
 const SELLERS = ["mike_rides", "2stroke_dan", "barnfind_betty", "moped_mike", "scoot_king",
   "garage_greg", "alpen_amy", "dolce_dan", "vostok_vic", "kestrel_kyle", "rusty_rides",
-  "clean_clara", "deal_dave", "moto_maria", "spareparts_sam", "og_rider_88"];
+  "clean_clara", "deal_dave", "moto_maria", "spareparts_sam", "og_rider_88", "prepper_paul", "bunker_bob", "grandma_dee", "nana_rides", "vintage_vin", "racer_ray74", "forty_bikes_fred", "stackem_sam", "not_his_anymore", "garage_reclaim", "peninsula_motors", "shopkeep_joe", "braaap_brian", "chad_throttle", "torque_tom", "spec_sheet_steve", "cosmic_carl", "mural_marty", "mom_of_three", "linda_sells", "crabpot_carl", "salty_dog_dan", "tinfoil_tim", "offgrid_otto"];
 
 // --- Seller personas -------------------------------------------------------
 // Every username is a person, and they haggle like it. The persona drives
@@ -87,7 +87,33 @@ const SELLER_PERSONAS = {
   barnfind_betty: "purist", clean_clara: "purist", alpen_amy: "purist",
   kestrel_kyle: "kid", rusty_rides: "kid", Eliseo_M: "kid",
   spareparts_sam: "mechanic", moto_maria: "mechanic", dolce_dan: "mechanic", vostok_vic: "mechanic",
+  prepper_paul: "doomsday",
+  bunker_bob: "doomsday",
+  grandma_dee: "grandma",
+  nana_rides: "grandma",
+  vintage_vin: "racer",
+  racer_ray74: "racer",
+  forty_bikes_fred: "hoarder",
+  stackem_sam: "hoarder",
+  not_his_anymore: "divorcee",
+  garage_reclaim: "divorcee",
+  peninsula_motors: "dealer",
+  shopkeep_joe: "dealer",
+  braaap_brian: "bro",
+  chad_throttle: "bro",
+  torque_tom: "engineer",
+  spec_sheet_steve: "engineer",
+  cosmic_carl: "artist",
+  mural_marty: "artist",
+  mom_of_three: "mom",
+  linda_sells: "mom",
+  crabpot_carl: "fisherman",
+  salty_dog_dan: "fisherman",
+  tinfoil_tim: "conspiracy",
+  offgrid_otto: "conspiracy",
 };
+const PERSONA_IDS = ["oldtimer", "flipper", "hobbyist", "purist", "kid", "mechanic", "doomsday", "grandma", "racer", "hoarder", "divorcee", "dealer", "bro", "engineer", "artist", "mom", "fisherman", "conspiracy"];
+function randomPersona() { return PERSONA_IDS[(Math.random() * PERSONA_IDS.length) | 0]; }
 function personaOf(seller) { return SELLER_PERSONAS[seller] || "hobbyist"; }
 
 // A counteroffer lives strictly between the standing offer and the seller's
@@ -95,9 +121,12 @@ function personaOf(seller) { return SELLER_PERSONAS[seller] || "hobbyist"; }
 // — the standing offer should simply be accepted instead.
 function haggleCounter(offer, anchor, raw, step) {
   let c = Math.round(Math.min(raw, anchor) / step) * step;
+  // Rounding can land on or past the anchor (e.g. raw 12.6, anchor 14, step 5
+  // rounds to 15) — a counter must stay strictly below it.
+  if (c >= anchor) c = Math.floor((anchor - 1) / step) * step;
   if (c <= offer) {
     c = offer + step;
-    if (c > anchor) return 0;
+    if (c >= anchor) return 0;
   }
   return c;
 }
@@ -189,6 +218,126 @@ const HAGGLE = {
       block: ["we're done here", "{O}. blocked. i don't work for free", "yeah no. goodbye"],
       generous: ["{O}. fine. rather it goes to someone local", "you know your stuff, i can tell. {O}", "{O}. deal. bring cash, i'll throw in the jet kit"],
       met: ["{O}. there we go. sorted", "{O}. good. that's a fair price for good work", "deal at {O}. she'll run for years"],
+    },
+    doomsday: {
+      accept: ["{O}. cash only. you know why", "deal. {O}. meet at the feed store on 101, noon", "{O} works. gold, silver, or cash — kidding. cash", "sold. {O}. i'll wipe my prints off it (joking. mostly)"],
+      grudging: ["{O}... fine. when the grid goes down you'll thank me", "ok {O}. you drive a hard bargain for these end times", "{O}. alright. take it before the satellites notice", "fine, {O}. barter economy's coming anyway"],
+      counter: ["{C}. and that's in real money, not credits", "meet at {C}. public place. daylight. you understand", "{C}. i've got beans and bandages worth more than your {O}", "i can do {C}. cash. no apps. the apps are a list"],
+      firm: ["{C}. when fuel's $9 you'll wish you'd paid it", "{C} firm. i don't haggle with the unprepared", "no. {C}. i can wait out anything. can you?", "{C}. final. the bunker stays stocked either way"],
+      reject: ["{O}? that's pre-collapse thinking", "{O} wouldn't buy a bucket of wheat", "no. {O} is an insult and possibly a sting operation", "{O}. are you with the government? because no"],
+      block: ["this channel is compromised. goodbye", "blocked. and i'm changing the meeting spot i never told you", "{O}. yeah. we're done here"],
+      generous: ["you've got honest eyes. {O}. don't make me regret it", "{O}. fine. tell nobody where you got it", "my wife says i have 'too many supplies'. {O}, take it"],
+      met: ["{O}. deal. see you at the place. you know the one (you don't)", "{O}. alright. handshake. no photos", "done at {O}. opsec maintained"]
+    },
+    grandma: {
+      accept: ["{O}? well alright, honey. it's yours", "oh, {O}! wonderful. i'll set out lemonade", "sold, sweetie. {O}. you be careful on it now", "{O}. my Harold would be glad it's going to a nice home"],
+      grudging: ["{O}... oh, alright. but you have to promise to wear a helmet", "well... {O}. I suppose. you're a persuasive young person", "{O}. fine, honey. I was going to ask more but you have a kind face", "oh my. {O}. alright. don't tell my bridge club, they said hold firm"],
+      counter: ["how about {C}, dear? that's fair, I think", "{C} and I'll include the little basket that goes on front", "let's meet at {C}. I looked it up on the Google and that's the going rate", "{C}, honey. I knitted the seat cover myself, that's worth something"],
+      firm: ["{C}, dear. I may be old but I wasn't born yesterday", "no, honey. {C}. Harold kept every receipt in a shoebox", "{C} is my number. firm but with love", "I can't do less than {C}. the bingo ladies need me solvent"],
+      reject: ["{O}? oh, honey. no", "now that's just silly. {O}. no", "{O} wouldn't buy the basket, dear", "I've been lowballed by professionals, sweetie. {O} is amateur hour"],
+      block: ["well I never. we're done, dear", "blocked, honey. and I bake for this whole street, so. your loss", "goodbye. {O}. honestly"],
+      generous: ["you know what, honey — {O}. you remind me of my grandson", "{O}. take it. an old lady doesn't need two", "oh, alright. {O}. come hungry, there's pie"],
+      met: ["{O}! there we are, dear. deal", "see? {O}. lovely doing business with you", "{O}. done. I'll wrap the title in a doily"]
+    },
+    racer: {
+      accept: ["{O}! sold. she did 62 on the flats in '89, no lie", "deal at {O}. you're buying a piece of history, kid", "{O}. done. I once outran a state trooper on her. allegedly", "sold. {O}. treat her gentle, she's got stories"],
+      grudging: ["{O}... alright. back in my day that buys two of these. inflation's a thief", "fine, {O}. the trophies stay with me though", "{O}. ok. my knees say sell, my heart says keep, knees win", "you haggled a legend down to {O}. hope you're proud"],
+      counter: ["{C}. and I'll throw in a story you can't repeat", "meet me at {C}. champions meet in the middle", "{C}. she's timed, tuned, and terrifying at full chat", "come to {C}. I've won races worth less than this bike"],
+      firm: ["{C}. I set records on worse money", "{C} firm. the plaque on my wall says I don't fold", "no. {C}. I raced for pinks and never lost her", "{C}. final. champions don't chase"],
+      reject: ["{O}? I wouldn't sell my warm-up bike for that", "{O} buys you a photo with it. maybe", "kid, I was beating {O} offers before you were born", "{O}. hilarious. no"],
+      block: ["blocked. go race a tricycle", "we're done. {O}. the disrespect", "yeah no. checkered flag, conversation over"],
+      generous: ["you've got the look of a rider. {O}", "{O}. fine. one legend to another", "ah, hell. {O}. I like your style"],
+      met: ["{O}! deal. now we're talking", "there it is. {O}. champion's handshake", "{O}. done. the legend approves"]
+    },
+    hoarder: {
+      accept: ["{O}... ok. but I have eleven more if this one's not right", "sold. {O}. one down, forty-seven to go", "{O}. fine. don't tell the others I'm letting one go", "deal at {O}. the barn breathes a little easier"],
+      grudging: ["{O}... alright. it was behind three others anyway", "fine, {O}. I found it in the stack last spring, I'll find another", "{O}. ok. my therapist says this is progress", "you're getting {O} worth of emotional growth. deal"],
+      counter: ["{C}. I've got the space to wait, you know", "meet at {C}. or don't. it'll sit with its brothers", "{C}. I turned down that before. then I bought two more sheds", "how bout {C}. I know it's in there somewhere under the tarps"],
+      firm: ["{C}. firm. the collection has standards", "no. {C}. I don't need the money, I need the SPACE, and even then", "{C}. I've said no to better in the rain", "{C}. final. a man and his forty bikes have principles"],
+      reject: ["{O}? I'd rather add it to the pile", "{O} doesn't even rent the shed it sleeps in", "no. {O}. I'll bury it in the back with the others first", "{O}. cute. I have a whole section for offers like that. it's called no"],
+      block: ["blocked. the collection is closed to you", "we're done. {O}. the bikes saw it too", "goodbye. I'm telling the sheds about you"],
+      generous: ["...fine. {O}. take it before I bond with it", "{O}. you caught me on spring cleaning day, a sacred holiday", "take it for {O}. my wife counted the bikes. she COUNTED them"],
+      met: ["{O}. deal. now help me pretend this was the plan all along", "there. {O}. one less for the intervention", "{O}. done. the herd thins"]
+    },
+    divorcee: {
+      accept: ["{O}. sold. he bought it during the 'finding himself' phase", "deal! {O}. every dollar is a dollar he doesn't get", "{O}. wonderful. the garage is being reclaimed. by me. for shoes", "sold at {O}. his loss in every sense"],
+      grudging: ["{O}... fine. I wanted more just to be petty, but fine", "ok {O}. spite only stretches so far, apparently", "{O}. alright. his golf clubs went cheaper, so. balance", "fine. {O}. the mediator says I have to be 'reasonable'"],
+      counter: ["{C}. he paid double that and rode it twice. TWICE", "meet me at {C}. the price includes his regret, free of charge", "{C}. I checked his receipts (all of them) and it's worth it", "{C} and I'll point out the scratch HE put in it. purely for context"],
+      firm: ["{C}. I survived a marriage, I can survive this negotiation", "{C} firm. his attorney offered less and I declined that too", "no. {C}. everything must go, but not for nothing", "{C}. final. the decree says sell, it doesn't say fold"],
+      reject: ["{O}? my ex offered exactly that as a settlement. I chose the bike", "{O}. no. I've been lowballed by a whole husband, you're not special", "{O} wouldn't cover the therapy. no", "hahaha. {O}. no"],
+      block: ["blocked. and unlike him, I mean it", "we're done. {O}. I've ended better arrangements over less", "goodbye. may your offers improve"],
+      generous: ["you know what — {O}. you seem stable. I value that now", "{O}! it's yours. quick, before his cousin messages me", "fine, {O}. new chapter, new garage"],
+      met: ["{O}. deal. closure looks good on me", "there. {O}. sold and spite-satisfied", "{O}! done. tell him it went to a good home. or don't. don't care"]
+    },
+    dealer: {
+      accept: ["{O}. done. I'll have the paperwork ready — we do this properly", "sold at {O}. shop's open til 6, come sign", "{O} works. invoice, receipt, the whole nine yards", "deal. {O}. thirty years in business, still love a clean sale"],
+      grudging: ["{O}... alright. margin's thin but winter's coming", "fine, {O}. my accountant will have words. mostly with me", "{O}. ok. moving units is moving units", "you got me at {O}. the showroom thanks you"],
+      counter: ["{C} out the door. that's the number with everything", "I can do {C}. that's wholesale plus a handshake", "meet at {C} and I'll put a fresh plug in it", "{C}. I've sold three this month at that number"],
+      firm: ["{C}. I run a business, not a flea market", "{C} firm. the price is the price, it's on the tag", "no. {C}. I have rent on a showroom, friend", "{C}. final. I don't haggle against my own listings"],
+      reject: ["{O}? this is a dealership, friend", "{O} doesn't cover my overhead for the day", "no. {O}. I suggest the private sellers down the road", "{O}. I frame lowballs in the breakroom. yours is mid-tier"],
+      block: ["we're closed to you. permanently", "blocked. the shop has spoken", "{O}. we're done. the sign says no soliciting and it means you"],
+      generous: ["{O}. alright — slow Tuesday, you win", "you know what, {O}. first sale of the day discount. don't quote me", "{O}. deal. I like moving metal more than storing it"],
+      met: ["{O}. done. I'll write it up", "there we are. {O}. pleasure doing business", "{O} sold. the paperwork takes five minutes"]
+    },
+    bro: {
+      accept: ["{O}?? DEAL. this thing absolutely RIPS", "sold bro. {O}. you're gonna love the braaap", "{O} done. handshake. firm one. respect", "LETS GO. {O}. pickup before thursday, thursdays are leg day"],
+      grudging: ["{O}... fine bro. that stings but ok", "ok {O}. you're lucky I just hit a PR and I'm in a good mood", "{O}. deal. my gains, your bike. equal trade", "fine. {O}. no lowball goes unpunished in the group chat tho"],
+      counter: ["{C} bro. that's the sweet spot, trust", "meet me at {C} and I'll show you the wheelie spot", "{C}. she's got new grips. NEW GRIPS bro", "come on, {C}. the thing's a weapon. a tiny, legal weapon"],
+      firm: ["{C}. firm like my core, bro", "no. {C}. I don't skip leg day and I don't skip price day", "{C} final. the bike's shredded and so am I", "{C}. respect the number, bro"],
+      reject: ["{O}?? bro. BRO.", "{O} is what I spend on protein. no", "nah bro {O} is disrespectful to the braaap", "{O}. my gym bro offered more and he doesn't even ride"],
+      block: ["blocked bro. tragic. but necessary", "we're done. {O}. the braaap community will hear of this", "bye bro. may your offers get swoler"],
+      generous: ["you know what bro? {O}. I like your vibe", "{O}! for you? done. bring it by the gym sometime", "fine {O}. you caught me post-workout, endorphins are high"],
+      met: ["{O}! DEAL. knew you'd get there bro", "there it is. {O}. respect earned", "{O}. done. LEGENDARY haggle"]
+    },
+    engineer: {
+      accept: ["{O}. acceptable. the spreadsheet concurs", "deal at {O}. within 2% of my modeled value. efficient", "{O}. sold. I have the maintenance log, tabulated", "agreed. {O}. I'll include the torque documentation"],
+      grudging: ["{O}... my model said no, but the variance is tolerable", "fine. {O}. I've run the numbers and I hate them, but they're numbers", "{O}. ok. depreciation curves are cruel and so are you", "conceded at {O}. this will be reflected in my review of the process"],
+      counter: ["{C}. I derived it from three comparables and the manual", "meet at {C}. it's the statistically fair price", "{C}. the carb was rebuilt to factory spec, documentation available", "I can do {C}. per the service manual, that's generous"],
+      firm: ["{C}. the math is the math", "no. {C}. emotion is not a currency I accept", "{C} firm. I have receipts organized by date AND category", "{C}. final. further negotiation has diminishing returns"],
+      reject: ["{O}? that figure has no basis in reality", "{O} is three standard deviations from serious", "no. I calculated {O} and got an error", "{O}. I respect the attempt. the attempt failed"],
+      block: ["this interaction is terminated. blocked", "we're done. your offers are non-compliant", "{O}. goodbye. I've logged this"],
+      generous: ["{O}. my model objects, but you've been... precise. deal", "fine. {O}. an anomaly I'll allow", "{O}. sold. you presented data. I respect data"],
+      met: ["{O}. exactly the predicted outcome. deal", "there. {O}. converged, as calculated", "{O}. done. an efficient negotiation"]
+    },
+    artist: {
+      accept: ["{O}. sold. her name is Geraldine, by the way", "deal, {O}. the universe provides and so do you", "{O}. she's yours. the paint is lead-free but the vibes are heavy", "ok {O}. I painted her during a storm. she likes you, I can tell"],
+      grudging: ["{O}... alright. Geraldine understands. I explained it to her", "fine, {O}. money is a construct and so is my rent, unfortunately", "{O}. ok. the muse demands supplies and the supplies demand money", "you've haggled the stars down to {O}. I hope the cosmos forgives you"],
+      counter: ["{C} and I'll sign the tank. it's art now, technically", "meet at {C}. half for the bike, half for the aura", "{C}. she was in a gallery once. a garage gallery. still counts", "I feel {C} in my spirit. the spirit is rarely wrong"],
+      firm: ["{C}. the vision doesn't discount", "no. {C}. I've turned down gallery money (there was none, but still)", "{C} firm. creativity appreciates, friend", "{C}. final. Geraldine has spoken through me"],
+      reject: ["{O}? Geraldine is offended and she's a motorcycle", "{O} wouldn't buy the paint I used. it was expensive paint", "no. the cosmos says no to {O}", "{O}. I astral-projected a better offer than that once"],
+      block: ["blocked. the energy was rancid", "we're done. Geraldine doesn't know you anymore", "{O}. goodbye. I'm smudging this chat"],
+      generous: ["{O}. the moon is right and so are you. deal", "take her for {O}. she chose you, I just held the keys", "{O}! sold. the stars demanded a discount and who am I to argue"],
+      met: ["{O}. the prophecy is fulfilled. deal", "there. {O}. Geraldine approves", "{O}. done. beautiful energy all around"]
+    },
+    mom: {
+      accept: ["{O}? oh wonderful. my son said 'just sell it mom' and here we are", "sold! {O}. you'll have to explain to me how the money part works", "{O}. deal. it was taking up the whole side of the garage", "oh good, {O}. I was so tired of working around it"],
+      grudging: ["{O}... alright. my son said don't take the first offer but he also doesn't call, so", "fine, {O}. he owes me for the storage anyway. years of it", "{O}. ok. I just want it gone before the HOA meeting", "you seem nice. {O}. my son can have his feelings about it later"],
+      counter: ["how about {C}? my neighbor's son said that's fair and he works at a bank", "{C}. I looked some things up. I printed them out", "meet at {C}? I don't know much about these but I know my garage", "{C} and I'll throw in his old helmet. he left everything, honestly"],
+      firm: ["{C}. my son may not call but he did text 'don't go below that mom'", "{C} firm. I raised three kids, I can hold a price", "no, dear. {C}. the bingo group coached me", "{C}. final. I have bridge at 4"],
+      reject: ["{O}? oh, I don't think so", "{O} is less than the shoes he left here. no", "no. even I know {O} is silly, and I thought the carburetor was a radio part", "{O}. my son taught me the word 'lowball' specifically for this"],
+      block: ["blocked. my son will hear about this", "we're done. {O}. I'm telling the neighborhood watch", "goodbye. I don't sell to people who offer {O}"],
+      generous: ["{O}? oh, alright. you seem like a good kid", "take it for {O}. just get it out of my garage before Sunday dinner", "{O}. deal. come round the side gate, the dog is dramatic"],
+      met: ["{O}! deal. see, I CAN do this", "there! {O}. my son is going to be so surprised I negotiated", "{O}. done. I did it. I sold a motorcycle on the internet"]
+    },
+    fisherman: {
+      accept: ["{O}. sold. tide's turning, come before the ramp gets busy", "deal at {O}. she's steadier than my boat, honestly", "{O}. done. I got crab pots to pull and you're holding a good bike", "{O} works. cash at the dock. I mean driveway"],
+      grudging: ["{O}... alright. fuel prices being what they are", "fine, {O}. the ocean takes my money, now you too", "{O}. ok. my boat needs a new impeller and apparently so does my life", "you got me at {O}. same way the fog gets the harbor. slowly"],
+      counter: ["{C}, and that's dock price, friend", "meet at {C}. half my money's in the water anyway, join it", "{C}. she runs like a kicker motor on a calm morning", "I can do {C}. weather's fair, price is too"],
+      firm: ["{C}. I've waited out storms longer than this negotiation", "{C} firm. the sea doesn't haggle and neither do I", "no. {C}. I can sit on it till the salmon run", "{C}. final. take it or the tide takes us both"],
+      reject: ["{O}? that's bait money, not bike money", "{O} wouldn't fill my tanks. either of them", "no. I've thrown back better offers than {O}", "{O}. landlubber numbers"],
+      block: ["blocked. back to port with you", "we're done. {O}. the harbor has rules", "goodbye. may your offers find better waters"],
+      generous: ["{O}. fine. you caught me with a full trap and a full heart", "take it for {O}. a good bike's like a good tide. don't waste it", "{O}. deal. you have a sailor's honesty"],
+      met: ["{O}. there she blows. deal", "{O}. done. smooth sailing", "{O} sold. may she carry you like a following sea"]
+    },
+    conspiracy: {
+      accept: ["{O}. deal. we never met. delete this chat (don't, I can't do it for you)", "sold, {O}. meet where we discussed. we didn't discuss. you know where", "{O}. fine. cash, obviously. for reasons", "ok {O}. I'll be the one by the old payphone. the payphone thing is a whole story"],
+      grudging: ["{O}... the numbers allow it. fine", "ok {O}. I ran this through the version of my brain I trust", "{O}. alright. they WANT me to sell it, which is why I almost didn't", "fine. {O}. but if a drone flies over during pickup, the deal's off"],
+      counter: ["{C}. and going forward we keep messages short. you know why", "meet at {C}. location undisclosed (it's my driveway. 4pm)", "{C}. they undervalue these on purpose. wake up", "I counter {C}. the manuals they don't let you read say that's fair"],
+      firm: ["{C}. I don't fold. folding is what they expect", "{C} firm. I've sat on better prices for longer", "no. {C}. the price is the price, in this timeline anyway", "{C}. final. my sources confirm"],
+      reject: ["{O}? that's exactly what a fed would offer", "{O}. suspiciously round. no", "no. {O} has been flagged by my systems (a notebook)", "{O}?? nice try, agencies"],
+      block: ["blocked. this account is burned", "we're done. {O}. I'm changing my name (to another username)", "goodbye. forget you saw this listing"],
+      generous: ["{O}. you type like a human. a real one. deal", "{O}. fine. my storage has two of everything except patience", "take it for {O}. if anyone asks, it was always yours"],
+      met: ["{O}. convergence confirmed. deal", "there. {O}. exactly as predicted (by me, just now)", "{O}. done. a pleasure, citizen"]
     },
   },
   SHARED: {
@@ -488,6 +637,7 @@ function genPartsShop(n = 16) {
   for (let i = 0; i < extra; i++) {
     mkPart(BIKES[(Math.random() * BIKES.length) | 0]);
   }
+  for (const it of out) it.persona = randomPersona();
   return out;
 }
 
@@ -631,5 +781,6 @@ function genListings(n, startId = 0, prevBikeId = null) {
     prevBikeId = l.bikeId;
     out.push(l);
   }
+  for (const l of out) if (!l.isDanny) l.persona = randomPersona();
   return out;
 }

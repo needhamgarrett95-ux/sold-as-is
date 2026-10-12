@@ -82,6 +82,12 @@ const Views = {
   partsCooldownTimer: null,
   PARTS_COOLDOWN_KEY: "soldasis_parts_cooldown",
   PARTS_REFRESHES_KEY: "soldasis_parts_refreshes",
+  // Crate Fresh runs its OWN refresh economy — independent of the Boneyard's
+  crateRefreshesLeft: 3,
+  crateCooldownUntil: 0,
+  CRATE_COOLDOWN_KEY: "soldasis_crate_cooldown",
+  CRATE_REFRESHES_KEY: "soldasis_crate_refreshes",
+  _btnTimer: null, // the refresh button's single display driver
 
   refreshParts() {
     const now = Date.now();
@@ -96,7 +102,7 @@ const Views = {
         localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
         localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
       } catch (e) {}
-      this.tickPartsCooldown();
+      this.updateRefreshBtn();
       return;
     }
     this.partsRefreshesLeft--;
@@ -120,34 +126,14 @@ const Views = {
         localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
         localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
       } catch (e) {}
-      this.tickPartsCooldown();
-    } else {
-      this.updateRefreshBtn();
     }
+    this.updateRefreshBtn();
   },
 
   tickPartsCooldown() {
-    const btn = document.getElementById("refresh-btn");
-    clearInterval(this.partsCooldownTimer);
-    const update = () => {
-      const remain = Math.ceil((this.partsCooldownUntil - Date.now()) / 1000);
-      if (remain <= 0) {
-        clearInterval(this.partsCooldownTimer);
-        this.partsRefreshesLeft = 3; // reset free refreshes
-        try {
-          localStorage.setItem(this.PARTS_REFRESHES_KEY, "3");
-          localStorage.removeItem(this.PARTS_COOLDOWN_KEY);
-        } catch (e) {}
-        this.updateRefreshBtn();
-        return;
-      }
-      btn.disabled = true;
-      btn.classList.add("cooling");
-      btn.textContent = `${remain}s`;
-      btn.title = `Boneyard refresh in ${remain}s`;
-    };
-    update();
-    this.partsCooldownTimer = setInterval(update, 1000);
+    // Legacy entry point — the button is now rendered by updateRefreshBtn's
+    // single display driver, which only ever shows the current tab's timer
+    this.updateRefreshBtn();
   },
 
   updateRefreshBtn() {
@@ -170,43 +156,90 @@ const Views = {
         }
       } catch (e) {}
     }
+    // Restore the Crate Fresh economy once per session (independent of the Boneyard's)
+    if (!this._crateRestored) {
+      this._crateRestored = true;
+      try {
+        const savedCooldown = parseInt(localStorage.getItem(this.CRATE_COOLDOWN_KEY) || "0", 10);
+        if (savedCooldown > Date.now()) {
+          this.crateCooldownUntil = savedCooldown;
+          this.crateRefreshesLeft = 0;
+        } else {
+          this.crateRefreshesLeft = 3;
+          localStorage.setItem(this.CRATE_REFRESHES_KEY, "3");
+          localStorage.removeItem(this.CRATE_COOLDOWN_KEY);
+        }
+      } catch (e) {}
+    }
     const btn = document.getElementById("refresh-btn");
     if (!btn) return;
-    if (this.current === "parts" || this.current === "crate") {
+    // SINGLE WRITER: one display driver renders ONLY the current tab's refresh
+    // economy. Each tab's timer runs independently; nothing else writes this
+    // button, so timers can never bleed across tabs or ghost over each other.
+    clearInterval(this._btnTimer);
+    this._btnTimer = null;
+    const render = () => {
       const now = Date.now();
-      if (now < this.partsCooldownUntil) {
-        // Parts cooldown active — ensure display timer is running
-        if (!this.partsCooldownTimer) this.tickPartsCooldown();
+      if (this.current === "market") {
+        const remain = Math.ceil((Feed.cooldownUntil - now) / 1000);
+        if (remain > 0) {
+          btn.disabled = true;
+          btn.classList.add("cooling");
+          const m = Math.floor(remain / 60), s = remain % 60;
+          btn.textContent = `${m}:${String(s).padStart(2, "0")}`;
+          btn.title = `Refresh available in ${m}:${String(s).padStart(2, "0")}`;
+        } else {
+          btn.disabled = false;
+          btn.classList.remove("cooling");
+          btn.innerHTML = "↻";
+          btn.title = "Refresh listings";
+          clearInterval(this._btnTimer); this._btnTimer = null;
+        }
+      } else if (this.current === "parts" || this.current === "crate") {
+        const crate = this.current === "crate";
+        let until = crate ? this.crateCooldownUntil : this.partsCooldownUntil;
+        let remain = Math.ceil((until - now) / 1000);
+        if (until && remain <= 0) {
+          // This tab's cooldown finished — reset ITS free refreshes only
+          if (crate) {
+            this.crateCooldownUntil = 0;
+            this.crateRefreshesLeft = 3;
+            try { localStorage.setItem(this.CRATE_REFRESHES_KEY, "3"); localStorage.removeItem(this.CRATE_COOLDOWN_KEY); } catch (e) {}
+          } else {
+            this.partsCooldownUntil = 0;
+            this.partsRefreshesLeft = 3;
+            try { localStorage.setItem(this.PARTS_REFRESHES_KEY, "3"); localStorage.removeItem(this.PARTS_COOLDOWN_KEY); } catch (e) {}
+          }
+          until = 0; remain = 0;
+        }
+        if (remain > 0) {
+          btn.disabled = true;
+          btn.classList.add("cooling");
+          btn.textContent = `${remain}s`;
+          btn.title = crate ? `Crate Fresh restock in ${remain}s` : `Boneyard refresh in ${remain}s`;
+        } else {
+          btn.disabled = false;
+          btn.classList.remove("cooling");
+          btn.innerHTML = "↻";
+          btn.title = crate
+            ? `Restock Crate Fresh (${this.crateRefreshesLeft} free left)`
+            : `Refresh Boneyard (${this.partsRefreshesLeft} free left)`;
+          clearInterval(this._btnTimer); this._btnTimer = null;
+        }
+      } else {
+        // Garage/collection: no refresh here
+        btn.style.display = "none";
+        clearInterval(this._btnTimer); this._btnTimer = null;
         return;
       }
-      // Clear any market cooldown display
-      clearInterval(Feed.cooldownTimer);
-      btn.disabled = false;
-      btn.classList.remove("cooling");
-      btn.innerHTML = "↻";
-      btn.title = this.current === "crate"
-        ? `Restock Crate Fresh (${this.partsRefreshesLeft} free left)`
-        : `Refresh Boneyard (${this.partsRefreshesLeft} free left)`;
-    } else if (this.current === "market") {
-      // Clear parts cooldown display, restore market state
-      clearInterval(this.partsCooldownTimer);
-      this.partsCooldownTimer = null;
-      const now = Date.now();
-      if (now < Feed.cooldownUntil) {
-        Feed.tickCooldown(); // resume market countdown display
-      } else {
-        btn.disabled = false;
-        btn.classList.remove("cooling");
-        btn.innerHTML = "↻";
-        btn.title = "Refresh listings";
-      }
-    } else {
-      // Garage/collection: hide refresh button (no refresh here)
-      btn.style.display = "none";
-      return;
-    }
-    btn.style.display = "";
-    btn.style.display = "";
+      btn.style.display = "";
+    };
+    render();
+    const cooling = this.current === "market" ? Feed.cooldownUntil > Date.now()
+      : this.current === "parts" ? this.partsCooldownUntil > Date.now()
+      : this.current === "crate" ? this.crateCooldownUntil > Date.now()
+      : false;
+    if (cooling && !this._btnTimer) this._btnTimer = setInterval(render, 1000);
   },
 
   // --- auction engine ---
@@ -2425,18 +2458,18 @@ const Views = {
   // refresh economy (3 free, then a 30s cooldown) so neither store can be farmed.
   refreshCrate() {
     const now = Date.now();
-    if (now < this.partsCooldownUntil) return;
-    if (this.partsRefreshesLeft <= 0) {
-      this.partsCooldownUntil = now + 30 * 1000;
+    if (now < this.crateCooldownUntil) return;
+    if (this.crateRefreshesLeft <= 0) {
+      this.crateCooldownUntil = now + 30 * 1000;
       try {
-        localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
-        localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
+        localStorage.setItem(this.CRATE_COOLDOWN_KEY, String(this.crateCooldownUntil));
+        localStorage.setItem(this.CRATE_REFRESHES_KEY, "0");
       } catch (e) {}
-      this.tickPartsCooldown();
+      this.updateRefreshBtn();
       return;
     }
-    this.partsRefreshesLeft--;
-    try { localStorage.setItem(this.PARTS_REFRESHES_KEY, String(this.partsRefreshesLeft)); } catch (e) {}
+    this.crateRefreshesLeft--;
+    try { localStorage.setItem(this.CRATE_REFRESHES_KEY, String(this.crateRefreshesLeft)); } catch (e) {}
     this.crateStock = genCrateStock(12);
     // Guarantee: if a bike is picked in the shared filter, it has something on the shelf
     if (this.partsFilter !== "all" && !this.crateStock.some(p => p.bikeSprite === this.partsFilter)) {
@@ -2454,16 +2487,14 @@ const Views = {
     }
     Save.save();
     this.renderCrate();
-    if (this.partsRefreshesLeft <= 0) {
-      this.partsCooldownUntil = Date.now() + 30 * 1000;
+    if (this.crateRefreshesLeft <= 0) {
+      this.crateCooldownUntil = Date.now() + 30 * 1000;
       try {
-        localStorage.setItem(this.PARTS_COOLDOWN_KEY, String(this.partsCooldownUntil));
-        localStorage.setItem(this.PARTS_REFRESHES_KEY, "0");
+        localStorage.setItem(this.CRATE_COOLDOWN_KEY, String(this.crateCooldownUntil));
+        localStorage.setItem(this.CRATE_REFRESHES_KEY, "0");
       } catch (e) {}
-      this.tickPartsCooldown();
-    } else {
-      this.updateRefreshBtn();
     }
+    this.updateRefreshBtn();
   },
 
   crateRowHTML(p, idx) {

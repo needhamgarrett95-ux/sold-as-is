@@ -81,26 +81,9 @@ const Feed = {
   },
 
   tickCooldown() {
-    const btn = document.getElementById("refresh-btn");
-    clearInterval(this.cooldownTimer);
-    const update = () => {
-      const remain = Math.ceil((this.cooldownUntil - Date.now()) / 1000);
-      if (remain <= 0) {
-        clearInterval(this.cooldownTimer);
-        btn.disabled = false;
-        btn.classList.remove("cooling");
-        btn.innerHTML = "↻";
-        btn.title = "Refresh listings";
-        return;
-      }
-      btn.disabled = true;
-      btn.classList.add("cooling");
-      const m = Math.floor(remain / 60), s = remain % 60;
-      btn.textContent = `${m}:${String(s).padStart(2, "0")}`;
-      btn.title = `Refresh available in ${m}:${String(s).padStart(2, "0")}`;
-    };
-    update();
-    this.cooldownTimer = setInterval(update, 1000);
+    // The refresh button is rendered by Views' single display driver, which
+    // shows only the current tab's timer — this just asks it to re-render
+    if (typeof Views !== "undefined" && Views.updateRefreshBtn) Views.updateRefreshBtn();
   },
 
   remove(id) {

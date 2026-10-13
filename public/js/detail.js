@@ -70,14 +70,20 @@ const Detail = {
     }
     // Disable buying immediately — this listing is dead
     this.blocked = true;
-    // Close after a beat so they see the block message, then refresh feed
-    setTimeout(() => {
-      this.close();
-      if (typeof Views !== "undefined" && Views.current === "market") {
-        Views.renderMarketFeed();
-        Views.renderMarketTabs();
-      }
-    }, 1500);
+    // Close after a beat so they see the block message, then refresh feed —
+    // but NOT while a Smooth Talker retry is on the table: the player needs
+    // the detail open to tap it. (The 1500ms auto-close used to race the tap
+    // and swallow the retry button before anyone could hit it.)
+    const canRetry = !this.retryUsed && (typeof Skills !== "undefined") && Skills.hasRetry();
+    if (!canRetry) {
+      setTimeout(() => {
+        this.close();
+        if (typeof Views !== "undefined" && Views.current === "market") {
+          Views.renderMarketFeed();
+          Views.renderMarketTabs();
+        }
+      }, 1500);
+    }
   },
   sendOffer(rawInput) {
     const l = this.current;

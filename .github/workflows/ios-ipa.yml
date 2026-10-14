@@ -47,6 +47,7 @@ jobs:
         run: |
           xcodebuild -project ios/SoldAsIs.xcodeproj -scheme SoldAsIs \
             -configuration Release \
+            -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/SoldAsIs.xcarchive" \
             archive \

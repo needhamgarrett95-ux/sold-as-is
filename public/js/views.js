@@ -2820,7 +2820,7 @@ const Views = {
   },
 
   // ============ GARAGE ============
-  garageTab: "bikes", // "bikes" | "parts"
+  garageTab: "bikes", // "bikes" | "collection" | "parts" | "skills"
   garageDetailIdx: -1,
 
   // Description presets by bike condition
@@ -2939,6 +2939,21 @@ const Views = {
     return found ? found.sell : 0;
   },
 
+  // Collection-worthy? Mint condition, or wearing only pristine/NOS parts.
+  // Returns { ok, reason }. "Fitted" = partStates entries that aren't missing.
+  collectionWorthy(bike) {
+    const nope = "Needs Mint condition or pristine/NOS parts";
+    if (!bike) return { ok: false, reason: nope };
+    if (bike.condition === "Mint") return { ok: true, reason: "" };
+    const states = bike.partStates || {};
+    const missing = new Set(bike.missingParts || []);
+    const fitted = Object.entries(states).filter(([k, s]) => s && s !== "missing" && !missing.has(k));
+    if (!fitted.length) return { ok: false, reason: nope };
+    const bad = fitted.find(([k, s]) => s !== "pristine" && s !== "nos");
+    if (bad) return { ok: false, reason: nope };
+    return { ok: true, reason: "" };
+  },
+
   renderGarage() {
     // Strip mode belongs to one bike's page only — never carries over
     if (this.stripMode && this._stripFor !== this.garageDetailIdx) {
@@ -2946,9 +2961,12 @@ const Views = {
       this._stripFor = null;
     }
     const el = document.getElementById("garage-view");
+    const bikesCount = (State.garage || []).filter(b => !b.kept).length;
+    const keptCount = (State.garage || []).filter(b => b.kept).length;
     const tabs = `
       <div class="g-tabs">
-        <button class="g-tab${this.garageTab === "bikes" ? " active" : ""}" data-gtab="bikes">${Icon.get('moped')} Bikes${State.garage.length ? ` (${State.garage.length})` : ""}</button>
+        <button class="g-tab${this.garageTab === "bikes" ? " active" : ""}" data-gtab="bikes">${Icon.get('moped')} Bikes${bikesCount ? ` (${bikesCount})` : ""}</button>
+        <button class="g-tab${this.garageTab === "collection" ? " active" : ""}" data-gtab="collection">${Icon.get('star')} Collection${keptCount ? ` (${keptCount})` : ""}</button>
         <button class="g-tab${this.garageTab === "parts" ? " active" : ""}" data-gtab="parts">${Icon.get('gear')} Parts${State.parts && State.parts.length ? ` (${State.parts.length})` : ""}</button>
 
         <button class="g-tab${this.garageTab === "skills" ? " active" : ""}" data-gtab="skills">${Icon.get('trophy')} Skills${Skills.unspentPoints() ? ` (${Skills.unspentPoints()})` : ""}</button>
@@ -2975,13 +2993,21 @@ const Views = {
   },
 
   garageGridHTML() {
-    if (!State.garage.length) {
+    const isCollection = this.garageTab === "collection";
+    const tabBikes = [...State.garage.map((b, i) => ({ b, i }))]
+      .filter(({ b }) => isCollection ? b.kept : !b.kept);
+    if (!tabBikes.length) {
+      if (isCollection) {
+        return `<div class="pane-head"><h2>Your Collection</h2>
+          <div class="sub">Kept bikes live here — safe from the market.</div></div>
+          <div class="empty"><strong>No keepers yet</strong>Restore a bike to Mint (or fit pristine/NOS parts), then hit "Add to Collection".</div>`;
+      }
       return `<div class="pane-head"><h2>Pending Listings</h2>
         <div class="sub">Bikes you own, waiting to be listed.</div></div>
         <div class="empty"><strong>Empty garage</strong>Hit the market and buy your first flip.</div>`;
     }
     const sortMode = this.garageSort || "recent";
-    const sorted = [...State.garage.map((b, i) => ({ b, i }))]
+    const sorted = tabBikes
       .filter(({ b }) => !this.garageBikeFilter || b.sprite === this.garageBikeFilter)
       .sort((x, y) => {
       if (sortMode === "value") return (y.b.fairValue || 0) - (x.b.fairValue || 0);
@@ -2989,8 +3015,8 @@ const Views = {
       if (sortMode === "brand") return (x.b.brand || "").localeCompare(y.b.brand || "");
       return y.i - x.i; // recent (default)
     });
-    return `<div class="pane-head"><h2>Pending Listings</h2>
-      <div class="sub">${sorted.length} bike(s) · tap to manage</div>
+    return `<div class="pane-head"><h2>${isCollection ? "Your Collection" : "Pending Listings"}</h2>
+      <div class="sub">${isCollection ? `${sorted.length} bike(s) · safe from the market` : `${sorted.length} bike(s) · tap to manage`}</div>
       <select id="garage-sort" class="garage-sort">
         <option value="recent"${sortMode === "recent" ? " selected" : ""}>Recently added</option>
         <option value="value"${sortMode === "value" ? " selected" : ""}>Highest value</option>
@@ -3011,7 +3037,7 @@ const Views = {
         </div>
         <div class="card-info">
           <div class="card-price-name"><strong>${money(b.boughtFor)}</strong> &middot; ${b.brand} ${b.model}</div>
-          <div class="card-loc">${b.kept ? "${Icon.get('star')} In collection" : "Pending"} <span class="${profitCls}">${profitTxt}</span></div>
+          <div class="card-loc">${b.kept ? Icon.get('star') + " In collection" : "Pending"} <span class="${profitCls}">${profitTxt}</span></div>
         </div>
       </article>`; }).join("") + `</div>`;
   },
@@ -3051,6 +3077,12 @@ const Views = {
     const presets = this.descPresets(b.condition);
     const tier = (typeof Skills !== "undefined") ? Skills.unlocked["smoothtalker"] || 0 : 0;
     if (!b.desc) b.desc = presets[0].t;
+    // Kept bikes (Collection tab): exactly one action. Otherwise: list/strip + gated keep.
+    const gate = b.kept ? null : this.collectionWorthy(b);
+    const keepBtn = b.kept ? "" : (gate.ok
+      ? `<button class="btn-keep" data-gact="keep-add">${Icon.get('trophy')} Add to Collection</button>`
+      : `<button class="btn-keep" data-gact="keep-add" disabled title="${gate.reason}">${Icon.get('trophy')} Add to Collection</button>
+        <div class="sub keep-gate-note">${gate.reason}</div>`);
     return `
       <button class="back-btn" id="g-back">← Back</button>
       <div class="g-detail">
@@ -3081,7 +3113,7 @@ const Views = {
                   <div class="part-missing-x">${Icon.get('missing')}</div>
                   <div class="part-label">${p.label}</div>
                   <div class="part-state" style="color:#999">Missing</div>
-                  ${owned ? `<button class="eby-buy" data-install-garage-part="${p.key}" style="margin-top:6px">Install (${owned})</button>` : ""}
+                  ${owned && !b.kept ? `<button class="eby-buy" data-install-garage-part="${p.key}" style="margin-top:6px">Install (${owned})</button>` : ""}
                 </div>`;
               }
               const revealed = (b.revealedParts || []).includes(p.key);
@@ -3097,10 +3129,11 @@ const Views = {
           </div>
         </div>
         <div class="g-detail-actions">
-          <button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
+          ${b.kept
+            ? `<button class="btn-keep" data-gact="keep-remove">${Icon.get('star')} Remove from Collection</button>`
+            : `<button class="btn-list" data-gact="list">${Icon.get('clipboard')} List on Marketplace</button>
           <button class="btn-strip" id="strip-toggle-btn" style="margin-top:8px">${Icon.get('wrench')} ${this.stripMode ? "Done Stripping" : "Strip Parts"}</button>
-          <button class="btn-keep" data-gact="keep">${b.kept ? Icon.get('star') + " In Collection" : Icon.get('trophy') + " Add to Collection"}</button>
-
+          ${keepBtn}`}
         </div>
 
         ${b.listed ? `<div class="notice">Live on the marketplace — buyers can see it.</div>` : ""}
@@ -3767,33 +3800,27 @@ const Views = {
         if (cancel) cancel.addEventListener("click", () => this.renderGarage());
         if (input) input.focus();
       }
-    } else if (act === "keep") {
-      if (!bike.kept) {
-        // Collection requires ALL pristine parts — NOS counts (it's pristine, perfected)
-        const avail = availableParts(bike.sprite);
-        const bad = avail.filter(p => {
-          if ((bike.missingParts || []).includes(p.key)) return true;
-          const st = (bike.partStates && bike.partStates[p.key]) || "pristine";
-          return st !== "pristine" && st !== "nos";
-        });
-        if (bad.length) {
-          return;
-        }
-      }
-      bike.kept = !bike.kept;
+    } else if (act === "keep-add") {
+      // Gated in the UI; belt-and-braces re-check here.
+      if (bike.kept || !this.collectionWorthy(bike).ok) return;
+      bike.kept = true;
       this.refreshNosStats();
-      if (bike.kept) {
-        State.stats.collected++;
-        // Check brand set completion
-        const brandBikes = State.garage.filter(b => b.kept && b.brand === bike.brand);
-        // Count unique models for this brand in collection
-        const brandModels = new Set(brandBikes.map(b => b.model));
-        // Check if this completes a brand (need to know brand size — approximate)
-        if (typeof Milestones !== "undefined") Milestones.check(State.stats);
-      } else {
-        State.stats.collected = Math.max(0, State.stats.collected - 1);
-      }
+      State.stats.collected++;
+      if (typeof Milestones !== "undefined") Milestones.check(State.stats);
       Save.save();
+      // The bike moves to the Collection tab.
+      this.garageTab = "collection";
+      this.garageDetailIdx = -1;
+      this.renderGarage();
+    } else if (act === "keep-remove") {
+      if (!bike.kept) return;
+      bike.kept = false;
+      this.refreshNosStats();
+      State.stats.collected = Math.max(0, State.stats.collected - 1);
+      Save.save();
+      // Back to Bikes, sellable again.
+      this.garageTab = "bikes";
+      this.garageDetailIdx = -1;
       this.renderGarage();
     } else if (act === "toassemble") {
       this.moveBikeToAssemble(this.garageDetailIdx);

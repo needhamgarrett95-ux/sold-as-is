@@ -1,0 +1,76 @@
+# Builds an UNSIGNED .ipa of the Sold As-Is personal native iOS app
+# (Swift/WKWebView shell around the bundled web game) on GitHub's macOS
+# runners. No Apple ID, certificate, or Mac required.
+#
+# The unsigned IPA is sideloaded + signed locally by Garrett via AltStore
+# (free Apple ID, 7-day provisioning). Nothing here touches the web game.
+name: Build unsigned iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-ipa.yml"
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Xcode scheme is visible
+        run: |
+          xcodebuild -project ios/SoldAsIs.xcodeproj -list
+
+      - name: Sync Game bundle (public/ + native bridge)
+        run: |
+          set -euo pipefail
+          mkdir -p ios/Game
+          rsync -a --delete public/ ios/Game/
+          cp ios/NativeBridge/native-bridge.js ios/Game/js/native-bridge.js
+          python3 - ios/Game/index.html <<'PY'
+          import sys
+          p = sys.argv[1]
+          s = open(p).read()
+          tag = '<script src="js/native-bridge.js"></script>'
+          if tag not in s:
+              assert '</body>' in s, 'no </body> in index.html'
+              s = s.replace('</body>', tag + '\n</body>')
+              open(p, 'w').write(s)
+          print('bridge injected')
+          PY
+          test -f ios/Game/index.html
+          echo "Game bundle: $(du -sh ios/Game | cut -f1)"
+
+      - name: Archive (Release, no signing)
+        run: |
+          xcodebuild -project ios/SoldAsIs.xcodeproj -scheme SoldAsIs \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/SoldAsIs.xcarchive" \
+            archive \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Verify app bundle
+        run: |
+          APP="$RUNNER_TEMP/SoldAsIs.xcarchive/Products/Applications/SoldAsIs.app"
+          test -d "$APP"
+          test -f "$APP/Game/index.html"
+          echo "App bundle: $(du -sh "$APP" | cut -f1)"
+          ls "$APP"
+
+      - name: Package unsigned IPA
+        run: |
+          rm -rf Payload SoldAsIs-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$RUNNER_TEMP/SoldAsIs.xcarchive/Products/Applications/SoldAsIs.app" Payload/
+          zip -r -y SoldAsIs-unsigned.ipa Payload
+          ls -lh SoldAsIs-unsigned.ipa
+          unzip -l SoldAsIs-unsigned.ipa | head -8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SoldAsIs-unsigned-ipa
+          path: SoldAsIs-unsigned.ipa
+          if-no-files-found: error

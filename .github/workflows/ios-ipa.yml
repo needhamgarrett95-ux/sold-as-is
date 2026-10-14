@@ -25,7 +25,11 @@ jobs:
 
       - name: Show destinations for target (diagnostic)
         run: |
-          xcodebuild -project ios/SoldAsIs.xcodeproj -target SoldAsIs -showdestinations || true
+          xcodebuild -project ios/SoldAsIs.xcodeproj -scheme SoldAsIs -showdestinations || true
+
+      - name: Show resolved build settings (diagnostic)
+        run: |
+          xcodebuild -project ios/SoldAsIs.xcodeproj -target SoldAsIs -configuration Release -showBuildSettings 2>/dev/null | grep -E "^(    SUPPORTED_PLATFORMS|    SDKROOT|    TARGETED_DEVICE_FAMILY|    PRODUCT_TYPE|    CODE_SIGN_STYLE)" || true
 
       - name: Sync Game bundle (public/ + native bridge)
         run: |
@@ -49,7 +53,7 @@ jobs:
 
       - name: Archive (Release, no signing)
         run: |
-          xcodebuild -project ios/SoldAsIs.xcodeproj -target SoldAsIs \
+          xcodebuild -project ios/SoldAsIs.xcodeproj -scheme SoldAsIs \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \

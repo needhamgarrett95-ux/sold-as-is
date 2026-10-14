@@ -8,6 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   const btn = document.getElementById("login-btn");
   const pw = document.getElementById("password");
+  // Phone UI: don't show login over the lock screen — wait for unlock first
+  const lockScreen = document.getElementById("lockScreen");
+  if (lockScreen && !lockScreen.classList.contains("gone")) {
+    loginScreen.classList.add("hidden");
+    document.addEventListener("phone-unlocked",
+      () => loginScreen.classList.remove("hidden"), { once: true });
+  }
   const doLogin = () => {
     if (btn.disabled) return;
     btn.disabled = true;

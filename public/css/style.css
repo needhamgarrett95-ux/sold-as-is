@@ -809,7 +809,7 @@ button.settings-item:active { background: #faf6f1; }
 .music-note-icon { display: inline-flex; color: #febc2e; }
 .music-note-icon svg { width: 20px; height: 20px; }
 
-/* Tutorial */
+/* Tutorial — bottom sheet styled to match the phone UI */
 #tutorial-card {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
   transform: translateY(100%); transition: transform 0.3s ease;
@@ -817,22 +817,31 @@ button.settings-item:active { background: #faf6f1; }
 }
 #tutorial-card.visible { transform: translateY(0); pointer-events: auto; }
 .tutorial-inner {
-  background: var(--card); border-top: 2px solid var(--blue);
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
-  max-width: 600px; margin: 0 auto;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  background: rgba(18, 20, 25, 0.97);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  color: #ece9e1;
+  border-radius: 24px 24px 0 0;
+  padding: 10px 20px calc(20px + env(safe-area-inset-bottom));
+  max-width: 560px; margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.45);
 }
-.tutorial-progress { font-size: 0.75rem; color: var(--dim); margin-bottom: 4px; }
-.tutorial-inner h3 { margin: 0 0 8px; font-size: 1.1rem; }
-.tutorial-inner p { margin: 0 0 12px; color: var(--ink); line-height: 1.4; }
+.tutorial-inner::before {
+  content: ""; display: block; width: 42px; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,0.28); margin: 2px auto 12px;
+}
+.tutorial-progress { font-size: 0.75rem; color: rgba(236,233,225,0.55); margin-bottom: 4px; }
+.tutorial-inner h3 { margin: 0 0 8px; font-size: 1.1rem; color: #fff; }
+.tutorial-inner p { margin: 0 0 14px; color: rgba(236,233,225,0.85); line-height: 1.45; }
 .tutorial-btns { display: flex; gap: 8px; align-items: center; }
-.tutorial-btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; }
-.tutorial-btn.primary { background: var(--blue); color: #fff; }
-.tutorial-hint { font-size: 0.9rem; color: var(--blue); font-weight: 700; text-align: center; padding: 8px; animation: tutorial-pulse 1.5s ease-in-out infinite; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.tutorial-btn { padding: 12px 22px; border-radius: 14px; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; font-family: inherit; }
+.tutorial-btn.primary { background: #e04536; color: #fff; width: 100%; }
+.tutorial-btn.primary:active { transform: scale(0.98); }
+.tutorial-hint { font-size: 0.9rem; color: #febc2e; font-weight: 700; text-align: center; padding: 8px; animation: tutorial-pulse 1.5s ease-in-out infinite; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .tutorial-hint svg { width: 22px; height: 22px; }
 @keyframes tutorial-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 .tutorial-highlight {
-  outline: 3px solid var(--blue) !important;
+  outline: 3px solid #febc2e !important;
   outline-offset: 2px;
   border-radius: 8px;
   position: relative; z-index: 9998;
@@ -1272,7 +1281,7 @@ body.dark-mode .pd-auction-info .pd-time { color: #ff6659; }
 /* Tutorial tap lock — highlighted element gets the outline */
 body.tutorial-locked { touch-action: pan-y; }
 .tutorial-highlight {
-  outline: 3px solid var(--red); outline-offset: 2px;
+  outline: 3px solid #febc2e; outline-offset: 2px;
   border-radius: 8px;
 }
 

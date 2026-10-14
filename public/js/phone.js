@@ -111,6 +111,7 @@ const Phone = (() => {
     const home = homeScreen();
     if (home) home.classList.add("on");
     refreshWidgets();
+    document.dispatchEvent(new CustomEvent("phone-unlocked"));
     setTimeout(() => { lock.style.display = "none"; }, 600);
   }
   function relock() {

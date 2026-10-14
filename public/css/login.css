@@ -1,6 +1,6 @@
 /* Sold As-Is — login / splash screen */
 #login-screen {
-  position: fixed; inset: 0; z-index: 50;
+  position: fixed; inset: 0; z-index: 3000;
   display: flex; align-items: center; justify-content: center;
   background:
     radial-gradient(1200px 700px at 70% 20%, rgba(255,150,60,.14), transparent 60%),

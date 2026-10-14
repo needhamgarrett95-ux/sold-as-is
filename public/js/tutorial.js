@@ -4,8 +4,13 @@ const Tutorial = {
   steps: [
     {
       title: "Welcome to Sold As-Is",
-      text: "Buy low, flip high. No warranties, no take-backs. This is the marketplace — let's take a quick tour.",
+      text: "Buy low, flip high. No warranties, no take-backs. Your whole operation lives on this phone — let's take the tour.",
       action: null,
+    },
+    {
+      title: "Open the App",
+      text: "Every part of the game is its own app. Start with Sold As-Is — the marketplace.",
+      action: '[data-app="market"]',
     },
     {
       title: "Inspect a Bike",
@@ -18,28 +23,42 @@ const Tutorial = {
       action: "#d-back",
     },
     {
-      title: "Make It Count",
-      text: "Every deal is permanent — no take-backs, no refunds. Make too many bad deals and you'll have to reset your save and start over. Think before you buy.",
-      action: null,
+      title: "The Home Bar",
+      text: "That floating bar at the bottom takes you home from anywhere. Try it.",
+      action: "#phone-homebar",
     },
     {
       title: "Your Garage",
       text: "Bikes you buy live here. Restore them, strip them for parts, or flip them. Take a look.",
-      action: '[data-view="garage"]',
+      action: '[data-app="garage"]',
+      homeFirst: true,
     },
     {
       title: "The Boneyard",
       text: "This is the parts shop. Buy It Now, make offers, or bid in auctions. Take a look.",
-      action: '[data-view="parts"]',
+      action: '[data-app="parts"]',
+      homeFirst: true,
     },
     {
       title: "Your Collection",
       text: "The endgame. Restore bikes to pristine condition and fill all 8 brand sets — 47 bikes total, plus a pair of one-of-one Uniques. Your milestones live here too. Take a look.",
-      action: '[data-view="collection"]',
+      action: '[data-app="collection"]',
+      homeFirst: true,
+    },
+    {
+      title: "The Ledger",
+      text: "Every deal, every block, every shameful loss — the Ledger keeps score of your whole career. Take a look.",
+      action: '[data-app="ledger"]',
+      homeFirst: true,
     },
     {
       title: "Repair Risk",
       text: "You can repair worn parts — but each attempt is a gamble. The risk climbs every time: 10%, then 18%, then 30%. A failed repair makes the part WORSE. Know when to stop.",
+      action: null,
+    },
+    {
+      title: "Make It Count",
+      text: "Every deal is permanent — no take-backs, no refunds. Make too many bad deals and you'll have to reset your save and start over. Think before you buy.",
       action: null,
     },
     {
@@ -106,6 +125,9 @@ const Tutorial = {
     this.unbind();
     document.querySelectorAll(".tutorial-highlight").forEach(el =>
       el.classList.remove("tutorial-highlight"));
+
+    // App-icon steps need the home screen visible (icons hide inside apps)
+    if (step.homeFirst && typeof Phone !== "undefined") Phone.goHome();
 
     // Show the tutorial card
     let card = document.getElementById("tutorial-card");

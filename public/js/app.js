@@ -173,14 +173,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof AudioEngine !== "undefined") {
     AudioEngine.init();
     AudioEngine.renderPlayer();
-    // Touch tap on all webpage UI interactions (not nav tabs, music, or login)
+    // Touch tap on all webpage UI interactions (not nav tabs or music)
     // Catches buttons, listing cards, part cells, and other tappable divs
     const shouldTap = (el) => {
       if (!el) return false;
       // Skip nav tabs
       if (el.closest(".wtab")) return false;
-      // Skip music popup, login, music note
-      if (el.closest("#music-popup") || el.id === "login-btn" || el.id === "music-note") return false;
+      // Skip music popup, music note
+      if (el.closest("#music-popup") || el.id === "music-note") return false;
       // Skip the tab bar container itself
       if (el.closest("#wtab-bar") || el.closest(".tab-bar")) return false;
       // Play for buttons and tappable elements

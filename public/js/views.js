@@ -6,6 +6,7 @@ const SITES = {
   garage:     { tab: "Sold As-Is — My Garage",       url: "soldasis.place/garage",     icon: "wrench" },
   collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "trophy" },
   ledger:     { tab: "Sold As-Is — The Ledger",       url: "soldasis.place/ledger",     icon: "ledger" },
+  settings:   { tab: "Sold As-Is — Settings",           url: "soldasis.place/settings",   icon: "gear" },
 };
 
 // Buyer archetypes (aud196): economy ranges stay inside the aud187 envelope.
@@ -111,8 +112,9 @@ const Views = {
     const logoCrate = document.getElementById("logo-crate");
     if (logoCrate) logoCrate.classList.toggle("hidden", !isCrate);
     // Swap the "Search by moped" dropdown for the "find parts that fit" bike
-    // filter on both parts stores; no search control at all on Collection
-    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate || name === "collection" || name === "ledger");
+    // filter on both parts stores; no search control at all on Collection,
+    // Ledger, or Settings
+    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate || name === "collection" || name === "ledger" || name === "settings");
     const mpr = document.getElementById("model-pick-row");
     if (mpr) {
       mpr.classList.toggle("hidden", !(isBoneyard || isCrate));
@@ -136,6 +138,7 @@ const Views = {
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
     document.getElementById("ledger-view").classList.toggle("hidden", name !== "ledger");
+    document.getElementById("settings-view").classList.toggle("hidden", name !== "settings");
     if (name === "market") {
       this.renderMarketTabs(); this.renderMarketFeed();
       if (this.marketTab === "mine") this.clearMarketBadges();
@@ -148,6 +151,7 @@ const Views = {
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
     if (name === "ledger") this.renderLedger();
+    if (name === "settings" && typeof this.renderSettings === "function") this.renderSettings();
     const n = document.getElementById("nav-garage-n");
     if (n) n.textContent = State.garage.length ? `${State.garage.length}` : "";
   },

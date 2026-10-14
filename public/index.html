@@ -8,8 +8,8 @@
 <title>Sold As-Is</title>
 <link rel="icon" type="image/png" href="app-icon.png">
 <link rel="apple-touch-icon" href="app-icon.png">
-<link rel="stylesheet" href="css/style.css?v=aud210">
-<link rel="stylesheet" href="css/login.css?v=aud210">
+<link rel="stylesheet" href="css/style.css?v=aud211">
+<link rel="stylesheet" href="css/login.css?v=aud211">
 </head>
 <body>
 <!-- Login / splash screen -->
@@ -101,21 +101,113 @@
     <div id="garage-view" class="pane hidden"></div>
     <div id="collection-view" class="pane hidden"></div>
     <div id="ledger-view" class="pane hidden"></div>
+    <div id="settings-view" class="pane hidden"></div>
     <footer id="site-footer">Sold As-Is © 2026 · Sold as-is. No warranties, no take-backs. · <a>Terms</a> · <a>Privacy</a></footer>
   </div>
+</div><!-- /#browser -->
+
+<!-- ============ PHONE SHELL (aud211): lock screen + home screen ============ -->
+<div id="phone-shell">
+  <div class="phone-screen">
+    <div class="ps-statusbar"><span data-clock>--:--</span>
+      <span class="ps-sicons">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="2" y="14" width="3" height="6" rx="1"/><rect x="7.5" y="11" width="3" height="9" rx="1"/><rect x="13" y="8" width="3" height="12" rx="1"/><rect x="18.5" y="5" width="3" height="15" rx="1" opacity=".35"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 10.5a12 12 0 0 1 16 0M6.8 14a8 8 0 0 1 10.4 0M9.7 17.4a3.6 3.6 0 0 1 4.6 0"/><circle cx="12" cy="20" r="1.1" fill="currentColor" stroke="none"/></svg>
+        <span class="ps-batt"><i></i></span>
+      </span>
+    </div>
+
+    <!-- LOCK SCREEN -->
+    <section id="lockScreen" class="ps-screen" aria-label="Lock screen. Swipe up or tap to unlock.">
+      <div class="lock-main">
+        <div class="lock-glyph"><span data-icon="lock"></span></div>
+        <div class="lock-date" id="lockDate">—</div>
+        <h1 class="lock-time" id="lockTime">--:--</h1>
+        <div class="lock-brand">
+          <div class="lock-logo">sold <span>as-is</span></div>
+          <div class="lock-tag">Sold as-is. No warranties, no take-backs.</div>
+        </div>
+        <div class="lock-notes" id="lockNotes"></div>
+      </div>
+      <div class="lock-bottom">
+        <button class="swipe-hint" id="unlockBtn" type="button" aria-label="Unlock">
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l7-7 7 7"/></svg></span>
+          <small>Swipe up to open</small>
+        </button>
+      </div>
+      <button class="ps-homebar" id="lockHomeBar" aria-label="Unlock"></button>
+    </section>
+
+    <!-- HOME SCREEN -->
+    <section id="homeScreen" class="ps-screen" aria-label="Phone home screen">
+      <div class="hs-head">
+        <button class="lock-again" id="lockAgain" aria-label="Lock phone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        </button>
+      </div>
+      <div class="clock-widget">
+        <div>
+          <div class="cw-time" data-clock>--:--</div>
+          <div class="cw-date" data-datestr>—</div>
+        </div>
+        <div class="cw-side">
+          <div class="cw-logo">sold <span>as-is</span></div>
+          <span class="wallet" id="hsWallet">$0</span>
+        </div>
+      </div>
+      <div class="widget-pair">
+        <button class="mini-widget" data-app="garage" type="button" aria-label="Open Garage">
+          <div class="mw-head mw-gold"><span data-icon="wrench"></span>GARAGE</div>
+          <div class="mw-big" id="wGarage">0 bikes</div>
+          <div class="mw-sub" id="wGarageSub">Empty — go find something.</div>
+        </button>
+        <button class="mini-widget" data-app="collection" type="button" aria-label="Open Collection">
+          <div class="mw-head mw-rust"><span data-icon="trophy"></span>COLLECTION</div>
+          <div class="mw-big" id="wCollection">0 / 47</div>
+          <div class="mw-bar"><i id="wCollectionBar"></i></div>
+          <div class="mw-sub" id="wCollectionSub">The wall awaits.</div>
+        </button>
+      </div>
+      <div class="app-grid" id="appGrid">
+        <button class="hs-app" data-app="market" type="button"><span class="hs-tile tile-market"><span data-icon="moped"></span></span><span class="hs-label">Sold As-Is</span></button>
+        <button class="hs-app" data-app="parts" type="button"><span class="hs-tile tile-boneyard"><span data-icon="bone"></span></span><span class="hs-label">Boneyard</span></button>
+        <button class="hs-app" data-app="crate" type="button"><span class="hs-tile tile-crate"><span data-icon="crate"></span></span><span class="hs-label">Crate Fresh</span></button>
+        <button class="hs-app" data-app="garage" type="button"><span class="hs-tile tile-garage"><span data-icon="wrench"></span></span><span class="hs-label">Garage</span></button>
+        <button class="hs-app" data-app="collection" type="button"><span class="hs-tile tile-collection"><span data-icon="trophy"></span></span><span class="hs-label">Collection</span></button>
+        <button class="hs-app" data-app="ledger" type="button"><span class="hs-tile tile-ledger"><span data-icon="ledger"></span></span><span class="hs-label">Ledger</span></button>
+        <button class="hs-app" data-app="settings" type="button"><span class="hs-tile tile-settings"><span data-icon="gear"></span></span><span class="hs-label">Settings</span></button>
+        <div class="hs-future" aria-label="Reserved for a future app">
+          <span class="future-slot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span class="hs-label hs-label-dim">Future</span>
+        </div>
+      </div>
+      <div class="hs-spacer"></div>
+      <div class="dock">
+        <button class="hs-app dock-app" data-app="market" type="button" aria-label="Open Sold As-Is"><span class="hs-tile tile-market"><span data-icon="moped"></span></span></button>
+        <button class="hs-app dock-app" data-app="parts" type="button" aria-label="Open Boneyard"><span class="hs-tile tile-boneyard"><span data-icon="bone"></span></span></button>
+        <button class="hs-app dock-app" data-app="garage" type="button" aria-label="Open Garage"><span class="hs-tile tile-garage"><span data-icon="wrench"></span></span></button>
+        <button class="hs-app dock-app" data-app="settings" type="button" aria-label="Open Settings"><span class="hs-tile tile-settings"><span data-icon="gear"></span></span></button>
+      </div>
+    </section>
+
+    <!-- home bar: visible when an app (the game) is open -->
+    <button id="phone-homebar" class="ps-homebar hidden" aria-label="Back to home screen"></button>
+  </div>
 </div>
-<script src="js/data.js?v=aud210"></script>
-<script src="js/parts_manifest.js?v=aud210"></script>
-<script src="js/state.js?v=aud210"></script>
-<script src="js/skills.js?v=aud210"></script>
-<script src="js/icons.js?v=aud210"></script>
-<script src="js/feed.js?v=aud210"></script>
-<script src="js/detail.js?v=aud210"></script>
-<script src="js/keyboard.js?v=aud210"></script>
-<script src="js/views.js?v=aud210"></script>
-<script src="js/app.js?v=aud210"></script>
-<script src="js/login.js?v=aud210"></script>
-<script src="js/audio.js?v=aud210"></script>
-<script src="js/tutorial.js?v=aud210"></script>
+
+<script src="js/data.js?v=aud211"></script>
+<script src="js/parts_manifest.js?v=aud211"></script>
+<script src="js/state.js?v=aud211"></script>
+<script src="js/skills.js?v=aud211"></script>
+<script src="js/icons.js?v=aud211"></script>
+<script src="js/feed.js?v=aud211"></script>
+<script src="js/detail.js?v=aud211"></script>
+<script src="js/keyboard.js?v=aud211"></script>
+<script src="js/views.js?v=aud211"></script>
+<script src="js/app.js?v=aud211"></script>
+<script src="js/login.js?v=aud211"></script>
+<script src="js/audio.js?v=aud211"></script>
+<script src="js/tutorial.js?v=aud211"></script>
+<script src="js/phone.js?v=aud211"></script>
 </body>
 </html>

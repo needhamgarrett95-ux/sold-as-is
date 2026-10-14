@@ -94,6 +94,12 @@ const Icon = (() => {
     cart: S(`<circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M3 4h2l2.4 11h10.4l2-8H7"/>`),
     // Bell (activity)
     bell: S(`<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>`),
+    // Chevron-right (settings rows)
+    chevR: S(`<path d="M9 5l7 7-7 7"/>`),
+    // Moon (dark mode row)
+    moon: S(`<path d="M20 13.5A8 8 0 0 1 10.5 4 8 8 0 1 0 20 13.5z"/>`),
+    // Speaker (sound effects row)
+    speaker: S(`<path d="M4 10v4h3l5 4V6l-5 4H4z"/><path d="M16 9a4 4 0 0 1 0 6"/>`),
   };
 
   return {

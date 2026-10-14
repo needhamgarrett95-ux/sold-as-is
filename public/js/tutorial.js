@@ -23,9 +23,9 @@ const Tutorial = {
       action: "#d-back",
     },
     {
-      title: "The Home Bar",
-      text: "That floating bar at the bottom takes you home from anywhere. Try it.",
-      action: "#phone-homebar",
+      title: "The Home Button",
+      text: "That Home button at the top takes you back here from anywhere. Try it.",
+      action: "#chrome-home",
     },
     {
       title: "Your Garage",
@@ -145,10 +145,6 @@ const Tutorial = {
         ${!step.action ? `<button class="tutorial-btn primary" id="tut-gotit">${isLast ? "Let's go!" : "Got it"}</button>` : `<div class="tutorial-hint">${(typeof Icon !== "undefined" ? Icon.get('tap') : "")} Tap the highlighted area to continue</div>`}
       </div>`;
     card.classList.add("visible");
-    // Action steps: sheet goes tap-transparent so the finger reaches the
-    // highlighted element beneath (e.g. the floating home bar). The tap guard
-    // still blocks everything except .tutorial-highlight targets.
-    card.classList.toggle("tap-through", !!step.action);
 
     if (!step.action) {
       document.getElementById("tut-gotit").onclick = () => this.next();
@@ -209,7 +205,7 @@ const Tutorial = {
     document.querySelectorAll(".tutorial-highlight").forEach(el =>
       el.classList.remove("tutorial-highlight"));
     const card = document.getElementById("tutorial-card");
-    if (card) card.classList.remove("visible", "tap-through");
+    if (card) card.classList.remove("visible");
     try {
       localStorage.setItem("soldasis_tutorial_done", "1");
     } catch (e) {}

@@ -9,7 +9,6 @@ const Phone = (() => {
   const shell = () => $("#phone-shell");
   const lockScreen = () => $("#lockScreen");
   const homeScreen = () => $("#homeScreen");
-  const homebar = () => $("#phone-homebar");
 
   function setText(sel, txt) {
     const el = $(sel);
@@ -142,15 +141,11 @@ const Phone = (() => {
     const sh = shell();
     if (sh) sh.classList.add("app-open");
     document.body.classList.add("app-mode");
-    const hb = homebar();
-    if (hb) hb.classList.remove("hidden");
   }
   function goHome() {
     const sh = shell();
     if (sh) sh.classList.remove("app-open");
     document.body.classList.remove("app-mode");
-    const hb = homebar();
-    if (hb) hb.classList.add("hidden");
     refreshWidgets();
     tick();
   }
@@ -341,8 +336,8 @@ const Phone = (() => {
         openApp(btn.getAttribute("data-app"));
       });
     });
-    const hb = homebar();
-    if (hb) hb.addEventListener("click", goHome);
+    const ch = $("#chrome-home");
+    if (ch) ch.addEventListener("click", goHome);
 
     // expose the settings renderer on the Views seam
     if (typeof Views !== "undefined") Views.renderSettings = renderSettings;

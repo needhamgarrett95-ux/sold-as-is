@@ -14,9 +14,8 @@
 <div id="browser">
   <div id="chrome">
     <div class="safari-bar">
-      <span class="safari-nav" aria-hidden="true">
-        <span class="safari-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span>
-        <span class="safari-btn dim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+      <span class="safari-nav">
+        <button class="safari-btn" id="chrome-home" title="Home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/></svg></button>
       </span>
       <div class="urlbar">
         <span class="lock" data-icon="lock"></span><span class="url">soldasis.place/mopeds</span>
@@ -171,9 +170,6 @@
         <button class="hs-app dock-app" data-app="settings" type="button" aria-label="Open Settings"><span class="hs-tile tile-settings"><span data-appicon="settings"></span></span></button>
       </div>
     </section>
-
-    <!-- home bar: visible when an app (the game) is open -->
-    <button id="phone-homebar" class="ps-homebar hidden" aria-label="Back to home screen"></button>
   </div>
 </div>
 

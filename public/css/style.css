@@ -823,11 +823,6 @@ button.settings-item:active { background: #faf6f1; }
   pointer-events: none;
 }
 #tutorial-card.visible { transform: translateY(0); pointer-events: auto; }
-/* Action steps: sheet is tap-transparent so the finger reaches the highlighted
-   element beneath it (e.g. the floating home bar). The tap guard remains the
-   enforcer — only .tutorial-highlight targets get through. */
-#tutorial-card.visible.tap-through,
-#tutorial-card.visible.tap-through .tutorial-inner { pointer-events: none; }
 .tutorial-inner {
   background: rgba(18, 20, 25, 0.97);
   -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
@@ -1370,13 +1365,12 @@ body.app-mode #site-footer { padding-bottom: 34px; }
 @media (min-width: 768px) { #phone-shell .phone-screen { max-width: 100%; } }
 #phone-shell button { font-family: inherit; }
 
-/* app mode: shell becomes a transparent positioning context for the home bar */
+/* app mode: shell becomes a transparent positioning context for the game */
 #phone-shell.app-open { background: transparent; pointer-events: none; }
 #phone-shell.app-open .phone-screen { background: transparent; }
 #phone-shell.app-open #lockScreen,
 #phone-shell.app-open #homeScreen,
 #phone-shell.app-open .ps-statusbar { display: none; }
-#phone-shell.app-open #phone-homebar { pointer-events: auto; }
 
 .ps-screen { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -1400,16 +1394,6 @@ body.app-mode #site-footer { padding-bottom: 34px; }
   position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
   width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.9); z-index: 60;
 }
-#phone-homebar {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 36px; z-index: 2100; display: block;
-}
-#phone-homebar::after {
-  content: ""; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
-  width: 134px; height: 5px; border-radius: 3px; background: rgba(139,145,153,.9);
-  box-shadow: 0 1px 3px rgba(0,0,0,.35);
-}
-#phone-homebar.hidden { display: none; }
-
 /* ---------- lock screen ---------- */
 #lockScreen {
   z-index: 40;

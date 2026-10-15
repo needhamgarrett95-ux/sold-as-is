@@ -279,6 +279,9 @@ const Phone = (() => {
 
   /* ---------- init ---------- */
   function init() {
+    // PC desktop shell owns the frame: the phone module (lock, relock,
+    // unlock, home) stays completely inert so it can never surface.
+    if (new URLSearchParams(location.search).has("pc")) return;
     try {
       initInner();
     } catch (e) {

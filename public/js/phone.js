@@ -1,4 +1,4 @@
-// Sold As-Is — phone shell (aud212): lock screen + home screen over the live game.
+// Sold As-Is — phone shell (aud213): lock screen + home screen over the live game.
 // View-layer only. Game logic, economy, saves, and dialogue are untouched.
 // App icons call Views.show(view) — the same seam the old tab strip used.
 
@@ -104,6 +104,7 @@ const Phone = (() => {
   function unlock() {
     if (unlocked) return;
     unlocked = true;
+    document.body.classList.remove("is-locked");
     const lock = lockScreen();
     if (!lock) return;
     lock.classList.add("gone");
@@ -111,15 +112,17 @@ const Phone = (() => {
     if (home) home.classList.add("on");
     refreshWidgets();
     document.dispatchEvent(new CustomEvent("phone-unlocked"));
-    // Start tutorial on first run (after unlock; login splash removed aud212).
+    // Start tutorial on first run (after unlock; login splash removed aud213).
     // ?trailer=1 still skips it cleanly for trailer captures.
-    if (typeof Tutorial !== "undefined" && new URLSearchParams(location.search).get("trailer") !== "1") {
+    // Guard !Tutorial.active so a relock mid-tutorial resumes instead of restarting.
+    if (typeof Tutorial !== "undefined" && !Tutorial.active && new URLSearchParams(location.search).get("trailer") !== "1") {
       setTimeout(() => Tutorial.start(), 800);
     }
     setTimeout(() => { lock.style.display = "none"; }, 600);
   }
   function relock() {
     unlocked = false;
+    document.body.classList.add("is-locked");
     const lock = lockScreen();
     const home = homeScreen();
     if (!lock || !home) return;
@@ -257,7 +260,7 @@ const Phone = (() => {
     const aiIco = document.createElement("span"); aiIco.setAttribute("data-icon", "tag");
     ai.appendChild(aiIco);
     const alb = document.createElement("span"); alb.className = "s-label"; alb.textContent = "Sold As-Is";
-    const av2 = document.createElement("span"); av2.className = "s-val"; av2.textContent = "aud212";
+    const av2 = document.createElement("span"); av2.className = "s-val"; av2.textContent = "aud213";
     ar.appendChild(ai); ar.appendChild(alb); ar.appendChild(av2);
     al.appendChild(ar); about.appendChild(ah); about.appendChild(al);
     el.appendChild(about);
@@ -328,6 +331,10 @@ const Phone = (() => {
     }
     const la = $("#lockAgain");
     if (la) la.addEventListener("click", relock);
+    // Relock when backgrounded — real iPhone behavior. Game state persists underneath.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && unlocked) relock();
+    });
 
     // app icons + widgets + dock
     $$("[data-app]").forEach(btn => {

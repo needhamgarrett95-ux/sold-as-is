@@ -3,6 +3,9 @@ const $ = (s) => document.querySelector(s);
 const statusEl = $("#status"), playBtn = $("#btn-play"), updateBtn = $("#btn-update");
 const progWrap = $("#progress-wrap"), progFill = $("#progress-fill"), progLabel = $("#progress-label");
 
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 function renderNotes(md) {
   const lines = (md || "").trim().split("\n");
   if (!lines.length || !lines[0]) return '<p class="dim">No notes yet.</p>';

@@ -1,4 +1,4 @@
-// Sold As-Is — home-screen app icons (aud213).
+// Sold As-Is — home-screen app icons (aud218).
 // Clean, geometric, instantly readable. One consistent stroke language,
 // game palette. Garrett-approved set.
 const AppIcons = {

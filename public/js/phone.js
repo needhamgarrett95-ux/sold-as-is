@@ -1,4 +1,4 @@
-// Sold As-Is — phone shell (aud213): lock screen + home screen over the live game.
+// Sold As-Is — phone shell (aud218): lock screen + home screen over the live game.
 // View-layer only. Game logic, economy, saves, and dialogue are untouched.
 // App icons call Views.show(view) — the same seam the old tab strip used.
 
@@ -112,7 +112,7 @@ const Phone = (() => {
     if (home) home.classList.add("on");
     refreshWidgets();
     document.dispatchEvent(new CustomEvent("phone-unlocked"));
-    // Start tutorial on first run (after unlock; login splash removed aud213).
+    // Start tutorial on first run (after unlock; login splash removed aud218).
     // ?trailer=1 still skips it cleanly for trailer captures.
     // Guard !Tutorial.active so a relock mid-tutorial resumes instead of restarting.
     if (typeof Tutorial !== "undefined" && !Tutorial.active && new URLSearchParams(location.search).get("trailer") !== "1") {
@@ -260,7 +260,13 @@ const Phone = (() => {
     const aiIco = document.createElement("span"); aiIco.setAttribute("data-icon", "tag");
     ai.appendChild(aiIco);
     const alb = document.createElement("span"); alb.className = "s-label"; alb.textContent = "Sold As-Is";
-    const av2 = document.createElement("span"); av2.className = "s-val"; av2.textContent = "aud213";
+    const av2 = document.createElement("span"); av2.className = "s-val";
+    // Single source of truth: read the audit label from the stylesheet's cache-buster.
+    // (A hardcoded label went stale at aud218 while the build moved on — never again.)
+    try {
+      const mv = document.querySelector('link[rel="stylesheet"]')?.href.match(/[?&]v=(aud\d+)/);
+      av2.textContent = mv ? mv[1] : "aud?";
+    } catch (e) { av2.textContent = "aud?"; }
     ar.appendChild(ai); ar.appendChild(alb); ar.appendChild(av2);
     al.appendChild(ar); about.appendChild(ah); about.appendChild(al);
     el.appendChild(about);

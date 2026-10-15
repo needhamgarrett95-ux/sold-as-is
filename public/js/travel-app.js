@@ -6,17 +6,7 @@ window.TravelMap = (function () {
   'use strict';
 
   var HTML =
-    `<!-- Browser chrome: soldasis.place/travel -->
-    <div class="browser-frame">
-      <div class="browser-bar">
-        <div class="browser-dots"><span></span><span></span><span></span></div>
-        <div class="browser-url">
-          <svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="5" width="8" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 5V3.5a2 2 0 0 1 4 0V5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-          soldasis.place/travel
-        </div>
-      </div>
-      <div class="browser-content">
-    
+    `
       <main class="app-shell">
         <section class="hud" aria-label="Travel status">
           <div class="hud-block">
@@ -106,8 +96,7 @@ window.TravelMap = (function () {
       
       
       
-      </div><!-- .browser-content -->
-    </div><!-- .browser-frame -->`;
+      </main>`;
 
   var current = null;
 

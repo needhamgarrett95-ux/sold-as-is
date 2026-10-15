@@ -1,7 +1,7 @@
 # Sold As-Is PC — Patch Notes
 
 ## October 15, 2026
-- New: Road Trip map. See every active bike listing pinned on a map of the Olympic Peninsula, with distances and drive times from your garage.
+- New: Road Trip map (fixed: the map itself now renders — it was missing its map engine). See every active bike listing pinned on a map of the Olympic Peninsula, with distances and drive times from your garage.
 - Fixed: the game could flash the marketplace for a split second on launch. It now opens straight to the desktop.
 - Desktop icons are easier to read in light mode, and every icon label sits on a frosted pill so it reads on any wallpaper.
 - The launcher now finds your game install wherever it landed, so updates finish properly.

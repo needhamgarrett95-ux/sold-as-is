@@ -11,6 +11,9 @@ body.dark-mode {
   --paper: #1a1d22; --card: #242930; --line: #3a4048;
   --ink: #ece9e1; --dim: #9aa0a8;
   --green: #4caf50; --amber: #febc2e; --red: #ff6659;
+  /* --hairline re-declared: Chromium mis-resolves nested var() inside the
+     border shorthand, leaving light-mode #ddd8cc on 3 sides in dark mode */
+  --hairline: 1px solid #3a4048;
 }
 body.dark-mode #browser { background: #1a1d22; }
 body.dark-mode .kb { background: #242930; border-color: #3a4048; }
@@ -1580,11 +1583,10 @@ button.mini-widget:active { border-color: #e04536; }
   flex: 0 0 auto; padding: 8px 14px; border-radius: var(--radius-pill);
   border: var(--hairline); background: var(--card); color: var(--ink);
   font-size: .85rem; font-weight: 600; white-space: nowrap; cursor: pointer;
-  border-bottom: 1px solid var(--line);
 }
 #cats a.active, .eby-type.active, .g-tab.active {
   background: var(--chip-accent); border-color: var(--chip-accent);
-  border-bottom-color: var(--chip-accent); color: #fff; font-weight: 700;
+  color: #fff; font-weight: 700;
 }
 .g-tab svg, .g-tab [data-icon] svg { width: 15px; height: 15px; }
 

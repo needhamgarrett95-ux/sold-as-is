@@ -6,6 +6,7 @@ const SITES = {
   garage:     { tab: "Sold As-Is — My Garage",       url: "soldasis.place/garage",     icon: "wrench" },
   collection: { tab: "Sold As-Is — My Collection",   url: "soldasis.place/collection", icon: "trophy" },
   ledger:     { tab: "Sold As-Is — The Ledger",       url: "soldasis.place/ledger",     icon: "ledger" },
+  travel:     { tab: "Sold As-Is — Road Trip",       url: "soldasis.place/travel",     icon: "travel" },
   settings:   { tab: "Sold As-Is — Settings",           url: "soldasis.place/settings",   icon: "gear" },
 };
 
@@ -96,6 +97,12 @@ const Views = {
   partsShop: [],
 
   show(name) {
+    // Persist travel fuel/wallet when leaving the map
+    if (this.current === "travel" && name !== "travel") {
+      const tr = document.getElementById("travel-root");
+      if (tr && tr._saveTravel) { try { tr._saveTravel(); } catch (e) {} }
+      if (typeof TravelMap !== "undefined") { try { TravelMap.destroy(); } catch (e) {} }
+    }
     this.current = name;
     Detail.close();
     document.querySelectorAll("#tabstrip .wtab").forEach(b =>
@@ -141,6 +148,7 @@ const Views = {
     document.getElementById("garage-view").classList.toggle("hidden", name !== "garage");
     document.getElementById("collection-view").classList.toggle("hidden", name !== "collection");
     document.getElementById("ledger-view").classList.toggle("hidden", name !== "ledger");
+    document.getElementById("travel-view").classList.toggle("hidden", name !== "travel");
     document.getElementById("settings-view").classList.toggle("hidden", name !== "settings");
     if (name === "market") {
       this.renderMarketTabs(); this.renderMarketFeed();
@@ -154,6 +162,7 @@ const Views = {
     if (name === "garage") this.renderGarage();
     if (name === "collection") this.renderCollection();
     if (name === "ledger") this.renderLedger();
+    if (name === "travel") this.renderTravel();
     if (name === "settings" && typeof this.renderSettings === "function") this.renderSettings();
     const n = document.getElementById("nav-garage-n");
     if (n) n.textContent = State.garage.length ? `${State.garage.length}` : "";
@@ -4040,6 +4049,41 @@ const Views = {
   },
 
   // The Ledger — career stats: the grind, the glory, the shame
+  renderTravel() {
+    const root = document.getElementById("travel-root");
+    if (!root || typeof TravelMap === "undefined") return;
+    // Clean up any previous instance
+    try { TravelMap.destroy(); } catch (e) {}
+    // Build listings from the live marketplace feed, deterministic town per listing
+    const towns = (typeof LOCAL_TOWNS !== "undefined" ? LOCAL_TOWNS : []).map(t => t[0].replace(", WA", ""));
+    const listings = (Feed.listings || []).map(l => {
+      const town = towns.length ? towns[l.id % towns.length] : "Port Angeles";
+      return {
+        id: l.id,
+        town: town,
+        bike: (l.brand ? l.brand + " " : "") + (l.model || ""),
+        price: l.price,
+        seller: l.seller || l.persona || "Seller",
+      };
+    });
+    const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+    // Persist fuel/wallet in game state (PC travel)
+    const ts = State.travel || (State.travel = { fuel: 3, wallet: 140 });
+    TravelMap.init(root, {
+      listings: listings,
+      theme: theme,
+      fuel: ts.fuel,
+      wallet: ts.wallet,
+    });
+    // Save fuel/wallet back when leaving (TravelMap exposes state via root)
+    root._saveTravel = () => {
+      try {
+        const s = TravelMap.getState ? TravelMap.getState() : null;
+        if (s) { ts.fuel = s.fuel; ts.wallet = s.wallet; }
+      } catch (e) {}
+    };
+  },
+
   renderLedger() {
     const el = document.getElementById("ledger-view");
     const st = State.stats;

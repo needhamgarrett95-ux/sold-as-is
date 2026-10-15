@@ -12,6 +12,7 @@ try{if(new URLSearchParams(location.search).has("pc"))document.documentElement.c
 <link rel="apple-touch-icon" href="app-icon.png">
 <link rel="stylesheet" href="css/style.css?v=aud224">
 <link rel="stylesheet" href="css/desktop.css?v=pc1">
+<link rel="stylesheet" href="css/travel.css?v=pc1">
 </head>
 <body>
 <div id="browser">
@@ -90,6 +91,7 @@ try{if(new URLSearchParams(location.search).has("pc"))document.documentElement.c
     <div id="garage-view" class="pane hidden"></div>
     <div id="collection-view" class="pane hidden"></div>
     <div id="ledger-view" class="pane hidden"></div>
+    <div id="travel-view" class="pane hidden"><div id="travel-root"></div></div>
     <div id="settings-view" class="pane hidden"></div>
     <footer id="site-footer">Sold As-Is © 2026 · Sold as-is. No warranties, no take-backs. · <a>Terms</a> · <a>Privacy</a></footer>
   </div>
@@ -100,6 +102,7 @@ try{if(new URLSearchParams(location.search).has("pc"))document.documentElement.c
     <button class="ttab" data-app="garage" type="button"><span data-icon="wrench"></span><span class="ttab-label">Garage</span></button>
     <button class="ttab" data-app="collection" type="button"><span data-icon="trophy"></span><span class="ttab-label">Collection</span></button>
     <button class="ttab" data-app="ledger" type="button"><span data-icon="ledger"></span><span class="ttab-label">Ledger</span></button>
+    <button class="ttab" data-app="travel" type="button"><span data-icon="travel"></span><span class="ttab-label">Road Trip</span></button>
   </nav>
 </div><!-- /#browser -->
 
@@ -199,6 +202,8 @@ try{if(new URLSearchParams(location.search).has("pc"))document.documentElement.c
 <script src="js/tutorial.js?v=aud224"></script>
 <script src="js/app-icons.js?v=aud224"></script>
 <script src="js/phone.js?v=aud224"></script>
+<script src="js/travel-lib.js?v=pc1"></script>
+<script src="js/travel-app.js?v=pc1"></script>
 <script src="js/desktop.js?v=pc1"></script>
 </body>
 </html>

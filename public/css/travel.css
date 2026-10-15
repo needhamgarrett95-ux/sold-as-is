@@ -1,0 +1,507 @@
+/* Travel map styles — namespaced under #travel-root. Extracted from prototype. */
+
+    #travel-root {
+        --travel-bg: #20242a;
+        --travel-panel: #242930;
+        --travel-panel-2: #2a3038;
+        --travel-chrome: #2e333b;
+        --travel-line: #3a4048;
+        --travel-line-soft: #4b525c;
+        --travel-ink: #ece9e1;
+        --travel-dim: #aeb4bc;
+        --travel-accent: #e04536;
+        --travel-accent-bright: #f05a49;
+        --travel-rust: #b5651d;
+        --travel-gold: #d28f14;
+        --travel-gold-bright: #febc2e;
+        --travel-safe: #49b56e;
+        --travel-water: #263a43;
+        --travel-land: #4f5948;
+        --travel-shadow: 0 8px 0 rgba(0,0,0,.28);
+        --travel-map-filter: saturate(.55) contrast(1.08) brightness(.72);
+      }
+    #travel-root[data-theme="light"] {
+      color-scheme: light dark;
+      --travel-bg: #d8d5cc;
+      --travel-panel: #f0ede4;
+      --travel-panel-2: #e4e0d6;
+      --travel-chrome: #c9c6be;
+      --travel-line: #6e716f;
+      --travel-line-soft: #a8a8a2;
+      --travel-ink: #1d2227;
+      --travel-dim: #59616a;
+      --travel-accent: #c8362c;
+      --travel-accent-bright: #e04536;
+      --travel-rust: #9c5419;
+      --travel-gold: #b36d00;
+      --travel-gold-bright: #febc2e;
+      --travel-safe: #297748;
+      --travel-water: #8ca4ad;
+      --travel-land: #a8aa8b;
+      --travel-shadow: 0 8px 0 rgba(19,23,26,.18);
+      --travel-map-filter: saturate(.72) contrast(.95) brightness(1.12);
+    }
+    
+    #travel-root * { box-sizing: border-box; }
+    #travel-root { background: var(--travel-bg); }
+    #travel-root {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(90deg, transparent 31px, rgba(255,255,255,.018) 32px, transparent 33px),
+        linear-gradient(transparent 31px, rgba(255,255,255,.018) 32px, transparent 33px),
+        var(--travel-bg);
+      background-size: 32px 32px;
+      color: var(--travel-ink);
+      font-family: "IBM Plex Mono", monospace;
+      -webkit-font-smoothing: antialiased;
+    }
+    #travel-root button, #travel-root input { font: inherit; }
+    #travel-root button { color: inherit; }
+    #travel-root .app-shell { max-width: 1400px; margin: 0 auto; padding: 14px 14px calc(28px + env(safe-area-inset-bottom)); }
+    #travel-root .hud {
+      display: grid;
+      grid-template-columns: minmax(0,1.45fr) minmax(260px,.85fr) minmax(220px,.65fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    #travel-root .hud-block, #travel-root .map-frame, #travel-root .route-panel, #travel-root .log-panel, #travel-root .town-card {
+      background: var(--travel-panel);
+      border: 2px solid var(--travel-line);
+      box-shadow: var(--travel-shadow);
+    }
+    #travel-root .hud-block { min-height: 86px; padding: 13px 14px; position: relative; overflow: hidden; }
+    #travel-root .hud-block::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(135deg, rgba(255,255,255,.05), transparent 45%);
+    }
+    #travel-root .eyebrow { color: var(--travel-dim); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    #travel-root .location-name { font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: clamp(25px, 3vw, 38px); line-height: .95; margin: 5px 0 0; text-transform: uppercase; }
+    #travel-root .location-sub { color: var(--travel-dim); font-size: 11px; margin-top: 8px; }
+    #travel-root .money { font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 34px; line-height: 1; color: var(--travel-gold); margin-top: 8px; }
+    #travel-root .fuel-row { display: flex; align-items: center; gap: 10px; margin-top: 9px; }
+    #travel-root .fuel-icon { width: 28px; height: 34px; flex: 0 0 auto; }
+    #travel-root .fuel-stack { min-width: 0; flex: 1; }
+    #travel-root .fuel-number { font-family: "Barlow Condensed", sans-serif; font-size: 25px; line-height: 1; font-weight: 800; }
+    #travel-root .fuel-bar { height: 12px; margin-top: 6px; border: 2px solid var(--travel-ink); background: var(--travel-chrome); padding: 2px; }
+    #travel-root .fuel-fill { height: 100%; width: 100%; background: var(--travel-gold-bright); transition: width .35s ease, background .35s; }
+    #travel-root .fuel-fill.low { background: var(--travel-accent); }
+    #travel-root .content-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, .72fr); gap: 10px; align-items: start; }
+    #travel-root .left-stack, #travel-root .right-stack { display: grid; gap: 10px; min-width: 0; }
+    #travel-root .map-frame { position: relative; min-height: 590px; overflow: hidden; background: var(--travel-water); }
+    #travel-root .map-head {
+      position: absolute; z-index: 12; left: 12px; top: 12px; right: 12px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none;
+    }
+    #travel-root .map-key {
+      background: color-mix(in srgb, var(--travel-panel) 92%, transparent); border: 2px solid var(--travel-ink); padding: 7px 9px;
+      display: flex; gap: 10px; flex-wrap: wrap; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    }
+    #travel-root .key-item { display: flex; gap: 5px; align-items: center; }
+    #travel-root .key-swatch { width: 11px; height: 11px; border: 2px solid var(--travel-ink); }
+    #travel-root .key-swatch.red { background: var(--travel-accent); }
+    #travel-root .key-swatch.gold { background: var(--travel-gold-bright); }
+    #travel-root .key-swatch.home { background: var(--travel-safe); }
+    #travel-root .map-note { background: color-mix(in srgb, var(--travel-panel) 92%, transparent); border: 2px solid var(--travel-ink); padding: 7px 9px; color: var(--travel-dim); font-size: 9px; max-width: 220px; text-align: right; }
+    #travel-root #map { position: absolute; inset: 0; min-height: 590px; filter: var(--travel-map-filter); }
+    #travel-root .map-shade { position: absolute; inset: 0; pointer-events: none; z-index: 4; box-shadow: inset 0 0 0 2px var(--travel-line), inset 0 -90px 80px -80px rgba(0,0,0,.45); }
+    #travel-root .map-unavailable { position: absolute; inset: 0; z-index: 6; background: var(--travel-panel-2); padding: 58px 14px 14px; overflow: auto; }
+    #travel-root .fallback-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    #travel-root .fallback-town { text-align: left; border: 2px solid var(--travel-line); background: var(--travel-panel); padding: 9px; min-height: 58px; cursor: pointer; }
+    #travel-root .fallback-town strong { display:block; font-size: 11px; }
+    #travel-root .fallback-town small { color: var(--travel-dim); font-size: 9px; }
+    #travel-root .map-marker { position: relative; width: 24px; height: 31px; filter: none; cursor: pointer; }
+    #travel-root .map-marker .pin-shape { width: 22px; height: 22px; border: 3px solid #14171a; transform: rotate(45deg); background: var(--travel-accent); box-shadow: 2px 2px 0 rgba(0,0,0,.35); }
+    #travel-root .map-marker .pin-core { position: absolute; top: 5px; left: 5px; width: 12px; height: 12px; background: #ece9e1; border: 2px solid #14171a; z-index: 2; }
+    #travel-root .map-marker.home .pin-shape { background: var(--travel-safe); }
+    #travel-root .map-marker.gas .pin-shape { background: var(--travel-gold-bright); }
+    #travel-root .map-marker.selected { transform: translateY(-4px) scale(1.16); }
+    #travel-root .map-marker.selected .pin-shape { box-shadow: 0 0 0 3px #ece9e1, 4px 4px 0 rgba(0,0,0,.35); }
+    #travel-root .pixel-glyph { position:absolute; z-index:3; top:6px; left:6px; width:10px; height:10px; }
+    #travel-root .pixel-glyph.home-glyph { background:#14171a; clip-path: polygon(0 45%,50% 0,100% 45%,100% 100%,62% 100%,62% 66%,38% 66%,38% 100%,0 100%); }
+    #travel-root .pixel-glyph.pump-glyph { background:#14171a; box-shadow: none; }
+    #travel-root .travel-ribbon { position: absolute; z-index: 10; left: 12px; right: 12px; bottom: 12px; height: 58px; border: 2px solid var(--travel-ink); background: var(--travel-panel); display: none; overflow: hidden; }
+    #travel-root .travel-ribbon.active { display: block; }
+    #travel-root .ribbon-road { position:absolute; left:0; right:0; top:28px; height:16px; background: var(--travel-chrome); border-top:3px solid var(--travel-ink); border-bottom:3px solid var(--travel-ink); }
+    #travel-root .ribbon-road::after { content:""; position:absolute; top:4px; left:0; right:0; height:3px; background: repeating-linear-gradient(90deg,var(--travel-gold-bright) 0 22px,transparent 22px 38px); }
+    #travel-root .truck { position:absolute; z-index:2; top:15px; left:8px; width:44px; height:26px; animation: roll 2.2s linear forwards; }
+    #travel-root .truck-body { position:absolute; left:0; top:4px; width:29px; height:16px; background:var(--travel-accent); border:3px solid var(--travel-ink); }
+    #travel-root .truck-cab { position:absolute; left:27px; top:8px; width:14px; height:12px; background:var(--travel-rust); border:3px solid var(--travel-ink); }
+    #travel-root .truck-wheel { position:absolute; top:20px; width:8px; height:8px; border:2px solid var(--travel-ink); background:var(--travel-chrome); }
+    #travel-root .truck-wheel.a { left:6px; } #travel-root .truck-wheel.b { left:31px; }
+    #travel-root .travel-copy { position:absolute; z-index:3; left:9px; top:4px; font-weight:700; font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+    @keyframes roll { from { left: 8px; } to { left: calc(100% - 55px); } }
+    @media (prefers-reduced-motion: reduce) { #travel-root .truck { animation-duration: .01ms; } #travel-root * { scroll-behavior: auto !important; } }
+    #travel-root .route-panel { padding: 14px; }
+    #travel-root .section-title { font-family:"Barlow Condensed",sans-serif; font-size: 23px; line-height:1; text-transform:uppercase; font-weight:800; margin:0; }
+    #travel-root .town-card { padding: 0; overflow: hidden; box-shadow: none; border-color: var(--travel-ink); margin-top: 12px; }
+    #travel-root .town-card-head { display:flex; justify-content:space-between; gap:10px; padding: 13px; background:var(--travel-chrome); border-bottom:2px solid var(--travel-ink); }
+    #travel-root .town-name { font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; font-size:26px; line-height:.95; font-weight:800; }
+    #travel-root .town-tag { align-self:flex-start; padding:4px 6px; border:2px solid var(--travel-ink); background:var(--travel-panel); color:var(--travel-dim); font-size:9px; font-weight:700; text-transform:uppercase; white-space:nowrap; }
+    #travel-root .metric-grid { display:grid; grid-template-columns:repeat(2,1fr); }
+    #travel-root .metric { padding:11px; border-right:1px solid var(--travel-line); border-bottom:1px solid var(--travel-line); }
+    #travel-root .metric:nth-child(2n) { border-right:0; }
+    #travel-root .metric-label { color:var(--travel-dim); font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+    #travel-root .metric-value { font-family:"Barlow Condensed",sans-serif; font-size:23px; font-weight:800; margin-top:3px; }
+    #travel-root .station-strip { margin:11px; padding:10px; background:color-mix(in srgb,var(--travel-gold-bright) 15%,var(--travel-panel)); border:2px solid var(--travel-gold); }
+    #travel-root .station-title { font-weight:700; font-size:11px; }
+    #travel-root .station-price { color:var(--travel-gold); font-family:"Barlow Condensed",sans-serif; font-size:22px; font-weight:800; margin-top:2px; }
+    #travel-root .trip-status { margin:11px; padding:10px; border:2px solid var(--travel-line); font-size:10px; line-height:1.45; }
+    #travel-root .trip-status.safe { border-color:var(--travel-safe); color:var(--travel-safe); }
+    #travel-root .trip-status.warn { border-color:var(--travel-gold); color:var(--travel-gold); }
+    #travel-root .trip-status.blocked { border-color:var(--travel-accent); color:var(--travel-accent); }
+    #travel-root .actions { display:grid; gap:8px; padding:0 11px 11px; }
+    #travel-root .btn { border:1px solid var(--travel-line); background:var(--travel-chrome); min-height:46px; padding:10px 12px; font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:.06em; cursor:pointer; box-shadow:none; }
+    #travel-root .btn:active:not(:disabled) { transform:translate(2px,2px); box-shadow:none; }
+    #travel-root .btn.primary { background:var(--travel-accent); color:#fff; }
+    #travel-root .btn.gold { background:var(--travel-gold-bright); color:#18191a; }
+    #travel-root .btn.ghost { background:transparent; box-shadow:none; }
+    #travel-root .btn:disabled { opacity:.42; cursor:not-allowed; box-shadow:none; }
+    #travel-root .log-panel { padding:14px; }
+    #travel-root .log-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    #travel-root .tiny-btn { border:1px solid var(--travel-line); background:transparent; color:var(--travel-dim); padding:5px 7px; font-size:9px; cursor:pointer; text-transform:uppercase; }
+    #travel-root .log-list { display:grid; gap:6px; }
+    #travel-root .log-empty { color:var(--travel-dim); font-size:10px; line-height:1.6; padding:12px 0 4px; }
+    #travel-root .log-item { display:grid; grid-template-columns:38px 1fr auto; gap:8px; align-items:start; border-top:1px solid var(--travel-line); padding-top:8px; }
+    #travel-root .log-icon { width:34px; height:30px; display:grid; place-items:center; border:2px solid var(--travel-line); color:var(--travel-accent); font-family:"Barlow Condensed",sans-serif; font-weight:800; font-size:11px; }
+    #travel-root .log-main { font-size:10px; line-height:1.45; }
+    #travel-root .log-main strong { display:block; }
+    #travel-root .log-meta { color:var(--travel-dim); font-size:8px; margin-top:2px; }
+    #travel-root .log-cost { font-family:"Barlow Condensed",sans-serif; font-size:18px; font-weight:800; color:var(--travel-gold); }
+    #travel-root .balance-card { display:grid; grid-template-columns:repeat(4,1fr); border:2px solid var(--travel-line); background:var(--travel-panel); box-shadow:var(--travel-shadow); }
+    #travel-root .balance-item { padding:11px; border-right:1px solid var(--travel-line); }
+    #travel-root .balance-item:last-child { border-right:0; }
+    #travel-root .balance-item small { color:var(--travel-dim); display:block; font-size:8px; text-transform:uppercase; }
+    #travel-root .balance-item strong { display:block; font-family:"Barlow Condensed",sans-serif; font-size:19px; margin-top:3px; }
+    #travel-root .footline { display:flex; justify-content:space-between; gap:15px; color:var(--travel-dim); font-size:9px; line-height:1.5; padding:18px 2px 0; }
+    #travel-root .brand-line { color:var(--travel-ink); font-weight:700; }
+    #travel-root .modal-backdrop { position:fixed; inset:0; z-index:100; display:none; place-items:end center; background:rgba(10,12,14,.72); padding:14px; }
+    #travel-root .modal-backdrop.open { display:grid; }
+    #travel-root .fuel-modal { width:min(520px,100%); background:var(--travel-panel); border:3px solid var(--travel-ink); box-shadow:0 2px 12px rgba(0,0,0,0.18); padding:16px; }
+    #travel-root .modal-title { font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; font-size:28px; line-height:1; margin:0; }
+    #travel-root .range-wrap { margin:18px 0; }
+    #travel-root input[type="range"] { width:100%; accent-color:var(--travel-gold-bright); }
+    #travel-root .fill-readout { display:flex; justify-content:space-between; gap:10px; align-items:flex-end; margin-top:10px; }
+    #travel-root .fill-gallons { font-family:"Barlow Condensed",sans-serif; font-size:32px; font-weight:800; }
+    #travel-root .fill-cost { color:var(--travel-gold); font-family:"Barlow Condensed",sans-serif; font-size:25px; font-weight:800; }
+    #travel-root .modal-actions { display:grid; grid-template-columns:1fr 1.5fr; gap:8px; }
+    @media (max-width: 980px) {
+      #travel-root .hud { grid-template-columns:1fr 1fr; }
+      #travel-root .hud-block:first-child { grid-column:1 / -1; }
+      #travel-root .content-grid { grid-template-columns:1fr; }
+      #travel-root .map-frame, #travel-root #map { min-height: 540px; }
+      #travel-root .right-stack { grid-template-columns:1.15fr .85fr; align-items:start; }
+      #travel-root .balance-card { grid-column:1 / -1; }
+    }
+    @media (max-width: 650px) {
+      #travel-root .app-shell { padding:8px 8px calc(22px + env(safe-area-inset-bottom)); }
+      #travel-root .hud { gap:7px; margin-bottom:7px; }
+      #travel-root .hud-block { min-height:76px; padding:10px; }
+      #travel-root .location-name { font-size:27px; }
+      #travel-root .money { font-size:28px; }
+      #travel-root .content-grid, #travel-root .left-stack, #travel-root .right-stack { gap:7px; }
+      #travel-root .right-stack { grid-template-columns:1fr; }
+      #travel-root .map-frame, #travel-root #map { min-height: 510px; }
+      #travel-root .map-head { left:8px; top:8px; right:8px; }
+      #travel-root .map-note { display:none; }
+      #travel-root .map-key { gap:7px; padding:6px; font-size:8px; }
+      #travel-root .travel-ribbon { left:8px; right:8px; bottom:8px; }
+      #travel-root .route-panel, #travel-root .log-panel { padding:11px; }
+      #travel-root .balance-card { grid-template-columns:repeat(2,1fr); }
+      #travel-root .balance-item:nth-child(2) { border-right:0; }
+      #travel-root .balance-item:nth-child(-n+2) { border-bottom:1px solid var(--travel-line); }
+      #travel-root .fallback-grid { grid-template-columns:repeat(2,1fr); }
+      #travel-root .footline { flex-direction:column; }
+    }
+
+    /* Map-first redesign layout rules follow; theme vars come from Section 1 (dark default). */
+    #travel-root {
+      background: var(--travel-bg);
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      letter-spacing: 0;
+    }
+    #travel-root .app-shell { max-width: 1240px; padding: 18px 18px calc(28px + env(safe-area-inset-bottom)); }
+    #travel-root .hud {
+      display: grid;
+      grid-template-columns: minmax(0,1.3fr) minmax(230px,.9fr) minmax(180px,.55fr);
+      gap: 1px;
+      margin: 0 0 12px;
+      overflow: hidden;
+      border: 1px solid var(--travel-line);
+      border-radius: 12px;
+      background: var(--travel-line);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+    #travel-root .hud-block {
+      min-height: 82px;
+      padding: 13px 16px;
+      border: 0;
+      box-shadow: none;
+      background: var(--travel-panel);
+    }
+    #travel-root .hud-block::after { display:none; }
+    #travel-root .eyebrow { font-size: 11px; letter-spacing: .02em; text-transform: none; font-weight: 700; }
+    #travel-root .location-name { font-family: inherit; text-transform: none; font-size: clamp(23px,2.5vw,32px); line-height: 1.05; letter-spacing: -.035em; }
+    #travel-root .location-sub { font-size: 11px; margin-top: 6px; }
+    #travel-root .money, #travel-root .fuel-number { font-family: inherit; letter-spacing: -.035em; }
+    #travel-root .money { font-size: 29px; color: var(--travel-ink); margin-top: 7px; }
+    #travel-root .fuel-row { margin-top: 7px; }
+    #travel-root .fuel-icon { width: 24px; height: 29px; color: var(--travel-gold); }
+    #travel-root .fuel-number { font-size: 21px; }
+    #travel-root .fuel-bar { height: 8px; border: 0; border-radius: 12px; padding: 0; overflow: hidden; background: var(--travel-chrome); }
+    #travel-root .fuel-fill { border-radius: inherit; }
+
+    #travel-root .content-grid { grid-template-columns: minmax(0,1.65fr) minmax(300px,.7fr); gap: 12px; }
+    #travel-root .left-stack, #travel-root .right-stack { gap: 12px; }
+    #travel-root .map-frame {
+      min-height: 620px;
+      border: 1px solid var(--travel-line);
+      border-radius: 12px;
+      box-shadow: var(--travel-shadow);
+      background: var(--travel-panel-2);
+    }
+    #travel-root #map { min-height: 620px; filter:none; }
+    #travel-root #map .maplibregl-canvas { pointer-events: none !important; }
+    #travel-root #map .maplibregl-ctrl-top-right { display: none !important; }
+    #travel-root #map .maplibregl-marker { pointer-events: auto !important; }
+    #travel-root .map-shade { box-shadow: inset 0 0 0 1px rgba(24,32,29,.08); border-radius: inherit; }
+    #travel-root .map-head { left: 14px; right: 14px; top: 14px; align-items: center; }
+    #travel-root .map-key, #travel-root .map-note {
+      border: 0;
+      border-radius: 12px;
+      background: color-mix(in srgb,var(--travel-panel) 94%,transparent);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      backdrop-filter: blur(8px);
+      color: var(--travel-ink);
+    }
+    #travel-root .map-key { padding: 8px 10px; gap: 11px; font-size: 10px; letter-spacing: 0; text-transform: none; }
+    #travel-root .map-note { padding: 8px 10px; font-size: 10px; max-width:none; }
+    #travel-root .key-swatch { width: 10px; height: 10px; border: 0; border-radius: 50%; }
+    #travel-root .key-swatch.gold { border-radius: 12px; }
+    #travel-root .legend-dollar { display:grid; place-items:center; width:17px; height:19px; border-radius: 12px; background:var(--travel-accent); color:#fff; font:800 14px/1 "Barlow Condensed",sans-serif; transform:rotate(-2deg); }
+    #travel-root .legend-pump { width:18px; height:18px; padding:2px; border-radius: 12px; background:var(--travel-gold-bright); color:#17201c; }
+
+    #travel-root .map-marker {
+      position:relative;
+      display:grid;
+      place-items:center;
+      width:30px;
+      height:34px;
+      cursor:pointer;
+      filter:drop-shadow(0 3px 4px rgba(18,26,22,.30));
+      transition:transform .15s ease,opacity .15s ease;
+      transform-origin:50% 80%;
+    }
+    #travel-root .map-marker::before {
+      content:"";
+      position:absolute;
+      inset:1px 2px 5px;
+      border:2px solid #fff;
+      background:var(--travel-accent);
+      border-radius: 12px;
+      transform:rotate(-2deg);
+    }
+    #travel-root .map-marker::after {
+      content:"";
+      position:absolute;
+      left:11px;
+      bottom:1px;
+      width:9px;
+      height:9px;
+      background:var(--travel-accent);
+      border-right:2px solid #fff;
+      border-bottom:2px solid #fff;
+      transform:rotate(45deg);
+    }
+    #travel-root .map-marker .pin-shape, #travel-root .map-marker .pin-core { display:none; }
+    #travel-root .map-marker.home { width:32px; height:32px; }
+    #travel-root .map-marker.home::before { inset:1px; background:var(--travel-safe); border-radius: 12px; transform:rotate(1deg); }
+    #travel-root .map-marker.home::after { display:none; }
+    #travel-root .map-marker.gas { width:34px; height:34px; }
+    #travel-root .map-marker.gas::before { inset:1px; background:var(--travel-gold-bright); border-radius: 12px; transform:rotate(1deg); }
+    #travel-root .map-marker.gas::after { display:none; }
+    #travel-root .map-marker.selected { transform:translateY(-3px) scale(1.12); z-index:8; }
+    #travel-root .map-marker.selected::before { box-shadow:0 0 0 3px color-mix(in srgb,var(--travel-accent) 26%,transparent); }
+    #travel-root .map-marker.gas.selected::before { box-shadow:0 0 0 3px rgba(241,182,50,.34); }
+    #travel-root .map-marker.home.selected::before { box-shadow:0 0 0 3px color-mix(in srgb,var(--travel-safe) 26%,transparent); }
+    #travel-root .marker-symbol { position:relative; z-index:2; display:grid; place-items:center; color:#17201c; pointer-events:none; }
+    #travel-root .marker-symbol.seller-dollar { color:#fff; font-family:"Barlow Condensed",sans-serif; font-size:21px; line-height:1; font-weight:800; transform:rotate(-2deg) translateY(-1px); text-shadow:1px 1px 0 rgba(77,20,15,.4); }
+    #travel-root .marker-symbol svg { width:18px; height:18px; overflow:visible; }
+    #travel-root .pixel-glyph { top:50%; left:50%; width:12px; height:12px; transform:translate(-50%,-50%); }
+    #travel-root .pixel-glyph.home-glyph { background:#fff; }
+    #travel-root .marker-label {
+      position:absolute;
+      z-index:10;
+      left:50%;
+      bottom:calc(100% + 7px);
+      transform:translateX(-50%) scale(.88);
+      transform-origin:center bottom;
+      white-space:nowrap;
+      padding:6px 8px;
+      border-radius: 12px;
+      background:var(--travel-panel);
+      color:var(--travel-ink);
+      box-shadow:0 2px 12px rgba(0,0,0,0.18);
+      font-size:10px;
+      font-weight:800;
+      pointer-events:none;
+    }
+
+    #travel-root .route-panel, #travel-root .log-panel {
+      border: 1px solid var(--travel-line);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      padding: 15px;
+    }
+    #travel-root .section-title { font-family:inherit; font-size:18px; text-transform:none; letter-spacing:-.025em; }
+    #travel-root .town-card { margin-top: 12px; border:0; box-shadow:none; background:transparent; }
+    #travel-root .town-card-head { padding: 0 0 14px; background:transparent; border-bottom:1px solid var(--travel-line); align-items:flex-start; }
+    #travel-root .town-name { font-family:inherit; text-transform:none; font-size:27px; line-height:1.05; letter-spacing:-.04em; }
+    #travel-root .town-tag { border:0; border-radius: 12px; background:var(--travel-chrome); padding:6px 9px; font-size:10px; text-transform:none; }
+    #travel-root .trip-summary { display:grid; gap:0; margin:10px 0 0; }
+    #travel-root .summary-row { display:flex; justify-content:space-between; gap:14px; padding:10px 1px; border-bottom:1px solid var(--travel-line-soft); font-size:12px; }
+    #travel-root .summary-row span { color:var(--travel-dim); }
+    #travel-root .summary-row strong { text-align:right; }
+    #travel-root .station-strip { margin:12px 0 0; border:0; border-radius: 12px; padding:11px 12px; background:color-mix(in srgb,var(--travel-gold-bright) 18%,var(--travel-panel)); }
+    #travel-root .station-title { font-size:12px; }
+    #travel-root .station-price { font-family:inherit; font-size:18px; }
+    #travel-root .trip-status { margin:12px 0; border:0; border-radius: 12px; background:var(--travel-panel-2); padding:10px 11px; font-size:11px; color:var(--travel-dim); }
+    #travel-root .trip-status.safe { color:var(--travel-safe); background:color-mix(in srgb,var(--travel-safe) 10%,var(--travel-panel)); }
+    #travel-root .trip-status.warn { color:var(--travel-gold); background:color-mix(in srgb,var(--travel-gold-bright) 13%,var(--travel-panel)); }
+    #travel-root .trip-status.blocked, #travel-root .trip-status.danger { color:var(--travel-accent); background:color-mix(in srgb,var(--travel-accent) 10%,var(--travel-panel)); }
+    #travel-root .actions { padding:0; gap:8px; }
+    #travel-root .btn { min-height:48px; border:0; border-radius: 12px; box-shadow:none; font-size:12px; text-transform:none; letter-spacing:0; }
+    #travel-root .btn:active:not(:disabled) { transform:none; box-shadow:none; filter:brightness(.95); }
+    #travel-root .btn.primary { background:var(--travel-accent); }
+    #travel-root .btn.gold { background:var(--travel-gold-bright); }
+    #travel-root .btn.ghost { background:var(--travel-chrome); }
+    #travel-root .log-head { margin-bottom:8px; }
+    #travel-root .tiny-btn { border:0; border-radius: 12px; background:var(--travel-chrome); padding:6px 9px; text-transform:none; }
+    #travel-root .log-empty { font-size:11px; line-height:1.5; }
+    #travel-root .log-item { grid-template-columns:34px 1fr auto; border-top:1px solid var(--travel-line-soft); }
+    #travel-root .log-icon { width:30px; height:26px; border:0; border-radius: 12px; background:var(--travel-panel-2); font-family:inherit; font-size:9px; }
+    #travel-root .log-main { font-size:11px; }
+    #travel-root .log-cost { font-family:inherit; font-size:14px; }
+    #travel-root .balance-card, #travel-root .footline { display:none; }
+    #travel-root .travel-ribbon { border:0; border-radius: 12px; box-shadow:0 2px 12px rgba(0,0,0,0.18); }
+    #travel-root .fuel-modal { border:0; border-radius: 12px; box-shadow:0 2px 12px rgba(0,0,0,0.18); }
+    #travel-root .modal-title { font-family:inherit; text-transform:none; letter-spacing:-.035em; }
+    #travel-root .fill-gallons, #travel-root .fill-cost { font-family:inherit; }
+    #travel-root .map-unavailable { padding:60px 14px 14px; background:var(--travel-panel-2); }
+    #travel-root .fallback-town { border:1px solid var(--travel-line); border-radius: 12px; background:var(--travel-panel); }
+
+    @media (max-width: 980px) {
+      #travel-root .hud { grid-template-columns:1fr 1fr; }
+      #travel-root .hud-block:first-child { grid-column:1 / -1; }
+      #travel-root .content-grid { grid-template-columns:1fr; }
+      #travel-root .map-frame, #travel-root #map { min-height:560px; }
+      #travel-root .right-stack { grid-template-columns:1.1fr .9fr; }
+    }
+    @media (max-width:650px) {
+      #travel-root .app-shell { padding:8px 8px calc(18px + env(safe-area-inset-bottom)); }
+      #travel-root .hud { border-radius: 12px; margin-bottom:8px; }
+      #travel-root .hud-block { min-height:70px; padding:10px 12px; }
+      #travel-root .hud-block:first-child { min-height:74px; }
+      #travel-root .location-name { font-size:24px; }
+      #travel-root .location-sub { font-size:10px; }
+      #travel-root .money { font-size:24px; }
+      #travel-root .fuel-number { font-size:18px; }
+      #travel-root .fuel-icon { width:21px; height:25px; }
+      #travel-root .content-grid, #travel-root .left-stack, #travel-root .right-stack { gap:8px; }
+      #travel-root .right-stack { grid-template-columns:1fr; }
+      #travel-root .map-frame, #travel-root #map { min-height:500px; }
+      #travel-root .map-frame { border-radius: 12px; }
+      #travel-root .map-head { left:10px; right:10px; top:10px; }
+      #travel-root .map-key { font-size:9px; gap:8px; padding:7px 8px; }
+      #travel-root .map-note { display:block; font-size:9px; }
+      #travel-root .route-panel, #travel-root .log-panel { border-radius: 12px; padding:13px; }
+      #travel-root .town-name { font-size:25px; }
+      #travel-root .fallback-grid { grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width:390px) {
+      #travel-root .map-note { display:none; }
+      #travel-root .map-key { width:100%; justify-content:center; }
+    }
+
+    /* Map layers and compact, collision-free clusters. */
+    #travel-root .layer-bar {
+      min-height:48px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:0 2px;
+    }
+    #travel-root .layer-chips { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    #travel-root .layer-chip, #travel-root .collapse-chip {
+      min-height:38px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      border:1px solid var(--travel-line);
+      border-radius: 12px;
+      padding:7px 13px;
+      background:var(--travel-panel);
+      color:var(--travel-dim);
+      box-shadow:0 2px 12px rgba(0,0,0,0.18);
+      font-size:12px;
+      font-weight:750;
+      cursor:pointer;
+    }
+    #travel-root .layer-chip.active { color:var(--travel-ink); border-color:color-mix(in srgb,var(--travel-ink) 32%,var(--travel-line)); box-shadow:0 2px 12px rgba(0,0,0,0.18); }
+    #travel-root .layer-chip:focus-visible, #travel-root .collapse-chip:focus-visible { outline:3px solid color-mix(in srgb,var(--travel-safe) 35%,transparent); outline-offset:2px; }
+    #travel-root .layer-chip svg { width:17px; height:17px; color:var(--travel-gold); }
+    #travel-root .chip-dollar { width:18px; height:18px; display:grid; place-items:center; border-radius:50%; background:var(--travel-accent); color:#fff; font-family:"Barlow Condensed",sans-serif; font-size:14px; font-weight:800; }
+    #travel-root .collapse-chip { background:var(--travel-chrome); color:var(--travel-ink); }
+    #travel-root .collapse-chip[hidden] { display:none; }
+    #travel-root .layer-hint { color:var(--travel-dim); font-size:10px; text-align:right; }
+
+    #travel-root .map-marker { width:18px; height:21px; filter:drop-shadow(0 2px 3px rgba(18,26,22,.30)); }
+    #travel-root .map-marker::before { inset:1px 2px 5px; border-width:1.5px; }
+    #travel-root .map-marker::after { left:6px; bottom:1px; width:7px; height:7px; border-width:0 1.5px 1.5px 0; }
+    #travel-root .map-marker.home { width:20px; height:20px; }
+    #travel-root .map-marker.home::before { inset:1px; }
+    #travel-root .map-marker.gas { width:20px; height:20px; }
+    #travel-root .map-marker.gas::before { inset:1px; border-radius: 12px; }
+    #travel-root .map-marker.cluster { width:30px; height:30px; filter:drop-shadow(0 3px 5px rgba(18,26,22,.30)); }
+    #travel-root .map-marker.cluster::before { inset:1px; border:2px solid #fff; border-radius:50%; background:var(--travel-accent); transform:none; }
+    #travel-root .map-marker.cluster::after { display:none; }
+    #travel-root .cluster-count { position:relative; z-index:2; color:#fff; font-size:12px; line-height:1; font-weight:850; }
+    #travel-root .marker-symbol.seller-dollar { font-size:15px; transform:rotate(-2deg) translateY(-1px); }
+    #travel-root .marker-symbol svg { width:13px; height:13px; }
+    #travel-root .pixel-glyph { width:9px; height:9px; }
+    #travel-root .map-marker.selected { transform:none; }
+    #travel-root .map-marker.cluster:hover::before { background:var(--travel-accent-bright); }
+    #travel-root .cluster-leg {
+      position:absolute;
+      z-index:0;
+      left:50%;
+      top:50%;
+      width:170px;
+      height:170px;
+      transform:translate(-50%,-50%);
+      overflow:visible;
+      pointer-events:none;
+    }
+    #travel-root .cluster-leg line:first-child { stroke:rgba(255,255,255,.92); stroke-width:4; stroke-linecap:round; }
+    #travel-root .cluster-leg line:last-child { stroke:#6c7771; stroke-width:1.25; stroke-linecap:round; }
+    #travel-root .map-marker::before, #travel-root .map-marker::after { z-index:1; }
+    #travel-root .map-marker .marker-symbol, #travel-root .map-marker .pixel-glyph, #travel-root .map-marker .marker-label { z-index:2; }
+    @media (max-width:650px) {
+      #travel-root .layer-bar { align-items:flex-start; padding:0 1px; }
+      #travel-root .layer-chip, #travel-root .collapse-chip { min-height:36px; padding:7px 11px; }
+      #travel-root .layer-hint { max-width:150px; padding-top:5px; }
+    }
+    @media (max-width:430px) {
+      #travel-root .layer-bar { display:block; }
+      #travel-root .layer-hint { max-width:none; padding:6px 2px 3px; text-align:left; }
+    }
+  
+    /* Browser chrome (soldasis.place framing) */
+    #travel-root .browser-frame {border:1px solid var(--travel-line);border-radius:12px;overflow:hidden;background:var(--travel-panel);box-shadow:0 2px 12px rgba(0,0,0,0.18)}
+    #travel-root .browser-bar {display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--travel-chrome);border-bottom:1px solid var(--travel-line)}
+    #travel-root .browser-dots {display:flex;gap:6px}
+    #travel-root .browser-dots span {width:10px;height:10px;border-radius:50%;background:var(--travel-line-soft);border:1px solid var(--travel-line)}
+    #travel-root .browser-url {display:flex;align-items:center;gap:8px;flex:1;background:var(--travel-bg);border:1px solid var(--travel-line);border-radius:12px;padding:7px 12px;font-size:12px;color:var(--travel-dim);font-family:"IBM Plex Mono",monospace}
+    #travel-root .browser-content {position:relative}

@@ -19,6 +19,7 @@ const Desktop = (() => {
     { id: "garage",     label: "Garage",      icon: "garage" },
     { id: "collection", label: "Collection",  icon: "collection" },
     { id: "ledger",     label: "Ledger",      icon: "ledger" },
+    { id: "travel",     label: "Road Trip",   icon: "travel" },
   ];
 
   const $ = (sel, root) => (root || document).querySelector(sel);
@@ -140,9 +141,8 @@ const Desktop = (() => {
     const app = DESKTOP_APPS.find(a => a.id === id);
     if (!app) return;
     openAppId = id;
-    // The travel map will render into its own container; the six game apps
-    // reuse the existing view system untouched.
-    if (id !== "travel") Views.show(id);
+    // The travel map renders through the view system like the other apps.
+    Views.show(id);
     const win = $("#pc-window");
     $("#pc-window-title").textContent = app.label;
     win.classList.remove("hidden");

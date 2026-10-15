@@ -43,6 +43,12 @@ const AppIcons = {
     <path d="M60 42 V74" stroke-width="5"/>
     <path d="M38 54 H52 M68 54 H82 M38 62 H52" stroke-width="4"/>
   </svg>`,
+  // Road Trip: winding road with map pin
+  travel: `<svg viewBox="0 0 120 120" fill="none" stroke="#8fd0ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M28 96 C48 76 40 60 60 48 C80 36 72 24 92 20" stroke-width="6"/>
+    <path d="M60 34 C60 26 66 20 72 20 C78 20 84 26 84 34 C84 42 72 52 72 52 C72 52 60 42 60 34 Z" stroke-width="6"/>
+    <circle cx="72" cy="33" r="4" fill="#8fd0ff" stroke="none"/>
+  </svg>`,
   // Settings: gear
   settings: `<svg viewBox="0 0 120 120" fill="none" stroke="#dfe3e8" stroke-width="7" stroke-linecap="round" aria-hidden="true">
     <circle cx="60" cy="60" r="12"/>

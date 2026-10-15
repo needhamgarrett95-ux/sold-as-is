@@ -63,6 +63,7 @@ const Save = {
         myPartListings: Views.myPartListings || [],
         cart: Views.cart || [],
         crateStock: Views.crateStock || null,
+        travel: State.travel || null,
         skills: (typeof Skills !== "undefined") ? Skills.toJSON() : undefined,
       };
       // Mirror backup: stash the previous save before overwriting, so a corrupt
@@ -107,6 +108,7 @@ const Save = {
       });
       Views.cart = (data.cart || []).filter(idx => typeof idx === "number");
       Views.crateStock = Array.isArray(data.crateStock) ? data.crateStock : null;
+      if (data.travel) State.travel = data.travel;
       if (typeof Skills !== "undefined") Skills.init(data.skills);
       Views.myPartListings = (data.myPartListings || []).map(l => {
         // Resolve auctions that ended while away

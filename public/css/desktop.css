@@ -76,6 +76,8 @@ body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="ledger"] svg { stroke: #
 body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="parts"] svg circle { fill: #3a3f47; }
 body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="crate"] svg,
 body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="collection"] svg { stroke: #3a3f47; }
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="travel"] svg { stroke: #2a6db0; }
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="travel"] svg circle { fill: #2a6db0; }
 
 /* ---------- window ---------- */
 #pc-window { position: absolute; top: 0; left: 0; right: 0; bottom: 56px; z-index: 3;

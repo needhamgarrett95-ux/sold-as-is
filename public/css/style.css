@@ -1674,3 +1674,13 @@ button.mini-widget:active { border-color: #e04536; }
   background: var(--card); color: var(--ink); }
 #part-haggle .ph-dead { color: var(--dim); font-style: italic; text-align: center; padding: 12px; }
 body.dark-mode #part-haggle .haggle-modal { background: #242930; }
+
+/* Tutorial skip — subtle, top-right corner (aud222) */
+.tutorial-inner { position: relative; }
+.tutorial-skip {
+  position: absolute; top: 10px; right: 16px;
+  background: none; border: none; padding: 6px 4px;
+  color: rgba(236,233,225,0.45); font-size: 0.8rem;
+  cursor: pointer; font-family: inherit;
+}
+.tutorial-skip:active { color: rgba(236,233,225,0.8); }

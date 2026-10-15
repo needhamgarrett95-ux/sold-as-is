@@ -34,31 +34,13 @@ const Tutorial = {
       homeFirst: true,
     },
     {
-      title: "The Boneyard",
-      text: "This is the parts shop. Buy It Now, make offers, or bid in auctions. Take a look.",
-      action: '[data-app="parts"]',
-      homeFirst: true,
-    },
-    {
-      title: "Your Collection",
-      text: "The endgame. Restore bikes to pristine condition and fill all 8 brand sets — 47 bikes total, plus a pair of one-of-one Uniques. Your milestones live here too. Take a look.",
-      action: '[data-app="collection"]',
-      homeFirst: true,
-    },
-    {
-      title: "The Ledger",
-      text: "Every deal, every block, every shameful loss — the Ledger keeps score of your whole career. Take a look.",
-      action: '[data-app="ledger"]',
-      homeFirst: true,
-    },
-    {
-      title: "Repair Risk",
-      text: "You can repair worn parts — but each attempt is a gamble. The risk climbs every time: 10%, then 18%, then 30%. A failed repair makes the part WORSE. Know when to stop.",
+      title: "The Rest of the Phone",
+      text: "Three more apps live on the home screen: the Boneyard for parts (buy it now, make offers, bid in auctions), your Collection — the endgame, 47 bikes across 8 brand sets — and the Ledger, which keeps score of every deal, block, and shameful loss. Poke around whenever.",
       action: null,
     },
     {
-      title: "Make It Count",
-      text: "Every deal is permanent — no take-backs, no refunds. Make too many bad deals and you'll have to reset your save and start over. Think before you buy.",
+      title: "Know the Risks",
+      text: "Repairing worn parts is a gamble — the risk climbs every attempt, and a failed repair makes the part WORSE. And every deal is permanent: no take-backs, no refunds. Think before you buy.",
       action: null,
     },
     {
@@ -139,12 +121,16 @@ const Tutorial = {
     const isLast = this.current === this.steps.length - 1;
     card.innerHTML = `
       <div class="tutorial-inner">
+        ${!isLast ? `<button class="tutorial-skip" id="tut-skip">Skip</button>` : ``}
         <div class="tutorial-progress">Step ${this.current + 1} of ${this.steps.length}</div>
         <h3>${step.title}</h3>
         <p>${step.text}</p>
         ${!step.action ? `<button class="tutorial-btn primary" id="tut-gotit">${isLast ? "Let's go!" : "Got it"}</button>` : `<div class="tutorial-hint">${(typeof Icon !== "undefined" ? Icon.get('tap') : "")} Tap the highlighted area to continue</div>`}
       </div>`;
     card.classList.add("visible");
+
+    const skipBtn = document.getElementById("tut-skip");
+    if (skipBtn) skipBtn.onclick = (e) => { e.stopPropagation(); this.finish(); };
 
     if (!step.action) {
       document.getElementById("tut-gotit").onclick = () => this.next();

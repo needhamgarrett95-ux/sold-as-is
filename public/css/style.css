@@ -1647,3 +1647,7 @@ button.mini-widget:active { border-color: #e04536; }
 .mkt-pane-head { padding: 14px var(--gutter) 6px; background: var(--card); }
 .mkt-pane-head h2 { font-size: 1.32rem; font-weight: 800; color: var(--ink); margin: 0 0 2px; }
 .mkt-pane-head .sub { font-size: .88rem; color: var(--dim); }
+
+/* aud220: the 18px music svg overflowed its 16px wrapper span, sitting 1px right.
+   display:contents makes the svg the flex item so it centers exactly. */
+.safari-btn [data-icon] { display: contents; }

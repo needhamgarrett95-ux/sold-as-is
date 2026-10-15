@@ -11,9 +11,6 @@ const TAG = "pc-test-v1";
 const GAME_ASSET = "SoldAsIs-PC-test-setup.exe";
 const GAME_EXE = "Sold As-Is PC.exe";
 
-function installDir() {
-  return path.join(process.env.LOCALAPPDATA || "", "Programs", "sold-as-is-pc");
-}
 // Robust: ask Windows where the game actually landed via the uninstall entry,
 // then fall back to scanning program folders for the exe by name.
 function regInstallLocation() {
@@ -72,13 +69,6 @@ function writeStamp(s) {
     fs.writeFileSync(stampPath(), JSON.stringify(s));
   } catch (e) {}
 }
-function gameExePath() {
-  return path.join(installDir(), GAME_EXE);
-}
-function isInstalled() {
-  return fs.existsSync(gameExePath());
-}
-
 function ghGet(urlPath) {
   return new Promise((resolve, reject) => {
     const req = https.request({

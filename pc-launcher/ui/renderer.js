@@ -14,8 +14,28 @@ function renderNotes(md) {
   }).join("");
 }
 
+async function withTimeout(promise, ms, label) {
+  let t;
+  const timeout = new Promise((_, reject) => {
+    t = setTimeout(() => reject(new Error(label + " timed out")), ms);
+  });
+  try { return await Promise.race([promise, timeout]); }
+  finally { clearTimeout(t); }
+}
+
 async function refresh() {
-  const st = await window.launcher.state();
+  if (!window.launcher) {
+    statusEl.innerHTML = "Launcher bridge failed to start.<br>Re-download the launcher and try again.";
+    return;
+  }
+  let st;
+  try {
+    st = await withTimeout(window.launcher.state(), 25000, "Update check");
+  } catch (e) {
+    statusEl.innerHTML = "Couldn't reach the update server (" + esc(e.message) + ").<br>Check your connection and reopen.";
+    $("#notes").innerHTML = '<p class="dim">Patch notes unavailable offline.</p>';
+    return;
+  }
   if (!st.ok) {
     statusEl.innerHTML = "Couldn't reach the update server.<br>Check your connection and reopen.";
     $("#notes").innerHTML = '<p class="dim">Patch notes unavailable offline.</p>';

@@ -262,7 +262,7 @@ const Phone = (() => {
     const alb = document.createElement("span"); alb.className = "s-label"; alb.textContent = "Sold As-Is";
     const av2 = document.createElement("span"); av2.className = "s-val";
     // Single source of truth: read the audit label from the stylesheet's cache-buster.
-    // (A hardcoded label went stale at aud218 while the build moved on — never again.)
+    // (A hardcoded label went stale at aud213 while the build moved on — never again.)
     try {
       const mv = document.querySelector('link[rel="stylesheet"]')?.href.match(/[?&]v=(aud\d+)/);
       av2.textContent = mv ? mv[1] : "aud?";

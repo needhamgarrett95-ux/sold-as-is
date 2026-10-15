@@ -28,7 +28,7 @@ jobs:
 
       - name: Build game installer
         run: |
-          Copy-Item -Recurse -Force ..\public pc\public
+          Copy-Item -Recurse -Force public pc\public
           cd pc
           npm ci
           npx electron-builder --win nsis

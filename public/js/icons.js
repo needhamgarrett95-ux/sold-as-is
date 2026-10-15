@@ -52,7 +52,7 @@ const Icon = (() => {
     // Next track
     next: S(`<path d="M18 5v14" stroke-width="2.5"/><path d="M5 5l9 7-9 7V5z" fill="currentColor" stroke="none"/>`),
     // Music note
-    music: S(`<path d="M9.5 17.75V5.75l10-2v12" stroke-width="2.2"/><circle cx="7" cy="17.75" r="2.5"/><circle cx="17" cy="15.75" r="2.5"/>`),
+    music: S(`<path d="M10.7 17.75V5.75l10-2v12" stroke-width="2.2"/><circle cx="8.2" cy="17.75" r="2.5"/><circle cx="18.2" cy="15.75" r="2.5"/>`),
 
     // Clipboard — list on marketplace
     clipboard: S(`<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4a2 2 0 0 1 6 0M9 11h6M9 15h6"/>`),

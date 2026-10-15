@@ -2022,10 +2022,119 @@ const Views = {
 
   closePartDetail() {
     document.getElementById("part-detail").classList.add("hidden");
+    this.closePartHaggle();
     this.partDetailIdx = -1;
     this.partDetailOffer = null;
     this.partDetailSource = "shop";
     this.crateDetailIdx = -1;
+  },
+
+  // --- Boneyard haggle modal (aud221): fixed bottom-sheet like #seller-haggle.
+  // Economy logic lives in sendPartOffer (untouched); this is presentation only.
+  openPartHaggle() {
+    document.getElementById("part-haggle").classList.remove("hidden");
+    this.renderPartHaggle();
+  },
+  closePartHaggle() {
+    document.getElementById("part-haggle").classList.add("hidden");
+  },
+  renderPartHaggle() {
+    const p = this.partsShop[this.partDetailIdx];
+    const el = document.getElementById("part-haggle");
+    if (!p || !el) { this.closePartHaggle(); return; }
+    const offer = this.partDetailOffer;
+    const thread = (offer && offer.thread) || [];
+    // 67 easter egg has a response but no thread — show it as the seller's line
+    const eggMsg = offer && !offer.thread && offer.response
+      ? `<div class="msg seller">${offer.response}</div>` : "";
+    let actions = "";
+    if (!offer) {
+      actions = `
+        <div class="haggle-counter-row">
+          <input type="text" inputmode="none" id="ph-offer-amount" class="ph-input" placeholder="Your offer ($)">
+          <button class="eby-offer" id="ph-send-offer">Send Offer</button>
+        </div>`;
+    } else if (offer.accepted) {
+      actions = `<button class="haggle-accept" id="ph-accept-offer">Buy for ${money(offer.price)}</button>`;
+    } else if (offer.price && !offer.blocked && !offer.walkedAway) {
+      actions = `
+        <button class="haggle-accept" id="ph-accept-offer" style="margin-bottom:8px">Accept ${money(offer.price)}</button>
+        <div class="haggle-counter-row">
+          <input type="text" inputmode="none" id="ph-offer-amount" class="ph-input" placeholder="Counter offer ($)">
+          <button class="eby-offer" id="ph-send-offer">Counter</button>
+        </div>`;
+    } else if (offer.blocked || offer.walkedAway) {
+      actions = `<div class="ph-dead">This seller is done talking.</div>`;
+    } else {
+      actions = `
+        <div class="haggle-counter-row">
+          <input type="text" inputmode="none" id="ph-offer-amount" class="ph-input" placeholder="Counter offer ($)">
+          <button class="eby-offer" id="ph-send-offer">Counter</button>
+        </div>`;
+    }
+    el.innerHTML = `
+      <div class="haggle-modal">
+        <div class="haggle-head">
+          <button class="haggle-close" id="ph-close">${Icon.get('close')}</button>
+          <div class="haggle-title">${p.partLabel} for ${p.bikeBrand} ${p.bikeModel}</div>
+          <div class="haggle-sub">Asking ${money(p.price)} · ${p.stateLabel}</div>
+        </div>
+        <div class="haggle-photo"><img src="${p.img}" alt="${p.partLabel}"></div>
+        <div class="msg-thread" id="ph-thread">
+          ${eggMsg}
+          ${thread.map(m => `<div class="msg ${m.from}">${m.text}</div>`).join("")}
+        </div>
+        <div class="haggle-actions">${actions}</div>
+      </div>`;
+    document.getElementById("ph-close").addEventListener("click", () => this.closePartHaggle());
+    const input = document.getElementById("ph-offer-amount");
+    if (input && typeof GameKB !== "undefined") {
+      GameKB.attach(input, (kbVal) => {
+        if (kbVal > 0) this.sendPartOffer(kbVal);
+      }, (typed) => {
+        const partAsk = p.price;
+        const counter = offer && !offer.accepted ? offer.price : null;
+        const target = counter && counter < partAsk ? counter : partAsk;
+        let html = counter && counter < partAsk
+          ? `Seller's at <span class="kb-ctx-price">$${counter.toLocaleString()}</span> · Asking $${partAsk.toLocaleString()}`
+          : `Asking <span class="kb-ctx-price">$${partAsk.toLocaleString()}</span>`;
+        if (typed > 0) {
+          const diff = target - typed;
+          if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under</span>`;
+          else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over</span>`;
+          else html += ` · meets their price`;
+        }
+        return html;
+      });
+    }
+    const sendBtn = document.getElementById("ph-send-offer");
+    if (sendBtn) sendBtn.addEventListener("click", () => {
+      const inp = document.getElementById("ph-offer-amount");
+      const val = parseInt((inp.dataset.raw || inp.value).replace(/[^0-9]/g, ""), 10);
+      if (val > 0) this.sendPartOffer(val);
+    });
+    const acceptBtn = document.getElementById("ph-accept-offer");
+    if (acceptBtn) acceptBtn.addEventListener("click", () => {
+      const price = this.partDetailOffer.price;
+      const idx = this.partDetailIdx; // read BEFORE closing (close resets to -1)
+      const part = this.partsShop[idx];
+      this.closePartHaggle();
+      this.closePartDetail();
+      // Buy at the agreed price (same economy as the inline flow)
+      if (part && State.canAfford(price)) {
+        State.cash -= price;
+        part.paidPrice = price;
+        State.parts = State.parts || [];
+        State.parts.push(part);
+        this.partsShop.splice(idx, 1);
+        UI.refreshCash();
+        Save.save();
+        this.renderParts();
+      }
+    });
+    // Scroll thread to bottom; the modal itself never moves (fixed overlay)
+    const threadEl = document.getElementById("ph-thread");
+    if (threadEl) threadEl.scrollTop = threadEl.scrollHeight;
   },
 
   renderPartDetail() {
@@ -2057,36 +2166,7 @@ const Views = {
       actionHtml = `
         <button class="pd-btn-primary" id="pd-buy-now">Buy It Now</button>
         <button class="pd-btn-outline" id="pd-add-cart">Add to cart</button>
-        <button class="pd-btn-outline" id="pd-make-offer-btn">Make offer</button>
-        <div class="pd-offer-section hidden" id="pd-offer-section">
-          <div class="pd-offer-head">${Icon.get('chat')} Make an Offer</div>
-          ${this.partDetailOffer ? `
-            <div class="msg-thread">
-              ${this.partDetailOffer.thread.map(m => `<div class="msg ${m.from}">${m.text}</div>`).join("")}
-            </div>
-            ${this.partDetailOffer.accepted ? `
-              <button class="eby-buy pd-buy" id="pd-accept-offer">Buy for ${money(this.partDetailOffer.price)}</button>
-            ` : (this.partDetailOffer.price && !this.partDetailOffer.blocked && !this.partDetailOffer.walkedAway) ? `
-              <button class="eby-buy pd-buy" id="pd-accept-offer" style="margin-bottom:8px">Accept ${money(this.partDetailOffer.price)}</button>
-              <div class="pd-offer-row">
-                <input type="text" inputmode="none" id="pd-offer-amount" placeholder="Counter offer ($)">
-                <button class="eby-offer" id="pd-send-offer">Counter</button>
-              </div>
-            ` : (this.partDetailOffer.blocked || this.partDetailOffer.walkedAway) ? `
-              <div class="pd-offer-dead" style="margin-top:10px;color:#999;font-style:italic">This seller is done talking.</div>
-            ` : `
-              <div class="pd-offer-row" style="margin-top:10px">
-                <input type="text" inputmode="none" id="pd-offer-amount" placeholder="Counter offer ($)">
-                <button class="eby-offer" id="pd-send-offer">Counter</button>
-              </div>
-            `}
-          ` : `
-            <div class="pd-offer-row">
-              <input type="text" inputmode="none" id="pd-offer-amount" placeholder="Your offer ($)">
-              <button class="eby-offer" id="pd-send-offer">Send Offer</button>
-            </div>
-          `}
-        </div>`;
+        <button class="pd-btn-outline" id="pd-make-offer-btn">Make offer</button>`;
     }
 
     el.innerHTML = `
@@ -2155,58 +2235,11 @@ const Views = {
       });
       const makeOfferBtn = document.getElementById("pd-make-offer-btn");
       if (makeOfferBtn) makeOfferBtn.addEventListener("click", () => {
-        document.getElementById("pd-offer-section").classList.toggle("hidden");
+        this.openPartHaggle();
       });
       const cartBtn = document.getElementById("pd-add-cart");
       if (cartBtn) cartBtn.addEventListener("click", () => {
         this.addToCart(this.partDetailIdx);
-      });
-      const offerInput = document.getElementById("pd-offer-amount");
-      if (offerInput && typeof GameKB !== "undefined") {
-        GameKB.attach(offerInput, (kbVal) => {
-          if (kbVal > 0) this.sendPartOffer(kbVal);
-        }, (typed) => {
-          const partAsk = p.price;
-          const counter = this.partDetailOffer && !this.partDetailOffer.accepted ? this.partDetailOffer.price : null;
-          const target = counter && counter < partAsk ? counter : partAsk;
-          let html = counter && counter < partAsk
-            ? `Seller's at <span class="kb-ctx-price">$${counter.toLocaleString()}</span> · Asking $${partAsk.toLocaleString()}`
-            : `Asking <span class="kb-ctx-price">$${partAsk.toLocaleString()}</span>`;
-          if (typed > 0) {
-            const diff = target - typed;
-            if (diff > 0) html += ` · <span class="kb-ctx-under">$${diff.toLocaleString()} under</span>`;
-            else if (diff < 0) html += ` · <span class="kb-ctx-over">$${(-diff).toLocaleString()} over</span>`;
-            else html += ` · meets their price`;
-          }
-          return html;
-        });
-      }
-      const offerBtn = document.getElementById("pd-send-offer");
-      if (offerBtn) offerBtn.addEventListener("click", () => {
-        const input = document.getElementById("pd-offer-amount");
-        const val = parseInt((input.dataset.raw || input.value).replace(/[^0-9]/g, ""), 10);
-        if (val > 0) {
-          this.sendPartOffer(val);
-        }
-      });
-      const acceptBtn = document.getElementById("pd-accept-offer");
-      if (acceptBtn) acceptBtn.addEventListener("click", () => {
-        const price = this.partDetailOffer.price;
-        const idx = this.partDetailIdx; // read BEFORE closing (close resets to -1)
-        const part = this.partsShop[idx];
-        this.closePartDetail();
-        // Buy at the agreed price
-        if (part && State.canAfford(price)) {
-          State.cash -= price;
-          part.paidPrice = price;
-          State.parts = State.parts || [];
-          State.parts.push(part);
-          this.partsShop.splice(idx, 1);
-          UI.refreshCash();
-          Save.save();
-          this.renderParts();
-        } else if (part) {
-        }
       });
     }
     // Restore scroll position
@@ -2234,7 +2267,7 @@ const Views = {
     // Easter egg: the 67 meme
     if (offerAmount === 67) {
       this.partDetailOffer = { response: `"Are you serious, that meme is dead bro"`, accepted: false, price: null };
-      this.renderPartDetail();
+      this.renderPartHaggle();
       return;
     }
     // Seller personality — assigned once per listing
@@ -2353,7 +2386,7 @@ const Views = {
       const idx = this.partDetailIdx;
       setTimeout(() => this.replaceBoneyardPart(idx), 1500);
     }
-    this.renderPartDetail();
+    this.renderPartHaggle();
   },
 
   // Replace a dead Boneyard listing with a fresh random part

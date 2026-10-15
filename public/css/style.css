@@ -616,7 +616,7 @@ button:focus { outline: none !important; box-shadow: none !important; }
   #feed { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 6px; }
   .wtab { padding: 8px 4px; font-size: .8rem; }
   .pd-modal, .cart-modal { max-height: 94vh; border-radius: 16px; }
-  #part-detail, #cart-view, #seller-haggle { align-items: center; }
+  #part-detail, #cart-view, #seller-haggle, #part-haggle { align-items: center; }
 }
 
 /* iPad portrait and larger */
@@ -630,7 +630,7 @@ button:focus { outline: none !important; box-shadow: none !important; }
 @media (min-width: 1024px) {
   #feed { grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 14px; }
   /* Center modals instead of bottom sheets */
-  #part-detail, #cart-view, #seller-haggle { align-items: center; padding: 20px; }
+  #part-detail, #cart-view, #seller-haggle, #part-haggle { align-items: center; padding: 20px; }
   .pd-modal, .cart-modal { border-radius: 16px; max-height: 90vh; max-width: 560px; }
   /* Two-column boneyard rows get more breathing room */
   .eby-list { max-width: 800px; margin: 0 auto; }
@@ -1651,3 +1651,26 @@ button.mini-widget:active { border-color: #e04536; }
 /* aud220: the 18px music svg overflowed its 16px wrapper span, sitting 1px right.
    display:contents makes the svg the flex item so it centers exactly. */
 .safari-btn [data-icon] { display: contents; }
+
+/* ============================================================
+   PART HAGGLE MODAL (aud221) — Boneyard negotiation as a fixed
+   bottom-sheet, mirroring #seller-haggle. Rust accent.
+   ============================================================ */
+#part-haggle { position: fixed; inset: 0; z-index: 110;
+  background: rgba(0,0,0,.5); display: flex; align-items: flex-end;
+  justify-content: center; --chip-accent: var(--rust); }
+#part-haggle.hidden { display: none; }
+#part-haggle .haggle-modal { background: var(--card); }
+#part-haggle .haggle-head { border-bottom: var(--hairline); }
+#part-haggle .haggle-title { color: var(--ink); }
+#part-haggle .haggle-sub { color: var(--dim); }
+#part-haggle .haggle-photo { background: var(--paper); }
+#part-haggle .msg { background: var(--paper); color: var(--ink); border: var(--hairline); }
+#part-haggle .msg.you, #part-haggle .msg.seller { max-width: 80%; }
+#part-haggle .haggle-accept { background: var(--rust); border-radius: var(--radius-btn); }
+#part-haggle .haggle-counter { background: var(--rust); border-radius: var(--radius-btn); }
+#part-haggle .haggle-decline { border-radius: var(--radius-btn); }
+#part-haggle .ph-input { border: var(--hairline); border-radius: var(--radius-btn);
+  background: var(--card); color: var(--ink); }
+#part-haggle .ph-dead { color: var(--dim); font-style: italic; text-align: center; padding: 12px; }
+body.dark-mode #part-haggle .haggle-modal { background: #242930; }

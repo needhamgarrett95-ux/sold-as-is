@@ -47,6 +47,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sync patch notes
-        run: gh release edit pc-test-v1 --notes-file ..\PATCH_NOTES.md
+        run: gh release edit pc-test-v1 --notes-file PATCH_NOTES.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

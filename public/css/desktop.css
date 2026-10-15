@@ -9,6 +9,10 @@ body.pc-mode #tabbar { display: none !important; }
    Desktop.init() adds body.pc-mode on DOMContentLoaded, but the lock screen
    would otherwise flash for a frame before that. */
 html.pc-boot #phone-shell { display: none !important; }
+/* Also hide the game UI until the desktop has moved it into its window —
+   otherwise the default app flashes on boot. .pc-ready is added by init. */
+html.pc-boot #browser { visibility: hidden; }
+html.pc-boot.pc-ready #browser { visibility: visible; }
 
 #pc-desktop { position: fixed; inset: 0; z-index: 10; overflow: hidden;
   font-family: -apple-system, "Segoe UI", sans-serif; }

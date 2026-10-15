@@ -196,6 +196,8 @@ const Desktop = (() => {
     // Move the live game browser into the window. All view logic keeps
     // working — it's the same DOM, new frame.
     $("#pc-window-body").appendChild($("#browser"));
+    // Reveal the game UI now that it's framed (was hidden pre-paint).
+    document.documentElement.classList.add("pc-ready");
 
     const iconsWrap = $(".pc-icons", desktop);
     const tbWrap = $(".pc-tb-apps", desktop);

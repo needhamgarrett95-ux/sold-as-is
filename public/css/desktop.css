@@ -7,18 +7,39 @@ body.pc-mode #tabbar { display: none !important; }
 /* ---------- desktop ---------- */
 #pc-desktop { position: fixed; inset: 0; z-index: 10; overflow: hidden;
   font-family: -apple-system, "Segoe UI", sans-serif; }
-#pc-desktop .pc-wallpaper { position: absolute; inset: 0;
-  background: radial-gradient(1200px 700px at 70% 20%, #2b3542 0%, #1a1f27 55%, #101318 100%); }
-#pc-desktop .pc-wallpaper::after { content: ""; position: absolute; inset: 0;
-  background: radial-gradient(900px 500px at 15% 85%, rgba(201,111,30,.10), transparent 60%); }
-body:not(.dark-mode).pc-mode #pc-desktop .pc-wallpaper {
-  background: radial-gradient(1200px 700px at 70% 20%, #f2efe6 0%, #e4ded0 55%, #d3ccb8 100%); }
+#pc-desktop .pc-wallpaper { position: absolute; inset: 0; }
+#pc-desktop .pc-wallpaper::after { content: ""; position: absolute; inset: 0; }
+/* wallpaper variants */
+.pc-wallpaper.wp-midnight { background: radial-gradient(1200px 700px at 70% 20%, #2b3542 0%, #1a1f27 55%, #101318 100%); }
+.pc-wallpaper.wp-midnight::after { background: radial-gradient(900px 500px at 15% 85%, rgba(201,111,30,.10), transparent 60%); }
+.pc-wallpaper.wp-paper { background: radial-gradient(1200px 700px at 70% 20%, #f2efe6 0%, #e4ded0 55%, #d3ccb8 100%); }
+.pc-wallpaper.wp-paper::after { background: radial-gradient(900px 500px at 15% 85%, rgba(201,111,30,.12), transparent 60%); }
+.pc-wallpaper.wp-sunset { background: linear-gradient(180deg, #1c1633 0%, #4a2547 45%, #b4502e 75%, #e08a3c 100%); }
+.pc-wallpaper.wp-sunset::after { background: radial-gradient(1000px 420px at 50% 108%, rgba(255,190,110,.35), transparent 65%); }
+.pc-wallpaper.wp-evergreen { background: radial-gradient(1100px 700px at 30% 15%, #24402e 0%, #16281d 55%, #0d1712 100%); }
+.pc-wallpaper.wp-evergreen::after { background: radial-gradient(800px 500px at 80% 90%, rgba(120,180,130,.10), transparent 60%); }
+.pc-wallpaper.wp-harbor { background: radial-gradient(1100px 700px at 60% 10%, #2c3e52 0%, #1b2634 55%, #10161e 100%); }
+.pc-wallpaper.wp-harbor::after { background: radial-gradient(900px 480px at 20% 90%, rgba(120,160,200,.12), transparent 60%); }
 
-.pc-brand { position: absolute; top: 28px; right: 32px; text-align: right; z-index: 2; }
-.pc-brand h1 { font-size: 22px; font-weight: 800; margin: 0; color: #ece9e1; }
-.pc-brand p { margin: 6px 0 0; font-size: 13px; color: #9aa0a8; }
-body:not(.dark-mode).pc-mode .pc-brand h1 { color: #2a2d33; }
-body:not(.dark-mode).pc-mode .pc-brand p { color: #6b6f76; }
+/* ---------- widget ---------- */
+.pc-widget { position: absolute; top: 24px; right: 24px; z-index: 2;
+  display: flex; align-items: center; gap: 12px; padding: 12px 18px 12px 12px;
+  border-radius: 16px;
+  background: rgba(20,24,30,.55); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 8px 28px rgba(0,0,0,.30); }
+body:not(.dark-mode).pc-mode .pc-widget { background: rgba(255,255,255,.55);
+  border: 1px solid rgba(0,0,0,.08); box-shadow: 0 8px 28px rgba(0,0,0,.12); }
+.pc-widget-icon { width: 44px; height: 44px; border-radius: 12px; display: flex;
+  align-items: center; justify-content: center; flex: 0 0 44px;
+  background: #e04536; }
+.pc-widget-icon svg { width: 28px; height: 28px; }
+.pc-widget-icon [data-appicon="market"] svg { stroke: #fff; }
+.pc-widget-text h1 { font-size: 17px; font-weight: 800; margin: 0; color: #ece9e1;
+  letter-spacing: .2px; }
+.pc-widget-text p { margin: 3px 0 0; font-size: 12px; color: #9aa0a8; }
+body:not(.dark-mode).pc-mode .pc-widget-text h1 { color: #2a2d33; }
+body:not(.dark-mode).pc-mode .pc-widget-text p { color: #6b6f76; }
 
 .pc-icons { position: absolute; top: 28px; left: 28px; z-index: 2;
   display: flex; flex-direction: column; gap: 26px; }
@@ -78,3 +99,53 @@ body:not(.dark-mode).pc-mode #pc-taskbar { background: rgba(248,246,240,.94);
 #pc-clock { margin-left: auto; color: #ece9e1; font-size: 13px; font-weight: 600;
   display: flex; flex-direction: column; align-items: flex-end; line-height: 1.35; }
 body:not(.dark-mode).pc-mode #pc-clock { color: #2a2d33; }
+
+/* ---------- context menu + personalize ---------- */
+#pc-context { position: absolute; z-index: 20; min-width: 170px; padding: 6px;
+  border-radius: 12px; background: rgba(24,28,34,.94); backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+body:not(.dark-mode).pc-mode #pc-context { background: rgba(250,248,243,.96);
+  border: 1px solid rgba(0,0,0,.08); }
+#pc-context.hidden { display: none; }
+#pc-context button { display: block; width: 100%; text-align: left; padding: 9px 12px;
+  border: none; border-radius: 8px; background: transparent; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: #ece9e1; }
+body:not(.dark-mode).pc-mode #pc-context button { color: #2a2d33; }
+#pc-context button:hover { background: rgba(127,127,127,.18); }
+
+#pc-personalize-panel { position: absolute; z-index: 21; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); width: 380px; max-width: calc(100vw - 60px);
+  padding: 16px; border-radius: 18px;
+  background: rgba(24,28,34,.96); backdrop-filter: blur(22px);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 18px 60px rgba(0,0,0,.5); }
+body:not(.dark-mode).pc-mode #pc-personalize-panel { background: rgba(250,248,243,.97);
+  border: 1px solid rgba(0,0,0,.08); }
+#pc-personalize-panel.hidden { display: none; }
+.pc-pp-head { display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; font-size: 14px; font-weight: 800; color: #ece9e1; }
+body:not(.dark-mode).pc-mode .pc-pp-head { color: #2a2d33; }
+.pc-pp-head button { border: none; background: transparent; cursor: pointer;
+  font-size: 13px; color: inherit; opacity: .7; padding: 4px 8px; }
+.pc-pp-head button:hover { opacity: 1; }
+.pc-pp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pc-wp-thumb { position: relative; height: 76px; border-radius: 12px; border: 2px solid transparent;
+  cursor: pointer; overflow: hidden; padding: 0; }
+.pc-wp-thumb span { position: absolute; left: 8px; bottom: 6px; font-size: 11px; font-weight: 700;
+  color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+.pc-wp-thumb.selected { border-color: #e04536; }
+.pc-wp-thumb.wp-midnight { background: radial-gradient(120px 80px at 70% 20%, #2b3542 0%, #101318 100%); }
+.pc-wp-thumb.wp-paper { background: radial-gradient(120px 80px at 70% 20%, #f2efe6 0%, #d3ccb8 100%); }
+.pc-wp-thumb.wp-paper span { color: #2a2d33; text-shadow: 0 1px 4px rgba(255,255,255,.8); }
+.pc-wp-thumb.wp-sunset { background: linear-gradient(180deg, #1c1633 0%, #b4502e 80%, #e08a3c 100%); }
+.pc-wp-thumb.wp-evergreen { background: radial-gradient(120px 80px at 30% 15%, #24402e 0%, #0d1712 100%); }
+.pc-wp-thumb.wp-harbor { background: radial-gradient(120px 80px at 60% 10%, #2c3e52 0%, #10161e 100%); }
+.pc-wp-thumb.wp-upload { background: rgba(127,127,127,.18); border: 2px dashed rgba(127,127,127,.5);
+  display: flex; align-items: center; justify-content: center; }
+.pc-wp-thumb.wp-upload span { position: static; color: #9aa0a8; text-shadow: none; font-size: 12px; }
+body:not(.dark-mode).pc-mode .pc-wp-thumb.wp-upload span { color: #6b6f76; }
+.pc-pp-fit { display: flex; gap: 6px; margin-top: 12px; }
+.pc-pp-fit button { flex: 1; padding: 8px 0; border-radius: 9px; border: 1px solid rgba(127,127,127,.35);
+  background: transparent; cursor: pointer; font-size: 12px; font-weight: 700; color: #9aa0a8; }
+body:not(.dark-mode).pc-mode .pc-pp-fit button { color: #6b6f76; }
+.pc-pp-fit button.selected { border-color: #e04536; color: #e04536; }
+.pc-pp-note { margin-top: 10px; font-size: 11px; color: #9aa0a8; text-align: center; }

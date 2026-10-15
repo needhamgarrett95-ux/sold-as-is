@@ -46,12 +46,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Append patch notes
-        run: |
-          $notes = gh release view pc-test-v1 --json body --jq .body
-          $commits = git log -5 --pretty=format:'- %s' pc-desktop
-          $stamp = "`n`n## $(Get-Date -Format 'yyyy-MM-dd HH:mm') UTC`n$commits"
-          $new = "$notes$stamp"
-          $new | gh release edit pc-test-v1 --notes-file -
+      - name: Sync patch notes
+        run: gh release edit pc-test-v1 --notes-file ..\PATCH_NOTES.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

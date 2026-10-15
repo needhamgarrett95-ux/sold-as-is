@@ -360,7 +360,8 @@ const Views = {
       <div class="eby-typefilter market-tabs">
         <button class="eby-type${this.marketTab === "browse" ? " active" : ""}" data-mtab="browse">Browse</button>
         <button class="eby-type${this.marketTab === "mine" ? " active" : ""}" data-mtab="mine">My Listings${(() => { const n = this.myBikeListings.filter(l => !l.sold).length; return n ? ` (${n})` : ""; })()}</button>
-      </div>`;
+      </div>
+      ${this.marketTab === "browse" ? `<div class="mkt-pane-head"><h2>Fresh listings</h2><div class="sub">Haggle hard. Flip fast.</div></div>` : ""}`;
     el.querySelectorAll("[data-mtab]").forEach(t =>
       t.addEventListener("click", () => {
         this.marketTab = t.dataset.mtab;
@@ -3086,12 +3087,18 @@ const Views = {
     return `
       <button class="back-btn" id="g-back">← Back</button>
       <div class="g-detail">
-        <div class="g-detail-photo">
-          <img src="assets/bikes/${b.sprite}.png" alt="${b.brand} ${b.model}">
-          <div class="card-cond">${b.condition}</div>
+        <div class="bike-hero">
+          <div class="g-detail-photo">
+            <img src="assets/bikes/${b.sprite}.png" alt="${b.brand} ${b.model}">
+          </div>
+          <div class="bike-hero-body">
+            <div>
+              <div class="bike-hero-name">${b.brand} ${b.model}</div>
+              <div class="bike-hero-sub">Bought for ${money(b.boughtFor)} · fair value ~${money(b.fairValue)}</div>
+            </div>
+            <span class="cond-tag">${b.condition}</span>
+          </div>
         </div>
-        <h2>${b.brand} ${b.model}</h2>
-        <div class="sub">Bought for ${money(b.boughtFor)} · fair value ~${money(b.fairValue)}</div>
         <div class="g-desc-block">
           <label>Listing description</label>
           <textarea id="g-desc" rows="3">${b.desc}</textarea>
@@ -3958,8 +3965,16 @@ const Views = {
       const uOwned = uniqueModels.filter(m => kept.some(k => k.sprite === m.sprite));
       sets.push({ brand: "Unique", total: uniqueModels.length, owned: uOwned.length, cls: " unique-set", icon: Icon.get('trophy') + " " });
     }
+    const collPct = Math.round((kept.length / BIKES.length) * 100);
     el.innerHTML = `<h2>Collection Wall</h2>
-      <div class="sub">${kept.length} of ${BIKES.length} bikes collected</div>` +
+      <div class="coll-summary">
+        <div class="coll-summary-top">
+          <span class="coll-summary-count">${kept.length} / ${BIKES.length} collected</span>
+          <span class="coll-summary-pct">${collPct}%</span>
+        </div>
+        <div class="coll-bar"><i style="width:${collPct}%"></i></div>
+        <div class="coll-summary-sub">Complete brand sets for bounties</div>
+      </div>` +
       (kept.length === 0
         ? `<div class="empty"><strong>No keepers yet</strong>Hit "Keep" on a bike in your garage to add it to the wall.</div>`
         : "") +

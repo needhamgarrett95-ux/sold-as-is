@@ -1550,3 +1550,100 @@ button.mini-widget:active { border-color: #e04536; }
 .set-row .s-chev { color: var(--dim); display: flex; }
 .set-row .s-chev svg, .set-row .s-chev [data-icon] svg { width: 14px; height: 14px; }
 .set-row .s-chev [data-icon] { display: flex; }
+
+/* ============================================================
+   INTERIOR PASS (aud214) — demo component language, both themes.
+   Presentation layer only: no behavior, gating, or copy changes.
+   ============================================================ */
+:root {
+  --radius-card: 12px;
+  --radius-btn: 10px;
+  --radius-pill: 20px;
+  --hairline: 1px solid var(--line);
+  --gutter: 12px;
+  --rust: #c96f1e;
+  --gold: #febc2e;
+  --chip-accent: var(--blue);
+}
+/* Per-app accents: market red (default), boneyard rust, crate gold */
+#parts-view, #part-detail { --chip-accent: var(--rust); }
+#crate-view { --chip-accent: var(--gold); }
+
+/* ---------- chip rows (replaces underline navs + segmented buttons) ---------- */
+#cats, .eby-typefilter, .g-tabs {
+  gap: 8px; overflow-x: auto; scrollbar-width: none;
+  border-bottom: var(--hairline); background: var(--card);
+}
+#cats::-webkit-scrollbar, .eby-typefilter::-webkit-scrollbar, .g-tabs::-webkit-scrollbar { display: none; }
+#cats { padding: 10px var(--gutter); }
+#cats a, .eby-type, .g-tab {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: var(--radius-pill);
+  border: var(--hairline); background: var(--card); color: var(--ink);
+  font-size: .85rem; font-weight: 600; white-space: nowrap; cursor: pointer;
+  border-bottom: 1px solid var(--line);
+}
+#cats a.active, .eby-type.active, .g-tab.active {
+  background: var(--chip-accent); border-color: var(--chip-accent);
+  border-bottom-color: var(--chip-accent); color: #fff; font-weight: 700;
+}
+.g-tab svg, .g-tab [data-icon] svg { width: 15px; height: 15px; }
+
+/* ---------- card token discipline ---------- */
+.card .photo { border-radius: var(--radius-card); border: var(--hairline); }
+.card { border: none; }
+#detail .detail-card, .detail-card { border-radius: var(--radius-card); }
+.eby-buy, .eby-bid, .eby-oos-btn { border-radius: var(--radius-btn); }
+.ledger-section { border-radius: var(--radius-card); }
+
+/* ---------- accent discipline: boneyard rust, crate gold ---------- */
+#parts-view .eby-buy, #part-detail .eby-buy { background: var(--rust); }
+#parts-view .eby-bid, #part-detail .eby-bid { background: var(--rust); }
+#part-detail .pd-btn-primary, #cart-view .pd-btn-primary { background: var(--rust); }
+#part-detail .pd-btn-outline, #cart-view .pd-btn-outline { color: var(--rust); border-color: var(--rust); }
+#part-detail .eby-offer { border-color: var(--rust); color: var(--rust); }
+#crate-view .eby-buy { background: var(--gold); color: #241a00; }
+#crate-view .eby-buy.crate-buy { background: var(--gold); color: #241a00; }
+#crate-view .pd-btn-primary { background: var(--gold); color: #241a00; }
+
+/* ---------- garage: tall thumb-first action buttons ---------- */
+.g-actions { display: flex; flex-direction: column; gap: 10px; }
+.g-actions button {
+  flex: none; width: 100%; padding: 15px; border-radius: 11px;
+  font-size: .97rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.g-actions button svg, .g-actions button [data-icon] svg { width: 18px; height: 18px; }
+
+/* ---------- garage: bike-hero card ---------- */
+.bike-hero {
+  background: var(--card); border: var(--hairline); border-radius: var(--radius-card);
+  overflow: hidden; margin: 0 0 12px;
+}
+.bike-hero .g-detail-photo { border: none; border-radius: 0; margin-bottom: 0; }
+.bike-hero-body { display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 12px 14px; }
+.bike-hero-name { font-size: 1.1rem; font-weight: 800; color: var(--ink); }
+.bike-hero-sub { font-size: .82rem; color: var(--dim); margin-top: 2px; }
+.cond-tag {
+  flex-shrink: 0; padding: 6px 12px; border-radius: var(--radius-pill);
+  background: var(--card); border: var(--hairline); color: var(--ink);
+  font-size: .78rem; font-weight: 700; white-space: nowrap;
+}
+
+/* ---------- collection wall: summary card ---------- */
+.coll-summary {
+  background: var(--card); border: var(--hairline); border-radius: var(--radius-card);
+  padding: 14px; margin: 0 0 4px;
+}
+.coll-summary-top { display: flex; align-items: baseline; justify-content: space-between; }
+.coll-summary-count { font-size: 1.25rem; font-weight: 800; color: var(--ink); }
+.coll-summary-pct { font-size: .9rem; font-weight: 700; color: var(--gold); }
+.coll-bar { height: 8px; border-radius: 4px; background: var(--line); margin-top: 10px; overflow: hidden; }
+.coll-bar i { display: block; height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #d8a020, var(--gold)); }
+.coll-summary-sub { font-size: .8rem; color: var(--dim); margin-top: 8px; }
+
+/* ---------- marketplace: pane-head ---------- */
+.mkt-pane-head { padding: 14px var(--gutter) 6px; background: var(--card); }
+.mkt-pane-head h2 { font-size: 1.32rem; font-weight: 800; color: var(--ink); margin: 0 0 2px; }
+.mkt-pane-head .sub { font-size: .88rem; color: var(--dim); }

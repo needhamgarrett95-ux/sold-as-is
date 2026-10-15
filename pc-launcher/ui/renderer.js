@@ -64,7 +64,13 @@ async function refresh() {
 updateBtn.addEventListener("click", async () => {
   updateBtn.disabled = true; playBtn.disabled = true;
   progWrap.classList.remove("hidden");
-  const r = await window.launcher.update();
+  let r;
+  try {
+    r = await withTimeout(window.launcher.update(), 15 * 60 * 1000, "Update");
+  } catch (e) {
+    r = { ok: false, error: e.message };
+    statusEl.innerHTML = "Update failed: " + esc(e.message);
+  }
   progWrap.classList.add("hidden");
   updateBtn.disabled = false; playBtn.disabled = false;
   if (r.ok) { updateBtn.classList.add("hidden"); playBtn.classList.remove("hidden"); }

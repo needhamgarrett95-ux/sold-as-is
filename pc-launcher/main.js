@@ -15,6 +15,36 @@ const GAME_EXE = "Sold As-Is PC.exe";
 function installDir() {
   return path.join(process.env.LOCALAPPDATA || "", "Programs", "sold-as-is-pc");
 }
+// Robust: ask Windows where the game actually landed via the uninstall entry.
+function findInstalledExe() {
+  return new Promise((resolve) => {
+    const key = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\com.garrett.soldasis.pc";
+    execFile("reg", ["query", key, "/v", "InstallLocation"], (err, stdout) => {
+      if (!err) {
+        const m = stdout.match(/InstallLocation\s+REG_SZ\s+(.+)/);
+        if (m) {
+          const exe = path.join(m[1].trim(), GAME_EXE);
+          if (fs.existsSync(exe)) return resolve(exe);
+        }
+      }
+      // fallback: known candidate locations
+      const cands = [
+        path.join(installDir(), GAME_EXE),
+        path.join(process.env.LOCALAPPDATA || "", "Programs", "Sold As-Is PC", GAME_EXE),
+      ];
+      resolve(cands.find((c) => fs.existsSync(c)) || null);
+    });
+  });
+}
+let cachedExe = null;
+async function gameExePath() {
+  if (cachedExe && fs.existsSync(cachedExe)) return cachedExe;
+  cachedExe = await findInstalledExe();
+  return cachedExe;
+}
+async function isInstalled() {
+  return !!(await gameExePath());
+}
 function stampPath() {
   return path.join(app.getPath("userData"), "installed.json");
 }
@@ -86,14 +116,14 @@ ipcMain.handle("launcher:state", async () => {
     const updateAvailable = !stamp || stamp.assetId !== asset.id;
     return {
       ok: true,
-      installed: isInstalled(),
+      installed: await isInstalled(),
       updateAvailable,
       notes,
       remoteUpdatedAt: asset.updated_at,
       version: app.getVersion(),
     };
   } catch (e) {
-    return { ok: false, error: e.message, installed: isInstalled() };
+    return { ok: false, error: e.message, installed: await isInstalled() };
   }
 });
 
@@ -102,37 +132,56 @@ ipcMain.handle("launcher:update", async () => {
     const { asset } = await getRelease();
     const tmp = path.join(app.getPath("temp"), GAME_ASSET);
     send("launcher:progress", { phase: "downloading", pct: 0 });
-    await downloadFile(asset.browser_download_url, tmp, (pct) => {
+    await downloadFile(asset.browser_download_url, tmp, asset.size, (pct) => {
       send("launcher:progress", { phase: "downloading", pct });
     });
     send("launcher:progress", { phase: "installing", pct: 100 });
     await runSilent(tmp);
     try { fs.unlinkSync(tmp); } catch (e) {}
-    writeStamp({ assetId: asset.id, updatedAt: asset.updated_at, at: Date.now() });
+    cachedExe = null; // re-detect after install
+    const exe = await gameExePath();
+    writeStamp({ assetId: asset.id, updatedAt: asset.updated_at, at: Date.now(), exe });
     send("launcher:progress", { phase: "done", pct: 100 });
-    return { ok: true, installed: isInstalled() };
+    return { ok: true, installed: !!exe };
   } catch (e) {
     send("launcher:progress", { phase: "error", pct: 0, error: e.message });
     return { ok: false, error: e.message };
   }
 });
 
-function downloadFile(url, dest, onPct) {
+function downloadFile(url, dest, expectedSize, onPct) {
   return new Promise((resolve, reject) => {
     const out = fs.createWriteStream(dest);
+    let done = false;
+    const fail = (e) => {
+      if (done) return; done = true;
+      try { out.destroy(); fs.unlinkSync(dest); } catch (_) {}
+      reject(e);
+    };
     const get = (u) => {
       https.get(u, { headers: { "User-Agent": "sold-as-is-launcher" } }, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) return get(res.headers.location);
-        if (res.statusCode !== 200) return reject(new Error("download HTTP " + res.statusCode));
-        const total = parseInt(res.headers["content-length"] || "0", 10);
+        if (res.statusCode !== 200) return fail(new Error("download HTTP " + res.statusCode));
+        const total = parseInt(res.headers["content-length"] || "0", 10) || expectedSize || 0;
         let got = 0;
         res.on("data", (c) => {
           got += c.length;
-          if (total) onPct(Math.round((got / total) * 100));
+          if (total) onPct(Math.min(99, Math.round((got / total) * 100)));
         });
+        res.on("error", fail);
         res.pipe(out);
-        out.on("finish", () => { out.close(); resolve(); });
-      }).on("error", (e) => { try { fs.unlinkSync(dest); } catch (_) {} reject(e); });
+        out.on("finish", () => {
+          if (done) return; done = true;
+          out.close(() => {
+            // integrity: size must match the release asset
+            if (expectedSize && fs.existsSync(dest) && fs.statSync(dest).size !== expectedSize) {
+              try { fs.unlinkSync(dest); } catch (_) {}
+              return reject(new Error("download incomplete, please retry"));
+            }
+            resolve();
+          });
+        });
+      }).on("error", fail);
     };
     get(url);
   });
@@ -140,12 +189,13 @@ function downloadFile(url, dest, onPct) {
 
 function runSilent(installer) {
   return new Promise((resolve, reject) => {
-    // NSIS silent install; then wait for the game exe to exist.
+    // NSIS silent install; then wait for the game exe to appear at its
+    // real location (read from the uninstall registry entry).
     execFile(installer, ["/S"], { timeout: 10 * 60 * 1000 }, (err) => {
       if (err) return reject(err);
       const t0 = Date.now();
-      const tick = () => {
-        if (isInstalled()) return resolve();
+      const tick = async () => {
+        if (await isInstalled()) return resolve();
         if (Date.now() - t0 > 5 * 60 * 1000) return reject(new Error("install timed out"));
         setTimeout(tick, 2000);
       };
@@ -155,8 +205,8 @@ function runSilent(installer) {
 }
 
 ipcMain.handle("launcher:play", async () => {
-  const exe = gameExePath();
-  if (!fs.existsSync(exe)) return { ok: false, error: "game not installed" };
+  const exe = await gameExePath();
+  if (!exe) return { ok: false, error: "game not installed" };
   spawn(exe, [], { detached: true, stdio: "ignore" }).unref();
   return { ok: true };
 });

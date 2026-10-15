@@ -5,6 +5,11 @@ body.pc-mode #phone-shell { display: none !important; }
 body.pc-mode #tabbar { display: none !important; }
 
 /* ---------- desktop ---------- */
+/* Pre-first-paint kill for the phone shell in PC mode (see inline head script).
+   Desktop.init() adds body.pc-mode on DOMContentLoaded, but the lock screen
+   would otherwise flash for a frame before that. */
+html.pc-boot #phone-shell { display: none !important; }
+
 #pc-desktop { position: fixed; inset: 0; z-index: 10; overflow: hidden;
   font-family: -apple-system, "Segoe UI", sans-serif; }
 #pc-desktop .pc-wallpaper { position: absolute; inset: 0; }

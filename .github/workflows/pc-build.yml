@@ -1,7 +1,8 @@
 name: PC test build
 
-# Every push to the pc-desktop branch rebuilds the Windows test build
-# on a real Windows runner and refreshes the pc-test-v1 prerelease.
+# Every push to the pc-desktop branch rebuilds the Windows game installer
+# and the launcher on a real Windows runner, then refreshes the
+# pc-test-v1 prerelease. Patch notes accumulate from commit messages.
 on:
   push:
     branches: [pc-desktop]
@@ -14,27 +15,43 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        working-directory: pc
         shell: pwsh
     steps:
       - uses: actions/checkout@v4
         with:
           ref: pc-desktop
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Sync game files into wrapper
-        run: Copy-Item -Recurse -Force ..\public public
+      - name: Build game installer
+        run: |
+          Copy-Item -Recurse -Force ..\public pc\public
+          cd pc
+          npm ci
+          npx electron-builder --win nsis
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Build launcher
+        run: |
+          cd pc-launcher
+          npm ci
+          npx electron-builder --win portable
 
-      - name: Build NSIS installer
-        run: npx electron-builder --win nsis
+      - name: Refresh prerelease assets
+        run: |
+          gh release upload pc-test-v1 pc\dist\SoldAsIs-PC-test-setup.exe --clobber
+          gh release upload pc-test-v1 pc-launcher\dist\SoldAsIs-Launcher.exe --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Refresh prerelease asset
-        run: gh release upload pc-test-v1 dist/SoldAsIs-PC-test-setup.exe --clobber
+      - name: Append patch notes
+        run: |
+          $notes = gh release view pc-test-v1 --json body --jq .body
+          $commits = git log -5 --pretty=format:'- %s' pc-desktop
+          $stamp = "`n`n## $(Get-Date -Format 'yyyy-MM-dd HH:mm') UTC`n$commits"
+          $new = "$notes$stamp"
+          $new | gh release edit pc-test-v1 --notes-file -
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

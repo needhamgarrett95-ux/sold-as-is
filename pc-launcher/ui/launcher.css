@@ -1,0 +1,57 @@
+/* Sold As-Is Launcher — matches the game's dark/gold aesthetic. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(1100px 600px at 70% 10%, #1c222b 0%, #101318 70%);
+  color: #ece9e1; overflow: hidden; user-select: none;
+}
+#titlebar {
+  height: 36px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 8px 0 16px; -webkit-app-region: drag;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.tb-title { font-size: 12px; font-weight: 700; color: #9aa0a8; letter-spacing: .4px; }
+#tb-close { -webkit-app-region: no-drag; border: none; background: transparent; color: #9aa0a8;
+  font-size: 14px; padding: 6px 12px; cursor: pointer; border-radius: 6px; }
+#tb-close:hover { background: #e04536; color: #fff; }
+#app { display: flex; height: calc(100% - 36px); }
+#left { width: 340px; padding: 32px 28px; display: flex; flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,.07); }
+.brand { display: flex; gap: 14px; align-items: center; margin-bottom: 28px; }
+.brand-icon { width: 56px; height: 56px; border-radius: 14px; background: #e04536;
+  display: flex; align-items: center; justify-content: center; flex: 0 0 56px; }
+.brand-icon svg { width: 34px; height: 34px; }
+.brand h1 { font-size: 22px; font-weight: 800; letter-spacing: .2px; }
+.brand p { font-size: 12px; color: #9aa0a8; margin-top: 4px; }
+.status { font-size: 13px; color: #9aa0a8; min-height: 40px; line-height: 1.5; }
+.status b { color: #ece9e1; }
+#progress-wrap { margin: 12px 0; }
+#progress-wrap.hidden { display: none; }
+#progress-bar { height: 8px; border-radius: 5px; background: rgba(255,255,255,.08); overflow: hidden; }
+#progress-fill { height: 100%; width: 0%; border-radius: 5px;
+  background: linear-gradient(90deg, #c9a227, #febc2e); transition: width .2s; }
+#progress-label { font-size: 12px; color: #9aa0a8; margin-top: 8px; }
+.actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+.actions .hidden { display: none; }
+#btn-play, #btn-update {
+  border: none; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 800;
+  cursor: pointer; letter-spacing: .3px;
+}
+#btn-play { background: linear-gradient(180deg, #febc2e, #e09b12); color: #241a00;
+  box-shadow: 0 6px 22px rgba(254,188,46,.25); }
+#btn-play:hover:not(:disabled) { filter: brightness(1.06); }
+#btn-play:disabled { opacity: .45; cursor: default; }
+#btn-update { background: rgba(255,255,255,.08); color: #ece9e1;
+  border: 1px solid rgba(255,255,255,.12); }
+#btn-update:hover:not(:disabled) { background: rgba(255,255,255,.14); }
+#btn-update:disabled { opacity: .45; cursor: default; }
+#right { flex: 1; padding: 28px 30px; overflow: hidden; display: flex; flex-direction: column; }
+#right h2 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;
+  color: #9aa0a8; margin-bottom: 14px; }
+#notes { flex: 1; overflow-y: auto; font-size: 13.5px; line-height: 1.65; color: #cfd3d8; }
+#notes .dim { color: #6b7076; }
+.note-head { font-size: 14px; font-weight: 800; color: #febc2e; margin: 14px 0 6px; }
+.note-head:first-child { margin-top: 0; }
+.note-item { padding-left: 14px; position: relative; margin-bottom: 3px; }
+.note-item::before { content: "•"; position: absolute; left: 2px; color: #e04536; }

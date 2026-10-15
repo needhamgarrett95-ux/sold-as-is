@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sold As-Is Launcher</title>
+<link rel="stylesheet" href="launcher.css">
+</head>
+<body>
+<div id="titlebar">
+  <span class="tb-title">Sold As-Is Launcher</span>
+  <button id="tb-close" aria-label="Close">✕</button>
+</div>
+<div id="app">
+  <section id="left">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.2"/><circle cx="18.5" cy="17.5" r="3.2"/><path d="M5.5 17.5 9 10h4l3 7.5M9 10 7.5 6H10m4 4h3l2.5 7.5"/></svg>
+      </div>
+      <div>
+        <h1>Sold As-Is</h1>
+        <p>Olympic Peninsula · Port Angeles, WA</p>
+      </div>
+    </div>
+    <div id="status" class="status">Checking for updates…</div>
+    <div id="progress-wrap" class="hidden">
+      <div id="progress-bar"><div id="progress-fill"></div></div>
+      <div id="progress-label"></div>
+    </div>
+    <div class="actions">
+      <button id="btn-play" class="hidden">Play</button>
+      <button id="btn-update" class="hidden">Update</button>
+    </div>
+  </section>
+  <section id="right">
+    <h2>Patch notes</h2>
+    <div id="notes"><p class="dim">Loading…</p></div>
+  </section>
+</div>
+<script src="renderer.js"></script>
+</body>
+</html>

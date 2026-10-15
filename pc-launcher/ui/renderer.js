@@ -77,12 +77,18 @@ updateBtn.addEventListener("click", async () => {
     r = await withTimeout(window.launcher.update(), 15 * 60 * 1000, "Update");
   } catch (e) {
     r = { ok: false, error: e.message };
-    statusEl.innerHTML = "Update failed: " + esc(e.message);
   }
   progWrap.classList.add("hidden");
   updateBtn.disabled = false; playBtn.disabled = false;
-  if (r.ok) { updateBtn.classList.add("hidden"); playBtn.classList.remove("hidden"); }
-  refresh();
+  if (r.ok) {
+    updateBtn.classList.add("hidden");
+    playBtn.classList.remove("hidden");
+    refresh();
+  } else {
+    // Leave the failure visible; do NOT refresh() over it.
+    statusEl.innerHTML = "Update failed: " + esc(r.error || "unknown error") +
+      "<br>Click <b>Update</b> to retry.";
+  }
 });
 
 playBtn.addEventListener("click", async () => {

@@ -1686,3 +1686,32 @@ body.dark-mode #part-haggle .haggle-modal { background: #242930; }
   cursor: pointer; font-family: inherit;
 }
 .tutorial-skip:active { color: rgba(236,233,225,0.8); }
+
+/* ============================================================
+   BOTTOM TAB BAR (aud224) — one-tap app switching, thumb zone.
+   Only in app mode; home screen + lock screen untouched.
+   ============================================================ */
+#tabbar { display: none; }
+body.app-mode #tabbar {
+  display: flex; position: fixed; bottom: 0; left: 50%;
+  transform: translateX(-50%); width: 100%; max-width: 560px; z-index: 90;
+  background: rgba(36,41,48,.94);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  border-top: var(--hairline);
+  padding: 8px 4px calc(10px + env(safe-area-inset-bottom, 0px));
+}
+body.app-mode:not(.dark-mode) #tabbar { background: rgba(255,255,255,.94); }
+#tabbar .ttab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none; color: var(--dim);
+  font-size: 10px; font-weight: 600; font-family: inherit;
+  cursor: pointer; padding: 2px 0; min-width: 0;
+}
+#tabbar .ttab svg { width: 24px; height: 24px; }
+#tabbar .ttab.active { color: var(--blue); }
+#tabbar .ttab-label { white-space: nowrap; }
+/* content clears the bar */
+body.app-mode #feed, body.app-mode .pane { padding-bottom: 92px; }
+@media (min-width: 768px) {
+  body.app-mode #tabbar { max-width: 100%; }
+}

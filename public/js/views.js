@@ -100,6 +100,9 @@ const Views = {
     Detail.close();
     document.querySelectorAll("#tabstrip .wtab").forEach(b =>
       b.classList.toggle("active", b.dataset.view === name));
+    // Bottom tab bar follows the active app (aud224)
+    document.querySelectorAll("#tabbar .ttab").forEach(b =>
+      b.classList.toggle("active", b.dataset.app === name));
     // Update the URL bar to match the "site" we're on
     const site = SITES[name];
     const urlEl = document.querySelector(".urlbar .url");

@@ -1,0 +1,80 @@
+/* Sold As-Is — PC desktop shell styles. Everything scoped under
+ * body.pc-mode so the mobile web build never sees it. */
+
+body.pc-mode #phone-shell { display: none !important; }
+body.pc-mode #tabbar { display: none !important; }
+
+/* ---------- desktop ---------- */
+#pc-desktop { position: fixed; inset: 0; z-index: 10; overflow: hidden;
+  font-family: -apple-system, "Segoe UI", sans-serif; }
+#pc-desktop .pc-wallpaper { position: absolute; inset: 0;
+  background: radial-gradient(1200px 700px at 70% 20%, #2b3542 0%, #1a1f27 55%, #101318 100%); }
+#pc-desktop .pc-wallpaper::after { content: ""; position: absolute; inset: 0;
+  background: radial-gradient(900px 500px at 15% 85%, rgba(201,111,30,.10), transparent 60%); }
+body:not(.dark-mode).pc-mode #pc-desktop .pc-wallpaper {
+  background: radial-gradient(1200px 700px at 70% 20%, #f2efe6 0%, #e4ded0 55%, #d3ccb8 100%); }
+
+.pc-brand { position: absolute; top: 28px; right: 32px; text-align: right; z-index: 2; }
+.pc-brand h1 { font-size: 22px; font-weight: 800; margin: 0; color: #ece9e1; }
+.pc-brand p { margin: 6px 0 0; font-size: 13px; color: #9aa0a8; }
+body:not(.dark-mode).pc-mode .pc-brand h1 { color: #2a2d33; }
+body:not(.dark-mode).pc-mode .pc-brand p { color: #6b6f76; }
+
+.pc-icons { position: absolute; top: 28px; left: 28px; z-index: 2;
+  display: flex; flex-direction: column; gap: 26px; }
+.pc-icon { display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer; width: 96px; padding: 0; }
+.pc-icon .pc-tile { width: 64px; height: 64px; border-radius: 14px; display: flex;
+  align-items: center; justify-content: center;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 4px 18px rgba(0,0,0,.35); transition: transform .12s ease; }
+.pc-icon:hover .pc-tile { transform: translateY(-2px); }
+.pc-icon .pc-tile svg { width: 40px; height: 40px; }
+.pc-icon .pc-label { color: #ece9e1; font-size: 12px; font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0,0,0,.7); text-align: center; }
+body:not(.dark-mode).pc-mode .pc-icon .pc-tile { background: rgba(255,255,255,.65);
+  border: 1px solid rgba(0,0,0,.08); box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+body:not(.dark-mode).pc-mode .pc-icon .pc-label { color: #2a2d33;
+  text-shadow: 0 1px 4px rgba(255,255,255,.8); }
+
+/* Theme-aware icon strokes (from the mock review) */
+body.dark-mode.pc-mode #pc-desktop [data-appicon="garage"] svg { stroke: #d8c48f; }
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="market"] svg,
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="parts"] svg,
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="ledger"] svg { stroke: #3a3f47; }
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="parts"] svg circle { fill: #3a3f47; }
+
+/* ---------- window ---------- */
+#pc-window { position: absolute; top: 0; left: 0; right: 0; bottom: 56px; z-index: 3;
+  display: flex; flex-direction: column;
+  background: var(--bg, #f5f2ea); }
+#pc-window.hidden { display: none; }
+#pc-titlebar { height: 44px; flex: 0 0 44px; display: flex; align-items: center;
+  padding: 0 8px 0 18px; gap: 8px;
+  background: rgba(0,0,0,.04); border-bottom: 1px solid rgba(0,0,0,.08); }
+body.dark-mode.pc-mode #pc-titlebar { background: rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.09); }
+#pc-window-title { font-size: 14px; font-weight: 700; }
+#pc-close { margin-left: auto; width: 36px; height: 32px; border: none; border-radius: 8px;
+  background: transparent; cursor: pointer; font-size: 14px; color: inherit; }
+#pc-close:hover { background: #e04536; color: #fff; }
+#pc-window-body { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+#pc-window-body #browser { position: absolute; inset: 0; max-width: none; }
+
+/* ---------- taskbar ---------- */
+#pc-taskbar { position: absolute; bottom: 0; left: 0; right: 0; height: 56px; z-index: 4;
+  display: flex; align-items: center; gap: 6px; padding: 0 16px;
+  background: rgba(16,19,24,.92); backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,.09); }
+body:not(.dark-mode).pc-mode #pc-taskbar { background: rgba(248,246,240,.94);
+  border-top: 1px solid rgba(0,0,0,.08); }
+.pc-tb-apps { display: flex; gap: 6px; }
+.pc-tb-app { width: 44px; height: 44px; border-radius: 10px; display: flex;
+  align-items: center; justify-content: center; background: transparent; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; }
+.pc-tb-app:hover { background: rgba(127,127,127,.15); }
+.pc-tb-app svg { width: 26px; height: 26px; }
+.pc-tb-app.running { border-bottom-color: #e04536; border-radius: 10px 10px 0 0; }
+#pc-clock { margin-left: auto; color: #ece9e1; font-size: 13px; font-weight: 600;
+  display: flex; flex-direction: column; align-items: flex-end; line-height: 1.35; }
+body:not(.dark-mode).pc-mode #pc-clock { color: #2a2d33; }

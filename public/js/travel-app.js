@@ -178,7 +178,6 @@ window.TravelMap = (function () {
         var initSelectedId=firstListing?('listing:'+firstListing.id):'home';
         var state={fuel:initFuel,wallet:initWallet,currentId:'home',selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
     var mapHandle=null;
-    var displayPlaces=[];
     var selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
     var resizeTimer=null;
 
@@ -262,112 +261,6 @@ window.TravelMap = (function () {
       var item={id:d.id,kind:d.kind,town:d.town,name:d.name,price:d.price,lat:d.lat,lng:d.lng,trueLat:d.lat,trueLng:d.lng,markerDx:0,markerDy:0,label:d.name,locality:d.town,region:'WA',destinationId:d.id,destinationIndex:destinations.findIndex(function(x){return x.id===d.id;})};
       if(extra) Object.keys(extra).forEach(function(key){item[key]=extra[key];});
       return item;
-    }
-    function buildDisplayPlaces(zoom){
-      var result=[displayItem(byId.home)];
-      if(showGas){
-        destinations.filter(function(d){return d.kind==='gas';}).forEach(function(d){result.push(displayItem(d));});
-      }
-      if(showSellers){
-        sellerGroups(zoom).forEach(function(group){
-          if(group.length===1){result.push(displayItem(group[0]));return;}
-          var anchor=medoid(group,zoom);
-          var clusterId='cluster:'+group.map(function(d){return d.id;}).sort().join('|');
-          if(expandedClusterId===clusterId){
-            group.forEach(function(d){result.push(displayItem(d,{expanded:true,clusterAnchorLat:anchor.lat,clusterAnchorLng:anchor.lng}));});
-          }else{
-            result.push({id:clusterId,kind:'cluster',town:anchor.town,name:group.length+' sellers near '+anchor.town,count:group.length,members:group.map(function(d){return d.id;}),lat:anchor.lat,lng:anchor.lng,trueLat:anchor.lat,trueLng:anchor.lng,markerDx:0,markerDy:0,label:group.length+' sellers',locality:anchor.town,region:'WA'});
-          }
-        });
-      }
-      var occupied=[];
-      result.forEach(function(place){
-        var base=project(place.trueLat,place.trueLng,zoom),pick={x:base.x,y:base.y},offsets=candidateOffsets(place,place.expanded===true),needed=place.kind==='cluster'?31:MIN_PIN_SEPARATION;
-        for(var k=0;k<offsets.length;k++){
-          var candidate={x:base.x+offsets[k][0],y:base.y+offsets[k][1]},clear=true;
-          for(var j=0;j<occupied.length;j++){
-            var minimum=Math.max(needed,occupied[j].needed);
-            if(distance(candidate,occupied[j])<minimum){clear=false;break;}
-          }
-          if(clear){pick=candidate;break;}
-        }
-        occupied.push({x:pick.x,y:pick.y,needed:needed});
-        var geo=unproject(pick.x,pick.y,zoom);
-        place.lat=geo.lat; place.lng=geo.lng; place.markerDx=pick.x-base.x; place.markerDy=pick.y-base.y;
-      });
-      return result;
-    }
-    function displayFor(id){
-      for(var i=0;i<displayPlaces.length;i++) if(displayPlaces[i].destinationId===id) return displayPlaces[i];
-      return byId[id];
-    }
-    function routeOverlay(){
-      if(state.currentId===state.selectedId) return [];
-      var from=byId[state.currentId],to=byId[state.selectedId];
-      var coords=townPath(from.town,to.town).map(function(n){return [byName[n].lng,byName[n].lat];});
-      var start=displayFor(from.id),end=displayFor(to.id);
-      coords.unshift([start.lng,start.lat]);
-      coords.push([end.lng,end.lat]);
-      return [{id:'selected-route',data:{type:'FeatureCollection',features:[{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:coords}}]},layers:[
-        {id:'route-shadow',type:'line',source:'selected-route',paint:{'line-color':'#ffffff','line-width':7,'line-opacity':.82}},
-        {id:'route-main',type:'line',source:'selected-route',paint:{'line-color':to.kind==='gas'?'#c58b10':'#c84435','line-width':3,'line-dasharray':[2,1]}}
-      ]}];
-    }
-    function pumpSVG(){
-      return '<span class="marker-symbol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10v18H5zM7 6h6v5H7zm8 1 3 3v8c0 2 3 2 3 0v-6h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>';
-    }
-    function clusterLeg(place){
-      if(!place.expanded) return '';
-      var dx=Math.round(place.markerDx||0),dy=Math.round(place.markerDy||0);
-      return '<svg class="cluster-leg" viewBox="-85 -85 170 170" aria-hidden="true"><line x1="0" y1="0" x2="'+(-dx)+'" y2="'+(-dy)+'"/><line x1="0" y1="0" x2="'+(-dx)+'" y2="'+(-dy)+'"/></svg>';
-    }
-    function markerHTML(place,index,selected){
-      if(place.kind==='cluster') return '<div class="map-marker cluster" title="'+place.name+'" aria-label="'+place.name+'. Tap to expand."><span class="cluster-count">'+place.count+'</span></div>';
-      var symbol=place.kind==='home'?'<span class="pixel-glyph home-glyph"></span>':place.kind==='gas'?pumpSVG():'<span class="marker-symbol seller-dollar">$</span>';
-      var kindLabel=place.kind==='gas'?'fuel stop':place.kind==='seller'?'seller location':'home garage';
-      var label=selected?'<span class="marker-label">'+place.name+'</span>':'';
-      return '<div class="map-marker '+place.kind+' '+(selected?'selected':'')+'" title="'+place.name+'" aria-label="'+place.name+' '+kindLabel+'">'+clusterLeg(place)+symbol+label+'</div>';
-    }
-    function showFallback(){
-      var box=document.getElementById('travel-mapFallback');
-      var visible=destinations.filter(function(d){return d.kind==='home'||(d.kind==='seller'&&showSellers)||(d.kind==='gas'&&showGas);});
-      box.hidden=false;
-      box.innerHTML='<div class="eyebrow">Map unavailable · destination list still works</div><div class="fallback-grid">'+visible.map(function(d){
-        var i=destinations.findIndex(function(x){return x.id===d.id;});
-        var prefix=d.kind==='seller'?'$ · ':d.kind==='gas'?'Fuel · ':'';
-        var detail=d.kind==='gas'?d.town+' · '+money(d.price)+'/gal':d.kind==='home'?'Home garage':byName[d.town].miles+' mi from home';
-        return '<button class="fallback-town" data-i="'+i+'"><strong>'+prefix+d.name+'</strong><small>'+detail+'</small></button>';
-      }).join('')+'</div>';
-      box.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){selectDestination(+b.dataset.i);});});
-    }
-    function mapZoom(){return window.innerWidth<650?7.15:(window.innerWidth<980?7.25:7.35);}
-    function mountMap(){
-      var el=document.getElementById('travel-map');
-      if(mapHandle&&mapHandle.destroy) mapHandle.destroy();
-      el.innerHTML='';
-      document.getElementById('travel-mapFallback').hidden=true;
-      var viewZoom=mapZoom();
-      displayPlaces=buildDisplayPlaces(viewZoom);
-      var mapStyle=rootEl.getAttribute('data-theme')||'dark';
-      try{
-        mapHandle=MapHelpers.mountMap(el,{places:displayPlaces,center:{lat:47.78,lng:-123.52},zoom:viewZoom,baseStyle:mapStyle,marker:markerHTML,onSelectPlace:function(i){if(i!==null) handleMapPlace(i);},overlays:routeOverlay()},showFallback);
-        if(mapHandle){
-          var activeIndex=displayPlaces.findIndex(function(p){return p.destinationId===state.selectedId;});
-          if(activeIndex>=0) mapHandle.selectPlace(activeIndex);
-        }
-      }catch(e){showFallback();}
-    }
-    function handleMapPlace(index){
-      if(state.driving) return;
-      var place=displayPlaces[index];
-      if(!place) return;
-      if(place.kind==='cluster'){
-        expandedClusterId=place.id;
-        updateLayerControls(place.count);
-        mountMap();
-        return;
-      }
-      selectDestination(place.destinationIndex);
     }
     function selectDestination(index){
       if(state.driving||index<0) return;

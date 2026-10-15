@@ -505,3 +505,10 @@
     #travel-root .browser-dots span {width:10px;height:10px;border-radius:50%;background:var(--travel-line-soft);border:1px solid var(--travel-line)}
     #travel-root .browser-url {display:flex;align-items:center;gap:8px;flex:1;background:var(--travel-bg);border:1px solid var(--travel-line);border-radius:12px;padding:7px 12px;font-size:12px;color:var(--travel-dim);font-family:"IBM Plex Mono",monospace}
     #travel-root .browser-content {position:relative}
+
+/* Hand-drawn SVG map pins */
+#travel-root #travel-map svg g.pin { transition: transform 0.15s ease; }
+#travel-root #travel-map svg g.pin.has-listing circle:first-child { stroke: #febc2e; stroke-width: 3; }
+#travel-root #travel-map svg g.pin.selected circle:first-child { stroke: #fff; stroke-width: 3; filter: drop-shadow(0 0 6px rgba(254,188,46,0.8)); }
+#travel-root #travel-map svg g.pin:hover { transform: scale(1.15); transform-origin: center; transform-box: fill-box; }
+#travel-root #travel-map { background: #263a43; border-radius: 12px; overflow: hidden; }

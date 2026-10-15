@@ -2,3 +2,4 @@
 # public/ + the native bridge (see ios/sync-game.sh or the ios-ipa
 # workflow) — never commit a stale copy.
 ios/Game/
+node_modules

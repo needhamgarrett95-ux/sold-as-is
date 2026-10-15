@@ -17,7 +17,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "artifactName": "SoldAsIs-PC-test-setup.exe",
-      "shortcutName": "Sold As-Is PC"
+      "shortcutName": "Sold As-Is PC",
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": false
     }
   },
   "description": "Sold As-Is \u2014 PC desktop test build (separate from web)",

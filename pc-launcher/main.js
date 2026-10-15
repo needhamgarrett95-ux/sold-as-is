@@ -1,8 +1,7 @@
 // Sold As-Is Launcher V1 — main process.
 // Checks the pc-test-v1 prerelease for the game installer, downloads
 // updates with progress, installs silently, and launches the game.
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
-const { spawn, execFile } = require("child_process");
+const { app, BrowserWindow, ipcMain, shell } = require("electron");const { spawn, execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
@@ -15,8 +14,9 @@ const GAME_EXE = "Sold As-Is PC.exe";
 function installDir() {
   return path.join(process.env.LOCALAPPDATA || "", "Programs", "sold-as-is-pc");
 }
-// Robust: ask Windows where the game actually landed via the uninstall entry.
-function findInstalledExe() {
+// Robust: ask Windows where the game actually landed via the uninstall entry,
+// then fall back to scanning program folders for the exe by name.
+function regInstallLocation() {
   return new Promise((resolve) => {
     const key = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\com.garrett.soldasis.pc";
     execFile("reg", ["query", key, "/v", "InstallLocation"], (err, stdout) => {
@@ -27,14 +27,28 @@ function findInstalledExe() {
           if (fs.existsSync(exe)) return resolve(exe);
         }
       }
-      // fallback: known candidate locations
-      const cands = [
-        path.join(installDir(), GAME_EXE),
-        path.join(process.env.LOCALAPPDATA || "", "Programs", "Sold As-Is PC", GAME_EXE),
-      ];
-      resolve(cands.find((c) => fs.existsSync(c)) || null);
+      resolve(null);
     });
   });
+}
+function scanForExe() {
+  const roots = [
+    path.join(process.env.LOCALAPPDATA || "", "Programs"),
+    process.env.ProgramFiles || "",
+  ];
+  for (const root of roots) {
+    let entries = [];
+    try { entries = fs.readdirSync(root, { withFileTypes: true }); } catch (e) { continue; }
+    for (const e of entries) {
+      if (!e.isDirectory()) continue;
+      const cand = path.join(root, e.name, GAME_EXE);
+      if (fs.existsSync(cand)) return cand;
+    }
+  }
+  return null;
+}
+async function findInstalledExe() {
+  return (await regInstallLocation()) || scanForExe();
 }
 let cachedExe = null;
 async function gameExePath() {
@@ -225,5 +239,22 @@ ipcMain.handle("launcher:play", async () => {
 
 ipcMain.handle("launcher:close", () => { app.quit(); });
 
-app.whenReady().then(createWindow);
+// The launcher is the front door: on first run, drop a desktop shortcut
+// so players start the game through here (update check + patch notes).
+function ensureDesktopShortcut() {
+  if (process.platform !== "win32") return;
+  try {
+    const desktop = path.join(process.env.USERPROFILE || "", "Desktop");
+    const link = path.join(desktop, "Sold As-Is Launcher.lnk");
+    const marker = path.join(app.getPath("userData"), "shortcut-created");
+    if (fs.existsSync(link) || fs.existsSync(marker)) return;
+    const ok = shell.writeShortcutLink(link, {
+      target: app.getPath("exe"),
+      description: "Sold As-Is Launcher",
+    });
+    if (ok) fs.writeFileSync(marker, "1");
+  } catch (e) {}
+}
+
+app.whenReady().then(() => { ensureDesktopShortcut(); createWindow(); });
 app.on("window-all-closed", () => app.quit());

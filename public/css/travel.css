@@ -513,5 +513,5 @@
 #travel-root #travel-map .map-pin:hover { transform: translate(-50%, -50%) scale(1.25); z-index: 5; }
 #travel-root #travel-map .map-pin.home { background: #febc2e; width: 28px; height: 28px; border-color: #fff; }
 #travel-root #travel-map .map-pin.selected { box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(254,188,46,0.9); z-index: 4; }
-#travel-root #travel-map .map-pin.gas { background: #3a7bd5; width: 20px; height: 20px; }
-#travel-root #travel-map .map-pin .pin-pump { color: #fff; font-size: 11px; font-weight: bold; font-family: monospace; }
+#travel-root #travel-map .map-pin.gas { background: #febc2e; width: 20px; height: 20px; }
+#travel-root #travel-map .map-pin .pin-pump { color: #14171a; font-size: 11px; font-weight: bold; font-family: monospace; }

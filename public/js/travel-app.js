@@ -116,24 +116,24 @@ window.TravelMap = (function () {
   function createInstance(rootEl, opts) {
     var HOME = 'Port Angeles';
     var CAPACITY = 15;
-    var MPG = 16;
+    var MPG = 12;
     var towns = [
       ['Port Angeles',0,48.11892,-123.43112],['Agnew',8,48.10524,-123.24794],['Carlsborg',12,48.0897,-123.17287],['Joyce',15,48.13635,-123.73438],['Sequim',17,48.07965,-123.10367],['Blyn',20,48.02157,-123.00063],['Diamond Point',25,48.08489,-122.95169],['Chimacum',28,48.01182,-122.77328],['Port Hadlock',30,48.02571,-122.75858],['Gardiner',32,48.05021,-122.9254],['Port Townsend',35,48.1212,-122.77263],['Nordland',36,48.05105,-122.69107],['Beaver',40,48.05431,-124.33152],['Marrowstone',41,48.07226,-122.70206],['Sappho',45,48.06878,-124.2919],['Quilcene',46,47.82642,-122.8775],['Clallam Bay',50,48.25379,-124.26015],['Forks',55,47.95014,-124.38543],['Brinnon',57,47.69838,-122.89646],['Sekiu',62,48.25978,-124.30041],['Poulsbo',63,47.73689,-122.64681],['Silverdale',66,47.65171,-122.69275],['La Push',70,47.9082,-124.63663],['Neah Bay',72,48.36786,-124.62755],['Bremerton',75,47.565,-122.62749],['Hoodsport',78,47.40639,-123.14135],['Port Orchard',82,47.54103,-122.63847],['Shelton',90,47.21253,-123.10616],['Olympia',108,47.03954,-122.89165],['Tacoma',112,47.25517,-122.44164]
     ].map(function(t){ return {name:t[0], miles:t[1], lat:t[2], lng:t[3], label:t[0]+', WA', locality:t[0], region:'WA'}; });
     var stations = {
-      'Port Angeles':{name:'Strait View Fuel',price:4.20,lat:48.11892,lng:-123.43112},
-      'Sequim':{name:'Rainshadow Fuel',price:4.15,lat:48.07965,lng:-123.10367},
-      'Beaver':{name:'Beaver Junction',price:4.69,lat:48.05431,lng:-124.33152},
-      'Forks':{name:'Forks Fuel & Timber',price:4.89,lat:47.95014,lng:-124.38543},
-      'Neah Bay':{name:'Makah Bay Trading Post',price:5.49,lat:48.36786,lng:-124.62755},
-      'Clallam Bay':{name:'Strait Side Gas',price:4.99,lat:48.25379,lng:-124.26015},
-      'Port Townsend':{name:'Victorian Petrol',price:4.25,lat:48.1212,lng:-122.77263},
-      'Quilcene':{name:'Quilcene Quick Stop',price:4.40,lat:47.82642,lng:-122.8775},
-      'Hoodsport':{name:'Canal-side Gas',price:4.79,lat:47.40639,lng:-123.14135},
-      'Shelton':{name:'Shelton Speedway',price:4.10,lat:47.21253,lng:-123.10616},
-      'Olympia':{name:'Capital Fill-Up',price:4.05,lat:47.03954,lng:-122.89165},
-      'Bremerton':{name:'Shipyard Fuel',price:4.20,lat:47.565,lng:-122.62749},
-      'Poulsbo':{name:'Viking Pump',price:4.30,lat:47.73689,lng:-122.64681}
+      'Port Angeles':{name:'Strait View Fuel',price:2.50,lat:48.11892,lng:-123.43112},
+      'Sequim':{name:'Rainshadow Fuel',price:2.50,lat:48.07965,lng:-123.10367},
+      'Beaver':{name:'Beaver Junction',price:2.50,lat:48.05431,lng:-124.33152},
+      'Forks':{name:'Forks Fuel & Timber',price:2.50,lat:47.95014,lng:-124.38543},
+      'Neah Bay':{name:'Makah Bay Trading Post',price:2.50,lat:48.36786,lng:-124.62755},
+      'Clallam Bay':{name:'Strait Side Gas',price:2.50,lat:48.25379,lng:-124.26015},
+      'Port Townsend':{name:'Victorian Petrol',price:2.50,lat:48.1212,lng:-122.77263},
+      'Quilcene':{name:'Quilcene Quick Stop',price:2.50,lat:47.82642,lng:-122.8775},
+      'Hoodsport':{name:'Canal-side Gas',price:2.50,lat:47.40639,lng:-123.14135},
+      'Shelton':{name:'Shelton Speedway',price:2.50,lat:47.21253,lng:-123.10616},
+      'Olympia':{name:'Capital Fill-Up',price:2.50,lat:47.03954,lng:-122.89165},
+      'Bremerton':{name:'Shipyard Fuel',price:2.50,lat:47.565,lng:-122.62749},
+      'Poulsbo':{name:'Viking Pump',price:2.50,lat:47.73689,lng:-122.64681}
     };
     var byName = {}; towns.forEach(function(t){ byName[t.name]=t; });
     var routeNames = {

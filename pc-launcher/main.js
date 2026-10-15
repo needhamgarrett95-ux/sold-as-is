@@ -41,6 +41,7 @@ function ghGet(urlPath) {
       hostname: "api.github.com",
       path: urlPath,
       method: "GET",
+      timeout: 15000,
       headers: { "User-Agent": "sold-as-is-launcher", "Accept": "application/vnd.github+json" },
     }, (res) => {
       let body = "";
@@ -51,6 +52,7 @@ function ghGet(urlPath) {
         } else reject(new Error("GitHub API " + res.statusCode));
       });
     });
+    req.on("timeout", () => { req.destroy(new Error("update check timed out")); });
     req.on("error", reject);
     req.end();
   });

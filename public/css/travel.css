@@ -506,9 +506,12 @@
     #travel-root .browser-url {display:flex;align-items:center;gap:8px;flex:1;background:var(--travel-bg);border:1px solid var(--travel-line);border-radius:12px;padding:7px 12px;font-size:12px;color:var(--travel-dim);font-family:"IBM Plex Mono",monospace}
     #travel-root .browser-content {position:relative}
 
-/* Hand-drawn SVG map pins */
-#travel-root #travel-map svg g.pin { transition: transform 0.15s ease; }
-#travel-root #travel-map svg g.pin.has-listing circle:first-child { stroke: #febc2e; stroke-width: 3; }
-#travel-root #travel-map svg g.pin.selected circle:first-child { stroke: #fff; stroke-width: 3; filter: drop-shadow(0 0 6px rgba(254,188,46,0.8)); }
-#travel-root #travel-map svg g.pin:hover { transform: scale(1.15); transform-origin: center; transform-box: fill-box; }
-#travel-root #travel-map { background: #263a43; border-radius: 12px; overflow: hidden; }
+/* Static hand-drawn map with HTML pin overlays */
+#travel-root #travel-map .static-map { position: relative; width: 100%; border-radius: 12px; overflow: hidden; }
+#travel-root #travel-map .static-map img { width: 100%; display: block; user-select: none; -webkit-user-drag: none; }
+#travel-root #travel-map .map-pin { position: absolute; transform: translate(-50%, -50%); width: 22px; height: 22px; border-radius: 50%; border: 2px solid #14171a; background: #e04536; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.12s ease; z-index: 2; }
+#travel-root #travel-map .map-pin:hover { transform: translate(-50%, -50%) scale(1.25); z-index: 5; }
+#travel-root #travel-map .map-pin.home { background: #febc2e; width: 28px; height: 28px; border-color: #fff; }
+#travel-root #travel-map .map-pin.selected { box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(254,188,46,0.9); z-index: 4; }
+#travel-root #travel-map .map-pin.gas { background: #3a7bd5; width: 20px; height: 20px; }
+#travel-root #travel-map .map-pin .pin-pump { color: #fff; font-size: 11px; font-weight: bold; font-family: monospace; }

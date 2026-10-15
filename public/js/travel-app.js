@@ -398,6 +398,100 @@ window.TravelMap = (function () {
         document.addEventListener('keydown',onKeyDown);
     function onResize(){clearTimeout(resizeTimer);resizeTimer=setTimeout(function(){expandedClusterId=null;updateLayerControls();mountMap();},180);}
         window.addEventListener('resize',onResize);
+    var PIN_POS = {
+      "Agnew": [43.0, 22.3],
+      "Beaver": [20.0, 28.3],
+      "Blyn": [55.5, 22.3],
+      "Bremerton": [74.2, 64.6],
+      "Brinnon": [66.8, 59.3],
+      "Carlsborg": [46.8, 23.2],
+      "Chimacum": [65.5, 32.0],
+      "Clallam Bay": [18.5, 19.0],
+      "Diamond Point": [59.5, 21.8],
+      "Forks": [19.0, 40.0],
+      "Gardiner": [61.2, 25.5],
+      "Hoodsport": [65.5, 71.0],
+      "Joyce": [28.0, 21.4],
+      "La Push": [11.5, 43.5],
+      "Marrowstone": [69.8, 34.2],
+      "Neah Bay": [5.5, 13.1],
+      "Nordland": [69.2, 29.7],
+      "Olympia": [63.0, 93.8],
+      "Port Angeles": [38.0, 22.8],
+      "Port Hadlock": [66.8, 26.9],
+      "Port Orchard": [75.2, 68.7],
+      "Port Townsend": [64.2, 22.3],
+      "Poulsbo": [75.0, 52.4],
+      "Quilcene": [67.2, 48.3],
+      "Sappho": [23.5, 29.7],
+      "Sekiu": [15.0, 17.9],
+      "Sequim": [51.0, 23.5],
+      "Shelton": [60.0, 82.8],
+      "Silverdale": [74.5, 57.9],
+      "Tacoma": [73.0, 89.7]
+    };
+    function mountMap(){
+      var el = rootEl.querySelector('#travel-map');
+      if (!el) return;
+      // Build the static map with pin overlays
+      var townsWithListings = {};
+      destinations.forEach(function(d){
+        if (d.kind === 'seller') townsWithListings[d.town] = true;
+      });
+      var html = '<div class="static-map"><img src="img/olympic-map.png" alt="Hand-drawn map of the Olympic Peninsula" draggable="false">';
+      // Seller pins (only towns with listings)
+      Object.keys(townsWithListings).forEach(function(town){
+        var pos = PIN_POS[town];
+        if (!pos) return;
+        var isSel = byId[state.selectedId] && byId[state.selectedId].town === town && byId[state.selectedId].kind === 'seller';
+        html += '<button class="map-pin seller' + (isSel ? ' selected' : '') + '" data-town="' + town.replace(/"/g,'') + '" style="left:' + pos[0] + '%;top:' + pos[1] + '%" aria-label="' + town + ' listings"><span class="pin-dot"></span></button>';
+      });
+      // Home pin (always)
+      var homePos = PIN_POS[HOME];
+      if (homePos) {
+        var isHomeSel = state.selectedId === 'home';
+        html += '<button class="map-pin home' + (isHomeSel ? ' selected' : '') + '" data-town="__home__" style="left:' + homePos[0] + '%;top:' + homePos[1] + '%" aria-label="Home garage"><span class="pin-dot"></span></button>';
+      }
+      // Gas pins (if layer on)
+      if (showGas) {
+        Object.keys(stations).forEach(function(town){
+          var pos = PIN_POS[town];
+          if (!pos) return;
+          var isSel = state.selectedId === 'gas:' + town;
+          // Offset gas pins slightly so they don't cover seller pins
+          html += '<button class="map-pin gas' + (isSel ? ' selected' : '') + '" data-gas="' + town.replace(/"/g,'') + '" style="left:' + (pos[0]+1.2) + '%;top:' + (pos[1]+1.8) + '%" aria-label="' + stations[town].name + '"><span class="pin-pump">G</span></button>';
+        });
+      }
+      html += '</div>';
+      el.innerHTML = html;
+      // Wire clicks
+      el.querySelectorAll('.map-pin.seller').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (state.driving) return;
+          var town = btn.getAttribute('data-town');
+          var idx = destinations.findIndex(function(d){ return d.kind === 'seller' && d.town === town; });
+          if (idx >= 0) selectDestination(idx);
+        });
+      });
+      var homeBtn = el.querySelector('.map-pin.home');
+      if (homeBtn) homeBtn.addEventListener('click', function(){
+        if (state.driving) return;
+        var idx = destinations.findIndex(function(d){ return d.id === 'home'; });
+        if (idx >= 0) selectDestination(idx);
+      });
+      el.querySelectorAll('.map-pin.gas').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (state.driving) return;
+          var town = btn.getAttribute('data-gas');
+          var idx = destinations.findIndex(function(d){ return d.id === 'gas:' + town; });
+          if (idx >= 0) selectDestination(idx);
+        });
+      });
+      // Hide the fallback
+      var fb = rootEl.querySelector('#travel-mapFallback');
+      if (fb) fb.hidden = true;
+    }
+
     updateLayerControls();renderAll();mountMap();
 
     return {
@@ -406,8 +500,6 @@ window.TravelMap = (function () {
       destroy: function () {
         document.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('resize', onResize);
-        try { if (mapHandle && mapHandle.destroy) mapHandle.destroy(); } catch (e) {}
-        mapHandle = null;
         rootEl.innerHTML = '';
       }
     };

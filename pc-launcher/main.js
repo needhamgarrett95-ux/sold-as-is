@@ -112,18 +112,29 @@ function createWindow() {
 ipcMain.handle("launcher:state", async () => {
   try {
     const { notes, asset } = await getRelease();
-    const stamp = readStamp();
+    let stamp = readStamp();
+    const exe = await gameExePath();
+    if (exe && !stamp) {
+      // Adopt a manually-installed copy: if the exe is at least as fresh
+      // as the current build, track it; otherwise offer the update.
+      let exeMtime = 0;
+      try { exeMtime = fs.statSync(exe).mtimeMs; } catch (e) {}
+      if (exeMtime >= Date.parse(asset.updated_at) - 60000) {
+        stamp = { assetId: asset.id, updatedAt: asset.updated_at, at: Date.now(), exe, adopted: true };
+        writeStamp(stamp);
+      }
+    }
     const updateAvailable = !stamp || stamp.assetId !== asset.id;
     return {
       ok: true,
-      installed: await isInstalled(),
+      installed: !!exe,
       updateAvailable,
       notes,
       remoteUpdatedAt: asset.updated_at,
       version: app.getVersion(),
     };
   } catch (e) {
-    return { ok: false, error: e.message, installed: await isInstalled() };
+    return { ok: false, error: e.message, installed: !!(await gameExePath()) };
   }
 });
 

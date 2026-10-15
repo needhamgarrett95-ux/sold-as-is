@@ -1,0 +1,32 @@
+{
+  "build": {
+    "appId": "com.garrett.soldasis.pc",
+    "files": [
+      "main.js",
+      "public/**/*"
+    ],
+    "productName": "Sold As-Is PC",
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "SoldAsIs-PC-test-setup.exe",
+      "shortcutName": "Sold As-Is PC"
+    }
+  },
+  "description": "Sold As-Is \u2014 PC desktop test build (separate from web)",
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "main": "main.js",
+  "name": "sold-as-is-pc",
+  "scripts": {
+    "dist": "electron-builder --win portable"
+  },
+  "version": "0.1.0"
+}

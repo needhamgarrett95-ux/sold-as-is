@@ -942,3 +942,10 @@ function genListings(n, startId = 0, prevBikeId = null, opts = {}) {
   if (opts.tick !== false && n > 1) rotTick(new Set(out.map(l => l.sprite)));
   return out;
 }
+
+// Deterministic town assignment for marketplace listings (shared by travel map + buy flow)
+function townForListing(listingId) {
+  const towns = (typeof LOCAL_TOWNS !== "undefined" ? LOCAL_TOWNS : []).map(t => t[0].replace(", WA", ""));
+  if (!towns.length) return "Port Angeles";
+  return towns[listingId % towns.length];
+}

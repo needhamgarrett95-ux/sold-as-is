@@ -273,14 +273,57 @@ const Detail = {
     // A price that came out of back-and-forth (accept or counter) is a
     // struck deal; a straight asking-price buy is not.
     const negotiated = !!(this.haggleResponse && this.haggleResponse.price);
-    const buyResult = State.buy({ ...l, price, revealedParts });
-    if (!buyResult) {
-      this.notice = "Purchase failed.";
+    const town = townForListing(l.id);
+    // Fuel warning: deal leaves player without fuel money (2A)
+    const FUEL_RESERVE = 25;
+    if (town !== "Port Angeles" && State.cash - price < FUEL_RESERVE && !this._fuelWarned) {
+      this._fuelWarned = true;
+      this.notice = `Heads up — this leaves you with $${(State.cash - price).toLocaleString()}, not enough for fuel. Tap Buy again to go through with it.`;
       this.render();
       return;
     }
+    this._fuelWarned = false;
+    if (town === "Port Angeles") {
+      // Home-town deal: straight to garage, no travel
+      const buyResult = State.buy({ ...l, price, revealedParts });
+      if (!buyResult) {
+        this.notice = "Purchase failed.";
+        this.render();
+        return;
+      }
+    } else {
+      // Travel deal: cash commits now, bike becomes a green pin for pickup
+      if (!State.canAfford(price)) {
+        this.notice = "Not enough cash for this one.";
+        this.render();
+        return;
+      }
+      State.cash -= price;
+      const ts = State.travel || (State.travel = { fuel: 15, wallet: 140, deals: [] });
+      if (!ts.deals) ts.deals = [];
+      ts.deals.push({
+        listingId: l.id,
+        town: town,
+        bike: { ...l, price, revealedParts, boughtFor: price, boughtAt: Date.now() },
+        pricePaid: price,
+        struckAt: Date.now(),
+      });
+      State.stats.bikesBought = (State.stats.bikesBought || 0) + 1;
+      const seller = l.seller || "unknown";
+      const sb = State.stats.sellerBikes || (State.stats.sellerBikes = {});
+      sb[seller] = (sb[seller] || 0) + 1;
+      if (typeof Milestones !== "undefined") Milestones.check(State.stats);
+      Save.save();
+    }
     if (negotiated) State.stats.dealsStruck = (State.stats.dealsStruck || 0) + 1;
     Feed.remove(l.id);
+    // Backfill to 16 listings
+    try {
+      const fresh = genListings(1, Feed.nextId, null, { exclude: Feed.listings.map(x => x.sprite), tick: false });
+      Feed.nextId += 1;
+      Feed.listings.push(...fresh);
+      Feed.render();
+    } catch (e) {}
     this.close();
     UI.refreshCash();
   },

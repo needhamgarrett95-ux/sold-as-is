@@ -4055,9 +4055,8 @@ const Views = {
     // Clean up any previous instance
     try { TravelMap.destroy(); } catch (e) {}
     // Build listings from the live marketplace feed, deterministic town per listing
-    const towns = (typeof LOCAL_TOWNS !== "undefined" ? LOCAL_TOWNS : []).map(t => t[0].replace(", WA", ""));
     const listings = (Feed.listings || []).map(l => {
-      const town = towns.length ? towns[l.id % towns.length] : "Port Angeles";
+      const town = townForListing(l.id);
       return {
         id: l.id,
         town: town,
@@ -4068,9 +4067,11 @@ const Views = {
     });
     const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
     // Persist fuel/wallet in game state (PC travel)
-    const ts = State.travel || (State.travel = { fuel: 3, wallet: 140 });
+    const ts = State.travel || (State.travel = { fuel: 15, wallet: 140, deals: [] });
+    if (!ts.deals) ts.deals = [];
     TravelMap.init(root, {
       listings: listings,
+      deals: ts.deals || [],
       theme: theme,
       fuel: ts.fuel,
       wallet: ts.wallet,

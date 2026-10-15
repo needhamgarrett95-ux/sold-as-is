@@ -515,3 +515,21 @@
 #travel-root #travel-map .map-pin.selected { box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(254,188,46,0.9); z-index: 4; }
 #travel-root #travel-map .map-pin.gas { background: #febc2e; width: 20px; height: 20px; }
 #travel-root #travel-map .map-pin .pin-pump { color: #14171a; font-size: 11px; font-weight: bold; font-family: monospace; }
+
+#travel-root #travel-map .map-pin.deal { background: #4caf50; width: 24px; height: 24px; border-color: #fff; }
+#travel-root #travel-map .map-pin .pin-check { color: #fff; font-size: 13px; font-weight: bold; }
+
+/* Trip planner */
+#travel-root .trip-panel { background: var(--card, #1e2226); border: 1px solid var(--hairline, #2e3338); border-radius: 12px; padding: 12px; margin-top: 10px; }
+#travel-root .trip-stops { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+#travel-root .trip-stop { background: rgba(76, 175, 80, 0.12); border: 1px solid #4caf50; border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+#travel-root .trip-empty { color: var(--muted, #888); font-size: 13px; }
+#travel-root .trip-math { margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+#travel-root .trip-math-row { display: flex; justify-content: space-between; font-size: 13px; margin: 4px 0; }
+#travel-root .trip-math-row span { color: var(--muted, #888); }
+#travel-root .trip-warn { color: #ff6b6b; font-size: 12px; margin-top: 6px; }
+#travel-root .trip-actions { display: flex; gap: 8px; margin-top: 8px; }
+#travel-root .trip-launch { width: 100%; margin-top: 10px; }
+#travel-root .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid var(--hairline, #2e3338); background: var(--card, #1e2226); color: inherit; cursor: pointer; font-size: 14px; }
+#travel-root .btn.gold { background: #febc2e; color: #14171a; border-color: #febc2e; font-weight: bold; }
+#travel-root .btn:disabled { opacity: 0.4; cursor: not-allowed; }

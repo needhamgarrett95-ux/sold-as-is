@@ -61,11 +61,12 @@ body:not(.dark-mode).pc-mode .pc-widget-text p { color: #6b6f76; }
 .pc-icon:hover .pc-tile { transform: translateY(-2px); }
 .pc-icon .pc-tile svg { width: 40px; height: 40px; }
 .pc-icon .pc-label { color: #ece9e1; font-size: 12px; font-weight: 600;
-  text-shadow: 0 1px 4px rgba(0,0,0,.7); text-align: center; }
+  text-align: center; padding: 2px 10px; border-radius: 7px;
+  background: rgba(10,12,16,.55); backdrop-filter: blur(8px); }
 body:not(.dark-mode).pc-mode .pc-icon .pc-tile { background: rgba(255,255,255,.65);
   border: 1px solid rgba(0,0,0,.08); box-shadow: 0 4px 18px rgba(0,0,0,.12); }
 body:not(.dark-mode).pc-mode .pc-icon .pc-label { color: #2a2d33;
-  text-shadow: 0 1px 4px rgba(255,255,255,.8); }
+  background: rgba(255,255,255,.72); }
 
 /* Theme-aware icon strokes (from the mock review) */
 body.dark-mode.pc-mode #pc-desktop [data-appicon="garage"] svg { stroke: #d8c48f; }
@@ -73,6 +74,8 @@ body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="market"] svg,
 body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="parts"] svg,
 body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="ledger"] svg { stroke: #3a3f47; }
 body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="parts"] svg circle { fill: #3a3f47; }
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="crate"] svg,
+body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="collection"] svg { stroke: #3a3f47; }
 
 /* ---------- window ---------- */
 #pc-window { position: absolute; top: 0; left: 0; right: 0; bottom: 56px; z-index: 3;

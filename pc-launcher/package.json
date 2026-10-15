@@ -1,1 +1,34 @@
-{"build":{"appId":"com.garrett.soldasis.launcher","files":["main.js","preload.js","package.json","ui/**/*"],"portable":{"artifactName":"SoldAsIs-Launcher.exe"},"productName":"Sold As-Is Launcher","win":{"target":["portable"]}},"description":"Sold As-Is PC launcher: updates, patch notes, play.","devDependencies":{"electron":"^33.0.0","electron-builder":"^25.1.8"},"main":"main.js","name":"sold-as-is-launcher","scripts":{"dist":"electron-builder --win portable","start":"electron ."},"version":"0.1.0"}
+{
+  "build": {
+    "appId": "com.garrett.soldasis.launcher",
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      "ui/**/*",
+      "icon.ico"
+    ],
+    "portable": {
+      "artifactName": "SoldAsIs-Launcher.exe"
+    },
+    "productName": "Sold As-Is Launcher",
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "icon.ico"
+    }
+  },
+  "description": "Sold As-Is PC launcher: updates, patch notes, play.",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "main": "main.js",
+  "name": "sold-as-is-launcher",
+  "scripts": {
+    "dist": "electron-builder --win portable",
+    "start": "electron ."
+  },
+  "version": "0.1.0"
+}

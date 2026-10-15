@@ -3,13 +3,15 @@
     "appId": "com.garrett.soldasis.pc",
     "files": [
       "main.js",
-      "public/**/*"
+      "public/**/*",
+      "icon.ico"
     ],
     "productName": "Sold As-Is PC",
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "icon.ico"
     },
     "nsis": {
       "oneClick": false,

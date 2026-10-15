@@ -131,6 +131,7 @@ ipcMain.handle("launcher:state", async () => {
       updateAvailable,
       notes,
       remoteUpdatedAt: asset.updated_at,
+      installedBuildAt: stamp ? (stamp.updatedAt || null) : null,
       version: app.getVersion(),
     };
   } catch (e) {

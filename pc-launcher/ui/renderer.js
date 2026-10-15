@@ -26,6 +26,13 @@ async function withTimeout(promise, ms, label) {
   finally { clearTimeout(t); }
 }
 
+function fmtBuild(iso) {
+  if (!iso) return "unknown";
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + ", " +
+    d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
 async function refresh() {
   if (!window.launcher) {
     statusEl.innerHTML = "Launcher bridge failed to start.<br>Re-download the launcher and try again.";
@@ -46,17 +53,18 @@ async function refresh() {
     return;
   }
   $("#notes").innerHTML = renderNotes(st.notes);
+  const builds = `<div class="builds">Installed: <b>${esc(fmtBuild(st.installedBuildAt))}</b> · Latest: <b>${esc(fmtBuild(st.remoteUpdatedAt))}</b></div>`;
   if (!st.installed) {
-    statusEl.innerHTML = "The game isn't installed yet.<br>Hit <b>Update</b> to download it.";
+    statusEl.innerHTML = "The game isn't installed yet.<br>Hit <b>Install</b> to download it." + builds;
     updateBtn.textContent = "Install";
     updateBtn.classList.remove("hidden");
   } else if (st.updateAvailable) {
-    statusEl.innerHTML = "A new build is ready.";
+    statusEl.innerHTML = "A new build is ready — <b>update to play</b>." + builds;
     updateBtn.textContent = "Update";
     updateBtn.classList.remove("hidden");
-    playBtn.classList.remove("hidden");
+    playBtn.classList.add("hidden");
   } else {
-    statusEl.innerHTML = "You're up to date.";
+    statusEl.innerHTML = "You're up to date." + builds;
     playBtn.classList.remove("hidden");
   }
 }

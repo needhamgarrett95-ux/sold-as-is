@@ -33,16 +33,7 @@ window.TravelMap = (function () {
             <div class="layer-bar" aria-label="Map legend">
               <div class="layer-hint" id="travel-layerHint">Red pins are listings · green are your deals · yellow are gas stations.</div>
             </div>
-            <div class="trip-panel" id="travel-tripPanel" hidden>
-              <div class="eyebrow">Trip planner</div>
-              <div class="trip-stops" id="travel-tripStops"><span class="trip-empty">Tap green pins in the order you want to visit them (up to 3).</span></div>
-              <div class="trip-math" id="travel-tripMath" hidden></div>
-              <div class="trip-actions">
-                <button class="btn" id="travel-tripClear" type="button">Clear</button>
-                <button class="btn gold" id="travel-tripGo" type="button" disabled>Roll out</button>
-              </div>
-            </div>
-            <button class="btn gold trip-launch" id="travel-planTripBtn" type="button" hidden>Plan trip</button>
+
             <div class="map-frame">
               <div class="map-head">
                 <div class="map-key" aria-label="Map legend">
@@ -70,8 +61,16 @@ window.TravelMap = (function () {
     
           <aside class="right-stack">
             <section class="route-panel" aria-labelledby="routeTitle">
-              <h2 class="section-title" id="travel-routeTitle">Choose a stop</h2>
-              <div id="travel-townCard"></div>
+              <h2 class="section-title" id="travel-routeTitle">Trip planner</h2>
+              <div class="trip-panel" id="travel-tripPanel">
+                <div class="trip-stops" id="travel-tripStops"><span class="trip-empty">Tap green pins in the order you want to visit them (up to 3).</span></div>
+                <div class="trip-math" id="travel-tripMath" hidden></div>
+                <div class="trip-actions">
+                  <button class="btn" id="travel-tripClear" type="button">Clear</button>
+                  <button class="btn gold" id="travel-tripGo" type="button" disabled>Roll out</button>
+                </div>
+              </div>
+              <button class="btn gold trip-launch" id="travel-planTripBtn" type="button" hidden>Plan trip</button>
             </section>
             <section class="log-panel" aria-labelledby="logTitle">
               <div class="log-head"><h2 class="section-title" id="travel-logTitle">Recent drives</h2><button class="tiny-btn" id="travel-resetBtn" type="button">Start over</button></div>
@@ -180,10 +179,8 @@ window.TravelMap = (function () {
 
     var firstListing=(opts.listings||[])[0];
         var initFuel=(opts.fuel!=null?opts.fuel:3), initWallet=(opts.wallet!=null?opts.wallet:140);
-        var initSelectedId=firstListing?('listing:'+firstListing.id):'home';
-        var state={fuel:initFuel,wallet:initWallet,currentId:'home',selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
+        var state={fuel:initFuel,wallet:initWallet,currentId:'home',lastPrice:4.15,driving:false,logs:[]};
     var mapHandle=null;
-    var selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
     var resizeTimer=null;
 
     function money(v){return '$'+v.toFixed(2);}
@@ -265,64 +262,11 @@ window.TravelMap = (function () {
       if(extra) Object.keys(extra).forEach(function(key){item[key]=extra[key];});
       return item;
     }
-    function selectDestination(index){
-      if(state.driving||index<0) return;
-      selectedIndex=index;
-      state.selectedId=destinations[index].id;
-      renderCard();
-      mountMap();
-    }
+
     function updateLayerControls(){
       // Layers are always on now — no toggles. Hint is static in HTML.
     }
-    function tripMath(destination){
-      var current=byId[state.currentId];
-      var miles=milesBetween(current,destination);
-      var driveFuel=gallonsFor(miles);
-      var homeFuel=gallonsFor(milesHomeFrom(destination));
-      var fullNeed=driveFuel+homeFuel;
-      var tankAfter=state.fuel-driveFuel;
-      var coversLeg=state.fuel+1e-6>=driveFuel;
-      var coversHome=state.fuel+1e-6>=fullNeed;
-      var reason,status;
-      if(destination.id===current.id){reason='The truck is already here.';status='safe';}
-      else if(coversHome){reason='Tank covers this drive and the trip home, with '+(state.fuel-fullNeed).toFixed(1)+' gal in reserve.';status='safe';}
-      else if(coversLeg){reason='You can reach this stop, but you are '+(fullNeed-state.fuel).toFixed(1)+' gal short of getting home. Driving stays your call.';status='warn';}
-      else{reason='Tank is '+(driveFuel-state.fuel).toFixed(1)+' gal short for this leg. The map will warn you, not stop you.';status='danger';}
-      return {miles:miles,driveFuel:driveFuel,homeFuel:homeFuel,fullNeed:fullNeed,tankAfter:tankAfter,coversLeg:coversLeg,coversHome:coversHome,reason:reason,status:status};
-    }
     function destinationTitle(d){return d.kind==='gas'?d.name:d.kind==='home'?'Port Angeles home garage':(d.name||d.town+' seller');}
-    function renderCard(){
-      var d=byId[state.selectedId],math=tripMath(d),atDestination=state.currentId===d.id;
-      var arrival=math.tankAfter>=0?math.tankAfter.toFixed(1)+' gal':(Math.abs(math.tankAfter).toFixed(1)+' gal short');
-      var eyebrow=d.kind==='gas'?'Fuel stop · '+d.town+', WA':d.kind==='seller'?'Seller meetup · '+d.town+', WA':'Home base';
-      var listingHTML=d.kind==='seller'?'<div class="station-strip"><div class="station-title">'+(d.bike||d.name)+'</div><div class="station-price">'+money(d.price)+'</div><div class="location-sub">'+(d.seller?('Seller: '+d.seller):'')+'</div></div>':'';
-      var stationHTML=d.kind==='gas'?'<div class="station-strip"><div class="station-title">'+d.name+'</div><div class="station-price">'+money(d.price)+' / gal</div><div class="location-sub">'+(atDestination?'Pump is ready.':'Drive here independently from the seller pin.')+'</div></div>':'';
-      var fuelButton=d.kind==='gas'&&atDestination?'<button class="btn gold" type="button" id="travel-fuelBtn">Buy gas</button>':'';
-      var driveLabel=!math.coversLeg?'Drive anyway':'Drive to '+(d.kind==='gas'?d.name:d.kind==='home'?'home':d.town);
-      document.getElementById('travel-routeTitle').textContent='Trip details';
-      document.getElementById('travel-townCard').innerHTML='<article class="town-card"><div class="town-card-head"><div><div class="eyebrow">'+eyebrow+'</div><div class="town-name">'+destinationTitle(d)+'</div></div><div class="town-tag">'+math.miles+' mi</div></div><div class="trip-summary"><div class="summary-row"><span>Drive from here</span><strong>'+math.miles+' mi · '+math.driveFuel.toFixed(1)+' gal</strong></div><div class="summary-row"><span>Tank now</span><strong>'+state.fuel.toFixed(1)+' gal</strong></div><div class="summary-row"><span>Tank on arrival</span><strong>'+arrival+'</strong></div><div class="summary-row"><span>Fuel needed from there to home</span><strong>'+math.homeFuel.toFixed(1)+' gal</strong></div><div class="summary-row"><span>Whole plan</span><strong>'+math.fullNeed.toFixed(1)+' gal</strong></div></div>'+stationHTML+listingHTML+'<div class="trip-status '+math.status+'">'+math.reason+'</div><div class="actions"><button class="btn primary" type="button" id="travel-driveBtn" '+(atDestination||state.driving?'disabled':'')+'>'+driveLabel+'</button>'+fuelButton+'</div></article>';
-      var driveBtn=document.getElementById('travel-driveBtn'); if(driveBtn) driveBtn.addEventListener('click',drive);
-      var fuelBtn=document.getElementById('travel-fuelBtn'); if(fuelBtn) fuelBtn.addEventListener('click',openFuel);
-    }
-    function drive(){
-      if(state.driving||state.currentId===state.selectedId) return;
-      var from=byId[state.currentId],to=byId[state.selectedId];
-      var miles=milesBetween(from,to),used=gallonsFor(miles),shortfall=Math.max(0,used-state.fuel);
-      state.driving=true;
-      var ribbon=document.getElementById('travel-travelRibbon');
-      document.getElementById('travel-travelCopy').textContent='Rolling '+miles+' miles · '+from.town+' → '+to.town;
-      ribbon.classList.add('active');
-      setTimeout(function(){
-        state.fuel=Math.max(0,state.fuel-used);
-        state.currentId=to.id;
-        state.driving=false;
-        state.logs.unshift({type:'trip',title:destinationTitle(to),meta:miles+' mi · '+used.toFixed(1)+' gal'+(shortfall>0?' · '+shortfall.toFixed(1)+' gal short':''),cost:'~'+money(used*state.lastPrice)});
-        ribbon.classList.remove('active');
-        renderAll();
-        mountMap();
-      },2250);
-    }
     function currentStation(){var d=byId[state.currentId]; return d.kind==='gas'?d:null;}
     function openFuelFor(station){
       var max=Math.max(0,Math.min(CAPACITY-state.fuel,State.cash/station.price));
@@ -375,12 +319,12 @@ window.TravelMap = (function () {
       if(!state.logs.length){box.innerHTML='<div class="log-empty">No road stories yet. Tap a seller or fuel pin, check the math, and make the call.</div>';return;}
       box.innerHTML=state.logs.slice(0,6).map(function(l){return '<div class="log-item"><div class="log-icon">'+(l.type==='fuel'?'GAS':'TRIP')+'</div><div class="log-main"><strong>'+l.title+'</strong><div class="log-meta">'+l.meta+'</div></div><div class="log-cost">'+l.cost+'</div></div>';}).join('');
     }
-    function renderAll(){renderHUD();renderCard();renderLog();}
+    function renderAll(){renderHUD();renderLog();}
     function reset(){
-      state={fuel:initFuel,wallet:initWallet,currentId:'home',selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
+      state={fuel:initFuel,wallet:initWallet,currentId:'home',lastPrice:4.15,driving:false,logs:[]};
       expandedClusterId=null;
-      selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
-      updateLayerControls();renderAll();mountMap();
+      tripStops=[];
+      updateLayerControls();renderAll();mountMap();renderTripPanel();
     }
 
     document.getElementById('travel-fuelSlider').addEventListener('input',updateFillReadout);
@@ -451,8 +395,7 @@ window.TravelMap = (function () {
           var spread = group.length > 1 ? 1.6 : 0;
           var px = pos[0] + Math.cos(angle) * spread;
           var py = pos[1] + Math.sin(angle) * spread;
-          var isSel = state.selectedId === d.id;
-          html += '<button class="map-pin seller' + (isSel ? ' selected' : '') + '" data-dest="' + d.id + '" style="left:' + px + '%;top:' + py + '%" aria-label="' + d.name + ' in ' + town + '"><span class="pin-dot"></span></button>';
+          html += '<button class="map-pin seller' + '" data-dest="' + d.id + '" style="left:' + px + '%;top:' + py + '%" aria-label="' + d.name + ' in ' + town + '"><span class="pin-dot"></span></button>';
         });
       });
       // Green pins: struck deals waiting for pickup (from State.travel.deals)
@@ -481,15 +424,13 @@ window.TravelMap = (function () {
       // Home pin (always)
       var homePos = PIN_POS[HOME];
       if (homePos) {
-        var isHomeSel = state.selectedId === 'home';
-        html += '<button class="map-pin home' + (isHomeSel ? ' selected' : '') + '" data-town="__home__" style="left:' + homePos[0] + '%;top:' + homePos[1] + '%" aria-label="Home garage"><span class="pin-dot"></span></button>';
+        html += '<button class="map-pin home' + '" data-town="__home__" style="left:' + homePos[0] + '%;top:' + homePos[1] + '%" aria-label="Home garage"><span class="pin-dot"></span></button>';
       }
       // Gas pins (always shown)
       {
         Object.keys(stations).forEach(function(town){
           var pos = PIN_POS[town];
           if (!pos) return;
-          var isSel = state.selectedId === 'gas:' + town;
           // Offset gas pins slightly so they don't cover seller pins
           html += '<button class="map-pin gas' + (isSel ? ' selected' : '') + '" data-gas="' + town.replace(/"/g,'') + '" style="left:' + (pos[0]+1.2) + '%;top:' + (pos[1]+1.8) + '%" aria-label="' + stations[town].name + '"><span class="pin-pump">G</span></button>';
         });
@@ -497,20 +438,13 @@ window.TravelMap = (function () {
       html += '</div>';
       el.innerHTML = html;
       // Wire clicks
+      // Red pins are reference only — listings are browsed in the marketplace
       el.querySelectorAll('.map-pin.seller').forEach(function(btn){
         btn.addEventListener('click', function(){
-          if (state.driving) return;
-          var destId = btn.getAttribute('data-dest');
-          var idx = destinations.findIndex(function(d){ return d.id === destId; });
-          if (idx >= 0) selectDestination(idx);
+          // No action: red pins show where listings are, deals happen in the marketplace
         });
       });
-      var homeBtn = el.querySelector('.map-pin.home');
-      if (homeBtn) homeBtn.addEventListener('click', function(){
-        if (state.driving) return;
-        var idx = destinations.findIndex(function(d){ return d.id === 'home'; });
-        if (idx >= 0) selectDestination(idx);
-      });
+      // Home pin: reference only, trips always start/end here
       // Green pins: tap to add to trip (when planning)
       el.querySelectorAll('.map-pin.deal').forEach(function(btn){
         btn.addEventListener('click', function(){
@@ -531,8 +465,8 @@ window.TravelMap = (function () {
         btn.addEventListener('click', function(){
           if (state.driving) return;
           var town = btn.getAttribute('data-gas');
-          var idx = destinations.findIndex(function(d){ return d.id === 'gas:' + town; });
-          if (idx >= 0) selectDestination(idx);
+          var station = stations[town];
+          if (station) openFuelFor(station);
         });
       });
       // Hide the fallback
@@ -571,25 +505,20 @@ window.TravelMap = (function () {
     function tripGallons() { return tripMiles() / MPG; }
 
     function renderTripPanel() {
-      var panel = rootEl.querySelector('#travel-tripPanel');
-      var launchBtn = rootEl.querySelector('#travel-planTripBtn');
-      var deals = opts.deals || [];
-      if (!panel || !launchBtn) return;
-      // Show launch button if there are green pins and not planning
-      if (deals.length && !tripStops.length && !state.driving) {
-        launchBtn.hidden = false;
-        panel.hidden = true;
-      } else if (tripStops.length || state.planning) {
-        launchBtn.hidden = true;
-        panel.hidden = false;
-      } else {
-        launchBtn.hidden = true;
-        panel.hidden = true;
-      }
       var stopsEl = rootEl.querySelector('#travel-tripStops');
       var mathEl = rootEl.querySelector('#travel-tripMath');
       var goBtn = rootEl.querySelector('#travel-tripGo');
+      var clearBtn = rootEl.querySelector('#travel-tripClear');
       if (!stopsEl || !mathEl || !goBtn) return;
+      // During a trip, show progress instead of planner
+      if (state.driving) {
+        stopsEl.innerHTML = '<span class="trip-empty">On the road…</span>';
+        mathEl.hidden = true;
+        goBtn.disabled = true;
+        if (clearBtn) clearBtn.disabled = true;
+        return;
+      }
+      if (clearBtn) clearBtn.disabled = false;
       if (!tripStops.length) {
         stopsEl.innerHTML = '<span class="trip-empty">Tap green pins in the order you want to visit them (up to 3).</span>';
         mathEl.hidden = true;

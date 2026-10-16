@@ -189,6 +189,7 @@ const Desktop = (() => {
         <div id="pc-taskbar">
           <div class="pc-tb-apps"></div>
           <div id="pc-clock"><span id="pc-clock-time"></span><span id="pc-clock-date"></span></div>
+          <button id="pc-power" aria-label="Close game" title="Close game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/></svg></button>
         </div>
       </div>`);
     document.body.appendChild(desktop);
@@ -218,6 +219,10 @@ const Desktop = (() => {
     });
 
     $("#pc-close").addEventListener("click", closeToDesktop);
+    const powerBtn = $("#pc-power");
+    if (powerBtn) powerBtn.addEventListener("click", () => {
+      if (confirm("Close Sold As-Is?")) window.close();
+    });
 
     // Right-click personalize: wallpaper picker. Suppress the native menu
     // on the desktop surface only (never inside app windows).

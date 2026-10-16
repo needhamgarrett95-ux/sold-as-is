@@ -163,3 +163,6 @@ body:not(.dark-mode).pc-mode .pc-wp-thumb.wp-upload span { color: #6b6f76; }
 body:not(.dark-mode).pc-mode .pc-pp-fit button { color: #6b6f76; }
 .pc-pp-fit button.selected { border-color: #e04536; color: #e04536; }
 .pc-pp-note { margin-top: 10px; font-size: 11px; color: #9aa0a8; text-align: center; }
+#pc-power { background: transparent; border: none; color: inherit; cursor: pointer; padding: 8px; border-radius: 8px; display: flex; align-items: center; margin-left: 8px; }
+#pc-power svg { width: 20px; height: 20px; }
+#pc-power:hover { background: #e04536; color: #fff; }

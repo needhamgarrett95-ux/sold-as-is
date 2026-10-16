@@ -30,13 +30,8 @@ window.TravelMap = (function () {
     
         <section class="content-grid">
           <div class="left-stack">
-            <div class="layer-bar" aria-label="Map layers">
-              <div class="layer-chips">
-                <button class="layer-chip active" id="travel-sellerLayerBtn" type="button" aria-pressed="true"><span class="chip-dollar" aria-hidden="true">$</span>Sellers</button>
-                <button class="layer-chip" id="travel-gasLayerBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10v18H5zM7 6h6v5H7zm8 1 3 3v8c0 2 3 2 3 0v-6h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Gas</button>
-                <button class="collapse-chip" id="travel-collapseClusterBtn" type="button" hidden>Collapse cluster</button>
-              </div>
-              <div class="layer-hint" id="travel-layerHint">Tap a numbered pin to spread out nearby sellers.</div>
+            <div class="layer-bar" aria-label="Map legend">
+              <div class="layer-hint" id="travel-layerHint">Red pins are listings · green are your deals · yellow are gas stations.</div>
             </div>
             <div class="trip-panel" id="travel-tripPanel" hidden>
               <div class="eyebrow">Trip planner</div>
@@ -219,8 +214,6 @@ window.TravelMap = (function () {
       var size=256*Math.pow(2,zoom),n=Math.PI-2*Math.PI*y/size;
       return {lng:x/size*360-180,lat:180/Math.PI*Math.atan(.5*(Math.exp(n)-Math.exp(-n)))};
     }
-    var showSellers=true;
-    var showGas=false;
     var expandedClusterId=null;
     var CLUSTER_RADIUS=31;
     var MIN_PIN_SEPARATION=24;
@@ -279,30 +272,9 @@ window.TravelMap = (function () {
       renderCard();
       mountMap();
     }
-    function updateLayerControls(expandedCount){
-      var sellers=document.getElementById('travel-sellerLayerBtn'),gas=document.getElementById('travel-gasLayerBtn'),collapse=document.getElementById('travel-collapseClusterBtn'),hint=document.getElementById('travel-layerHint');
-      sellers.classList.toggle('active',showSellers); sellers.setAttribute('aria-pressed',showSellers?'true':'false');
-      gas.classList.toggle('active',showGas); gas.setAttribute('aria-pressed',showGas?'true':'false');
-      collapse.hidden=!expandedClusterId;
-      if(expandedClusterId) hint.textContent=(expandedCount||'Nearby')+' seller pins spread apart. Tap one to choose it.';
-      else if(showSellers&&showGas) hint.textContent='Both layers shown. Numbered seller pins keep dense areas clean.';
-      else if(showSellers) hint.textContent='Tap a numbered pin to spread out nearby sellers.';
-      else hint.textContent='Gas stops only · each stop is a separate destination.';
+    function updateLayerControls(){
+      // Layers are always on now — no toggles. Hint is static in HTML.
     }
-    function toggleLayer(kind){
-      if(kind==='seller'){
-        if(showSellers&&!showGas) return;
-        showSellers=!showSellers;
-        if(!showSellers){expandedClusterId=null;if(byId[state.selectedId].kind==='seller') state.selectedId='gas:Port Angeles';}
-      }else{
-        if(showGas&&!showSellers) return;
-        showGas=!showGas;
-        if(!showGas&&byId[state.selectedId].kind==='gas') state.selectedId='seller:Tacoma';
-      }
-      selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
-      updateLayerControls(); renderCard(); mountMap();
-    }
-    function collapseCluster(){expandedClusterId=null;updateLayerControls();mountMap();}
     function tripMath(destination){
       var current=byId[state.currentId];
       var miles=milesBetween(current,destination);
@@ -410,9 +382,7 @@ window.TravelMap = (function () {
       selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
       updateLayerControls();renderAll();mountMap();
     }
-    document.getElementById('travel-sellerLayerBtn').addEventListener('click',function(){toggleLayer('seller');});
-    document.getElementById('travel-gasLayerBtn').addEventListener('click',function(){toggleLayer('gas');});
-    document.getElementById('travel-collapseClusterBtn').addEventListener('click',collapseCluster);
+
     document.getElementById('travel-fuelSlider').addEventListener('input',updateFillReadout);
     document.getElementById('travel-cancelFuel').addEventListener('click',closeFuel);
     document.getElementById('travel-buyFuel').addEventListener('click',buyFuel);
@@ -514,8 +484,8 @@ window.TravelMap = (function () {
         var isHomeSel = state.selectedId === 'home';
         html += '<button class="map-pin home' + (isHomeSel ? ' selected' : '') + '" data-town="__home__" style="left:' + homePos[0] + '%;top:' + homePos[1] + '%" aria-label="Home garage"><span class="pin-dot"></span></button>';
       }
-      // Gas pins (if layer on)
-      if (showGas) {
+      // Gas pins (always shown)
+      {
         Object.keys(stations).forEach(function(town){
           var pos = PIN_POS[town];
           if (!pos) return;

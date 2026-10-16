@@ -1359,7 +1359,7 @@ const Views = {
         }
       });
       if (cancelBtn) cancelBtn.addEventListener("click", () => this.renderGarage());
-      if (input) input.focus();
+      if (input) input.focus({preventScroll:true});
     }
   },
 
@@ -3850,7 +3850,7 @@ const Views = {
           this.listBikeForSale(this.garageDetailIdx, input.dataset.raw || input.value);
         });
         if (cancel) cancel.addEventListener("click", () => this.renderGarage());
-        if (input) input.focus();
+        if (input) input.focus({preventScroll:true});
       }
     } else if (act === "keep-add") {
       // Gated in the UI; belt-and-braces re-check here.

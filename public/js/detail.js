@@ -239,7 +239,7 @@ const Detail = {
     this.render();
     // Keep input focused for quick follow-up offers
     const inp = document.getElementById("offer-input");
-    if (inp) inp.focus();
+    if (inp) inp.focus({preventScroll:true});
   },
 
   buyNow() {

@@ -27,18 +27,14 @@ try{if(new URLSearchParams(location.search).has("pc"))document.documentElement.c
         <div class="url-wallet" id="cash">$1,500</div>
       </div>
       <span class="safari-nav">
-        <button class="safari-btn" id="menu-btn" title="Menu" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
         <button class="safari-btn" id="settings-cog" title="Settings" aria-label="Settings"><span data-icon="gear"></span></button>
         <button class="safari-btn music-note-btn" id="music-note" title="Music" aria-label="Music"><span data-icon="music"></span></button>
         <button class="safari-btn" id="activity-bell" title="Activity" aria-label="Activity"><span data-icon="bell"></span></button>
       </span>
     </div>
-    <div class="menu-popup hidden" id="menu-popup">
-      <div class="settings-head">Menu<button class="popup-close" id="menu-close" aria-label="Close menu">✕</button></div>
-      <div class="menu-search">
-        <label for="bike-search-menu">Search by moped</label>
-        <select id="bike-search-menu" class="eby-filter"></select>
-      </div>
+    <div class="hybrid-search" id="hybrid-search">
+      <input type="text" id="bike-search-input" placeholder="Search by moped..." autocomplete="off" />
+      <div class="hybrid-dropdown hidden" id="hybrid-dropdown"></div>
     </div>
     <div class="activity-popup hidden" id="activity-popup">
       <div class="settings-head">Activity</div>

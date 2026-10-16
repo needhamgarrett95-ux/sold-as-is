@@ -132,10 +132,12 @@ const Views = {
       else this.closeModelPicker();
     }
     // The moped dropdown shows the filter that belongs to the view you're on
-    const bsSel = document.getElementById("bike-search-menu");
-    if (bsSel && (name === "market" || name === "garage")) {
-      const v = name === "garage" ? (this.garageBikeFilter || "all") : (Feed.bikeFilter || "all");
-      if (bsSel.value !== v) { bsSel.value = v; if (bsSel._ddRender) bsSel._ddRender(); }
+    const hsInput = document.getElementById("bike-search-input");
+    if (hsInput && (name === "market" || name === "garage")) {
+      const v = name === "garage" ? this.garageBikeFilter : Feed.bikeFilter;
+      // Show current filter as text, clear if none
+      const bike = v ? BIKES.find(b => b.sprite === v) : null;
+      hsInput.value = bike ? `${bike.brand} ${bike.name}` : "";
     }
     // Update refresh button for the active tab
     this.updateRefreshBtn();

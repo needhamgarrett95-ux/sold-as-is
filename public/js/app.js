@@ -169,25 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsText(file);
     });
   }
-  // Hamburger menu popup
-  const menuBtn = document.getElementById("menu-btn");
-  const menuPopup = document.getElementById("menu-popup");
-  if (menuBtn && menuPopup) {
-    menuBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      document.getElementById("music-popup")?.classList.add("hidden");
-      document.getElementById("activity-popup")?.classList.add("hidden");
-      document.getElementById("settings-menu")?.classList.add("hidden");
-      menuPopup.classList.toggle("hidden");
-    });
-    document.addEventListener("click", (e) => {
-      if (!menuPopup.classList.contains("hidden") && !menuPopup.contains(e.target) && !e.target.closest("#menu-btn")) {
-        menuPopup.classList.add("hidden");
-      }
-    });
-    const menuClose = document.getElementById("menu-close");
-    if (menuClose) menuClose.addEventListener("click", () => menuPopup.classList.add("hidden"));
-  }
   // Audio: music player + SFX
   if (typeof AudioEngine !== "undefined") {
     AudioEngine.init();
@@ -303,21 +284,42 @@ document.addEventListener("DOMContentLoaded", () => {
       c.classList.add("active");
       Feed.setFilter(c.dataset.filter);
     }));
-  // Search by moped — custom dropdown; filters whichever view you're on
-  const bsSel = document.getElementById("bike-search-menu");
-  if (bsSel) {
-    bsSel.innerHTML = `<option value="all">Search by moped</option>` +
-      BIKES.map(b => `<option value="${b.sprite}">${b.brand} ${b.name}</option>`).join("");
-    if (typeof GameDropdown !== "undefined") GameDropdown.enhance(bsSel, null);
-    bsSel.addEventListener("change", (e) => {
-      const v = e.target.value === "all" ? null : e.target.value;
-      if (Views.current === "garage") {
-        Views.garageBikeFilter = v;
-        Views.renderGarage();
+  // Hybrid search by moped — type to filter, tap to select; filters whichever view you're on
+  const searchInput = document.getElementById("bike-search-input");
+  const searchDropdown = document.getElementById("hybrid-dropdown");
+  if (searchInput && searchDropdown) {
+    function renderDropdown(filter) {
+      const q = (filter || "").toLowerCase();
+      const matches = BIKES.filter(b => !q || `${b.brand} ${b.name}`.toLowerCase().includes(q));
+      if (!matches.length) {
+        searchDropdown.innerHTML = '<div class="hybrid-empty">No matches</div>';
       } else {
-        Feed.bikeFilter = v;
-        Feed.render();
+        searchDropdown.innerHTML = '<div class="hybrid-option" data-sprite="">All mopeds</div>' +
+          matches.map(b => `<div class="hybrid-option" data-sprite="${b.sprite}">${b.brand} ${b.name}</div>`).join("");
       }
+      searchDropdown.classList.remove("hidden");
+      searchDropdown.querySelectorAll(".hybrid-option").forEach(opt => {
+        opt.addEventListener("click", () => {
+          const v = opt.dataset.sprite || null;
+          searchInput.value = opt.dataset.sprite ? opt.textContent : "";
+          searchDropdown.classList.add("hidden");
+          if (Views.current === "garage") {
+            Views.garageBikeFilter = v;
+            Views.renderGarage();
+          } else {
+            Feed.bikeFilter = v;
+            Feed.render();
+          }
+        });
+      });
+    }
+    searchInput.addEventListener("input", () => renderDropdown(searchInput.value));
+    searchInput.addEventListener("focus", () => renderDropdown(searchInput.value));
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#hybrid-search")) searchDropdown.classList.add("hidden");
+    });
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { searchDropdown.classList.add("hidden"); searchInput.blur(); }
     });
   }
   console.log("Sold As-Is: marketplace feed live.");

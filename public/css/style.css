@@ -1730,3 +1730,14 @@ body:not(.dark-mode) .menu-search select { background: #f5f5f5; color: #000; bor
 .popup-close:hover { color: #fff; }
 body:not(.dark-mode) .popup-close:hover { color: #000; }
 .settings-head { display: flex; justify-content: space-between; align-items: center; }
+
+/* Hybrid search — text input + filterable dropdown */
+.hybrid-search { position: relative; padding: 10px 12px; background: var(--card); border-bottom: 1px solid var(--line); }
+.hybrid-search input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; font-size: .95rem; background: var(--paper); color: var(--ink); box-sizing: border-box; }
+.hybrid-search input:focus { outline: none; border-color: var(--blue); }
+.hybrid-dropdown { position: absolute; top: 100%; left: 12px; right: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-top: 4px; max-height: 300px; overflow-y: auto; z-index: 500; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+.hybrid-dropdown.hidden { display: none; }
+.hybrid-option { padding: 10px 14px; cursor: pointer; font-size: .9rem; }
+.hybrid-option:hover { background: rgba(0,0,0,.06); }
+body.dark-mode .hybrid-option:hover { background: rgba(255,255,255,.06); }
+.hybrid-empty { padding: 10px 14px; color: var(--dim); font-size: .9rem; }

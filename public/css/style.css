@@ -1715,29 +1715,3 @@ body.app-mode #feed, body.app-mode .pane { padding-bottom: 92px; }
 @media (min-width: 768px) {
   body.app-mode #tabbar { max-width: 100%; }
 }
-
-/* Hamburger menu popup (replaces the old site header) */
-.menu-popup { position: fixed; top: 50px; right: 10px; width: 280px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; z-index: 1000; overflow: hidden; }
-.menu-popup.hidden { display: none; }
-.menu-popup .settings-head { padding: 12px 14px; font-weight: 700; border-bottom: 1px solid #333; }
-.menu-search { padding: 14px; }
-.menu-search label { display: block; font-size: 12px; color: #888; margin-bottom: 6px; }
-.menu-search select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #242930; color: #fff; font-size: 14px; }
-body:not(.dark-mode) .menu-popup { background: #fff; border-color: #e0d5c8; }
-body:not(.dark-mode) .menu-popup .settings-head { border-color: #e0d5c8; }
-body:not(.dark-mode) .menu-search select { background: #f5f5f5; color: #000; border-color: #ddd; }
-.popup-close { background: transparent; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 4px 8px; float: right; }
-.popup-close:hover { color: #fff; }
-body:not(.dark-mode) .popup-close:hover { color: #000; }
-.settings-head { display: flex; justify-content: space-between; align-items: center; }
-
-/* Hybrid search — text input + filterable dropdown */
-.hybrid-search { position: relative; padding: 10px 12px; background: var(--card); border-bottom: 1px solid var(--line); }
-.hybrid-search input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; font-size: .95rem; background: var(--paper); color: var(--ink); box-sizing: border-box; }
-.hybrid-search input:focus { outline: none; border-color: var(--blue); }
-.hybrid-dropdown { position: absolute; top: 100%; left: 12px; right: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-top: 4px; max-height: 300px; overflow-y: auto; z-index: 500; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
-.hybrid-dropdown.hidden { display: none; }
-.hybrid-option { padding: 10px 14px; cursor: pointer; font-size: .9rem; }
-.hybrid-option:hover { background: rgba(0,0,0,.06); }
-body.dark-mode .hybrid-option:hover { background: rgba(255,255,255,.06); }
-.hybrid-empty { padding: 10px 14px; color: var(--dim); font-size: .9rem; }

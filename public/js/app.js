@@ -284,42 +284,21 @@ document.addEventListener("DOMContentLoaded", () => {
       c.classList.add("active");
       Feed.setFilter(c.dataset.filter);
     }));
-  // Hybrid search by moped — type to filter, tap to select; filters whichever view you're on
-  const searchInput = document.getElementById("bike-search-input");
-  const searchDropdown = document.getElementById("hybrid-dropdown");
-  if (searchInput && searchDropdown) {
-    function renderDropdown(filter) {
-      const q = (filter || "").toLowerCase();
-      const matches = BIKES.filter(b => !q || `${b.brand} ${b.name}`.toLowerCase().includes(q));
-      if (!matches.length) {
-        searchDropdown.innerHTML = '<div class="hybrid-empty">No matches</div>';
+  // Search by moped — custom dropdown; filters whichever view you're on
+  const bsSel = document.getElementById("bike-search");
+  if (bsSel) {
+    bsSel.innerHTML = `<option value="all">Search by moped</option>` +
+      BIKES.map(b => `<option value="${b.sprite}">${b.brand} ${b.name}</option>`).join("");
+    if (typeof GameDropdown !== "undefined") GameDropdown.enhance(bsSel, null);
+    bsSel.addEventListener("change", (e) => {
+      const v = e.target.value === "all" ? null : e.target.value;
+      if (Views.current === "garage") {
+        Views.garageBikeFilter = v;
+        Views.renderGarage();
       } else {
-        searchDropdown.innerHTML = '<div class="hybrid-option" data-sprite="">All mopeds</div>' +
-          matches.map(b => `<div class="hybrid-option" data-sprite="${b.sprite}">${b.brand} ${b.name}</div>`).join("");
+        Feed.bikeFilter = v;
+        Feed.render();
       }
-      searchDropdown.classList.remove("hidden");
-      searchDropdown.querySelectorAll(".hybrid-option").forEach(opt => {
-        opt.addEventListener("click", () => {
-          const v = opt.dataset.sprite || null;
-          searchInput.value = opt.dataset.sprite ? opt.textContent : "";
-          searchDropdown.classList.add("hidden");
-          if (Views.current === "garage") {
-            Views.garageBikeFilter = v;
-            Views.renderGarage();
-          } else {
-            Feed.bikeFilter = v;
-            Feed.render();
-          }
-        });
-      });
-    }
-    searchInput.addEventListener("input", () => renderDropdown(searchInput.value));
-    searchInput.addEventListener("focus", () => renderDropdown(searchInput.value));
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest("#hybrid-search")) searchDropdown.classList.add("hidden");
-    });
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") { searchDropdown.classList.add("hidden"); searchInput.blur(); }
     });
   }
   console.log("Sold As-Is: marketplace feed live.");

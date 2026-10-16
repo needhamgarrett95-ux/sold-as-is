@@ -32,10 +32,6 @@ try{if(new URLSearchParams(location.search).has("pc"))document.documentElement.c
         <button class="safari-btn" id="activity-bell" title="Activity" aria-label="Activity"><span data-icon="bell"></span></button>
       </span>
     </div>
-    <div class="hybrid-search" id="hybrid-search">
-      <input type="text" id="bike-search-input" placeholder="Search by moped..." autocomplete="off" />
-      <div class="hybrid-dropdown hidden" id="hybrid-dropdown"></div>
-    </div>
     <div class="activity-popup hidden" id="activity-popup">
       <div class="settings-head">Activity</div>
       <div class="activity-list" id="activity-list"></div>
@@ -72,7 +68,13 @@ try{if(new URLSearchParams(location.search).has("pc"))document.documentElement.c
     </div>
   </div>
   <div id="site">
-
+    <header id="site-header">
+      <div class="logo logo-clickable" id="logo-main">sold <span>as-is</span></div>
+      <div class="logo logo-boneyard logo-clickable hidden" id="logo-boneyard"><span data-icon="bone"></span> bone<span>yard</span></div>
+      <div class="logo logo-crate logo-clickable hidden" id="logo-crate"><span data-icon="crate"></span> crate<span>fresh</span></div>
+      <div class="search" id="site-search"><select id="bike-search" class="eby-filter"><option value="all">Search by moped</option></select></div>
+      <button id="model-pick-row" class="model-pick hidden" type="button"></button>
+    </header>
     <div id="model-pick-panel" class="model-pick-panel hidden"></div>
     <nav id="cats">
       <a class="active" data-filter="all">All mopeds</a><a data-filter="under500">Under $500</a><a data-filter="runners">Runs & drives</a><a data-filter="projects">Projects</a>

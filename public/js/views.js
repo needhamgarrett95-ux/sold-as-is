@@ -117,14 +117,14 @@ const Views = {
     // Swap header logo per site (Boneyard / Crate Fresh feel like different sites)
     const isBoneyard = name === "parts";
     const isCrate = name === "crate";
-    document.getElementById("logo-main").classList.toggle("hidden", isBoneyard || isCrate);
-    document.getElementById("logo-boneyard").classList.toggle("hidden", !isBoneyard);
+    document.getElementById("logo-main")?.classList.toggle("hidden", isBoneyard || isCrate);
+    document.getElementById("logo-boneyard")?.classList.toggle("hidden", !isBoneyard);
     const logoCrate = document.getElementById("logo-crate");
     if (logoCrate) logoCrate.classList.toggle("hidden", !isCrate);
     // Swap the "Search by moped" dropdown for the "find parts that fit" bike
     // filter on both parts stores; no search control at all on Collection,
     // Ledger, or Settings
-    document.getElementById("site-search").classList.toggle("hidden", isBoneyard || isCrate || name === "collection" || name === "ledger" || name === "settings");
+    // site-search removed — search lives in the hamburger menu now
     const mpr = document.getElementById("model-pick-row");
     if (mpr) {
       mpr.classList.toggle("hidden", !(isBoneyard || isCrate));
@@ -132,7 +132,7 @@ const Views = {
       else this.closeModelPicker();
     }
     // The moped dropdown shows the filter that belongs to the view you're on
-    const bsSel = document.getElementById("bike-search");
+    const bsSel = document.getElementById("bike-search-menu");
     if (bsSel && (name === "market" || name === "garage")) {
       const v = name === "garage" ? (this.garageBikeFilter || "all") : (Feed.bikeFilter || "all");
       if (bsSel.value !== v) { bsSel.value = v; if (bsSel._ddRender) bsSel._ddRender(); }

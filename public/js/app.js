@@ -169,6 +169,23 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsText(file);
     });
   }
+  // Hamburger menu popup
+  const menuBtn = document.getElementById("menu-btn");
+  const menuPopup = document.getElementById("menu-popup");
+  if (menuBtn && menuPopup) {
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.getElementById("music-popup")?.classList.add("hidden");
+      document.getElementById("activity-popup")?.classList.add("hidden");
+      document.getElementById("settings-menu")?.classList.add("hidden");
+      menuPopup.classList.toggle("hidden");
+    });
+    document.addEventListener("click", (e) => {
+      if (!menuPopup.classList.contains("hidden") && !menuPopup.contains(e.target) && !e.target.closest("#menu-btn")) {
+        menuPopup.classList.add("hidden");
+      }
+    });
+  }
   // Audio: music player + SFX
   if (typeof AudioEngine !== "undefined") {
     AudioEngine.init();
@@ -285,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
       Feed.setFilter(c.dataset.filter);
     }));
   // Search by moped — custom dropdown; filters whichever view you're on
-  const bsSel = document.getElementById("bike-search");
+  const bsSel = document.getElementById("bike-search-menu");
   if (bsSel) {
     bsSel.innerHTML = `<option value="all">Search by moped</option>` +
       BIKES.map(b => `<option value="${b.sprite}">${b.brand} ${b.name}</option>`).join("");

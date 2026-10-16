@@ -83,13 +83,13 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 #site { flex: 1; background: var(--paper); display: flex; flex-direction: column;
   overflow: hidden; border-radius: 0 0 0 0; position: relative; }
 #site-header { background: var(--card); border-bottom: 2px solid var(--line);
-  padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
-.logo { font-weight: 800; font-size: 1.25rem; color: var(--ink); letter-spacing: -.5px; white-space: nowrap; }
+  padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; overflow: hidden; }
+.logo { font-weight: 800; font-size: 1.25rem; color: var(--ink); letter-spacing: -.5px; white-space: nowrap; flex-shrink: 0; }
 .logo span { color: var(--blue); }
 .logo-boneyard span { color: #b5651d; }
 .logo-crate span { color: #4caf50; }
 .logo.hidden { display: none; }
-.search { flex: 2; min-width: 140px; }
+.search { flex: 1 1 auto; min-width: 120px; max-width: 400px; }
 .search input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--line);
   border-radius: 10px; font-size: .95rem; background: var(--paper); color: var(--dim); }
 .urlbar .url { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

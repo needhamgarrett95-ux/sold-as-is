@@ -72,6 +72,10 @@ const GameKB = {
   // Attach to an input element. onDone receives the numeric value.
   attach(input, onDone, contextFn) {
     if (!input || input.dataset.kbAttached) return;
+    // PC: physical keyboard handles input, skip the on-screen keyboard
+    try {
+      if (new URLSearchParams(location.search).has("pc")) return;
+    } catch (e) {}
     input.dataset.kbAttached = '1';
     input.setAttribute('readonly', 'readonly');
     input.setAttribute('inputmode', 'none');

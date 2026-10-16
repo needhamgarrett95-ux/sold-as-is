@@ -1,107 +1,131 @@
-/* Travel map app — extracted from the travel-map prototype and refactored
-   for game integration. Not auto-run: call TravelMap.init(rootEl, opts).
-   Requires travel-lib.js (MapHelpers) and travel.css (#travel-root) loaded.
-*/
+/* Travel map — clean rebuild (2026-10-16).
+ * Single system: plan trips from green pins, drive leg by leg, pick up bikes.
+ * No legacy single-destination code. State is simple and explicit.
+ */
 window.TravelMap = (function () {
   'use strict';
 
+  var HOME = 'Port Angeles';
+  var CAPACITY = 15;      // gallons
+  var MPG = 12;           // miles per gallon
+  var FUEL_PRICE = 2.50;  // $/gal flat
+  var TOW_RATE = 3.50;    // $/mile tow fee
+  var MAX_STOPS = 3;
+
+  // Town data: name, miles from home, lat, lng
+  var towns = [
+    ['Port Angeles',0,48.11892,-123.43112],['Agnew',8,48.10524,-123.24794],['Carlsborg',12,48.0897,-123.17287],['Joyce',15,48.13635,-123.73438],['Sequim',17,48.07965,-123.10367],['Blyn',20,48.02157,-123.00063],['Diamond Point',25,48.08489,-122.95169],['Chimacum',28,48.01182,-122.77328],['Port Hadlock',30,48.02571,-122.75858],['Gardiner',32,48.05021,-122.9254],['Port Townsend',35,48.1212,-122.77263],['Nordland',36,48.05105,-122.69107],['Beaver',40,48.05431,-124.33152],['Marrowstone',41,48.07226,-122.70206],['Sappho',45,48.06878,-124.2919],['Quilcene',46,47.82642,-122.8775],['Clallam Bay',50,48.25379,-124.26015],['Forks',55,47.95014,-124.38543],['Brinnon',57,47.69838,-122.89646],['Sekiu',62,48.25978,-124.30041],['Poulsbo',63,47.73689,-122.64681],['Silverdale',66,47.65171,-122.69275],['La Push',70,47.9082,-124.63663],['Neah Bay',72,48.36786,-124.62755],['Bremerton',75,47.565,-122.62749],['Hoodsport',78,47.40639,-123.14135],['Port Orchard',82,47.54103,-122.63847],['Shelton',90,47.21253,-123.10616],['Olympia',108,47.03954,-122.89165],['Tacoma',112,47.25517,-122.44164]
+  ].map(function(t){ return {name:t[0], miles:t[1], lat:t[2], lng:t[3]}; });
+  var byName = {};
+  towns.forEach(function(t){ byName[t.name] = t; });
+
+  // Gas stations: town -> {name, price}
+  var stations = {
+    'Port Angeles':{name:'Strait View Fuel',price:FUEL_PRICE},
+    'Sequim':{name:'Rainshadow Fuel',price:FUEL_PRICE},
+    'Beaver':{name:'Beaver Junction',price:FUEL_PRICE},
+    'Forks':{name:'Forks Fuel & Timber',price:FUEL_PRICE},
+    'Neah Bay':{name:'Makah Bay Trading Post',price:FUEL_PRICE},
+    'Clallam Bay':{name:'Strait Side Gas',price:FUEL_PRICE},
+    'Port Townsend':{name:'Victorian Petrol',price:FUEL_PRICE},
+    'Quilcene':{name:'Quilcene Quick Stop',price:FUEL_PRICE},
+    'Hoodsport':{name:'Canal-side Gas',price:FUEL_PRICE},
+    'Shelton':{name:'Shelton Speedway',price:FUEL_PRICE},
+    'Olympia':{name:'Capital Fill-Up',price:FUEL_PRICE},
+    'Bremerton':{name:'Shipyard Fuel',price:FUEL_PRICE},
+    'Poulsbo':{name:'Viking Pump',price:FUEL_PRICE}
+  };
+
+  // Pin positions on the map image (percent coordinates) — Garrett approved
+  var PIN_POS = {
+    "Agnew": [43.0, 22.3],
+    "Beaver": [20.0, 28.3],
+    "Blyn": [55.5, 22.3],
+    "Bremerton": [74.2, 64.6],
+    "Brinnon": [66.8, 59.3],
+    "Carlsborg": [46.8, 23.2],
+    "Chimacum": [65.5, 32.0],
+    "Clallam Bay": [18.5, 19.0],
+    "Diamond Point": [59.5, 21.8],
+    "Forks": [19.0, 40.0],
+    "Gardiner": [61.2, 25.5],
+    "Hoodsport": [65.5, 71.0],
+    "Joyce": [28.0, 21.4],
+    "La Push": [11.5, 43.5],
+    "Marrowstone": [69.8, 34.2],
+    "Neah Bay": [5.5, 13.1],
+    "Nordland": [69.2, 29.7],
+    "Olympia": [63.0, 93.8],
+    "Port Angeles": [35.0, 20.5],
+    "Port Hadlock": [67.5, 33.5],
+    "Port Orchard": [73.5, 68.0],
+    "Port Townsend": [68.5, 28.0],
+    "Poulsbo": [72.0, 60.0],
+    "Quilcene": [64.0, 52.0],
+    "Sekiu": [12.0, 15.0],
+    "Shelton": [62.0, 78.0],
+    "Silverdale": [73.0, 62.0],
+    "Tacoma": [70.0, 95.0]
+  };
+
   var HTML =
-    `
-      <main class="app-shell">
-        <section class="hud" aria-label="Travel status">
-          <div class="hud-block">
-            <div class="eyebrow">Truck parked at</div>
-            <div class="location-name" id="travel-locationName">Port Angeles, WA</div>
-            <div class="location-sub" id="travel-locationSub">Home garage · keys on the hook</div>
-          </div>
-          <div class="hud-block">
-            <div class="eyebrow">Gas tank · 12 mpg</div>
-            <div class="fuel-row">
-              <svg class="fuel-icon" viewBox="0 0 28 34" aria-hidden="true"><path d="M3 2h15v29H3zM6 5h9v8H6zM18 7h4l3 4v13c0 4-6 4-6 0v-7h3v7c0 1 1 1 1 0V12l-3-3h-2" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="miter"/></svg>
-              <div class="fuel-stack"><div class="fuel-number"><span id="travel-fuelValue">15.0</span> / 15 gal</div><div class="fuel-bar" aria-label="Fuel level"><div id="travel-fuelFill" class="fuel-fill"></div></div></div>
-            </div>
-          </div>
-          <div class="hud-block">
-            <div class="eyebrow">Wallet</div>
-            <div class="money" id="travel-walletValue">$140.00</div>
-            <div class="location-sub">Fuel comes out of the flip money.</div>
-          </div>
-        </section>
-    
-        <section class="content-grid">
-          <div class="left-stack">
-            <div class="layer-bar" aria-label="Map legend">
-              <div class="layer-hint" id="travel-layerHint">Red pins are listings · green are your deals · yellow are gas stations.</div>
-            </div>
-            <div class="trip-panel" id="travel-tripPanel" hidden>
-              <div class="eyebrow">Trip planner</div>
-              <div class="trip-stops" id="travel-tripStops"><span class="trip-empty">Tap green pins in the order you want to visit them (up to 3).</span></div>
-              <div class="trip-math" id="travel-tripMath" hidden></div>
-              <div class="trip-actions">
-                <button class="btn" id="travel-tripClear" type="button">Clear</button>
-                <button class="btn gold" id="travel-tripGo" type="button" disabled>Roll out</button>
-              </div>
-            </div>
-            <button class="btn gold trip-launch" id="travel-planTripBtn" type="button" hidden>Plan trip</button>
-            <div class="map-frame">
-              <div class="map-head">
-                <div class="map-key" aria-label="Map legend">
-                  <span class="key-item"><span class="key-swatch home"></span>Home</span>
-                  <span class="key-item"><span class="legend-dollar" aria-hidden="true">$</span>Seller</span>
-                  <span class="key-item"><svg class="legend-pump" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10v18H5zM7 6h6v5H7zm8 1 3 3v8c0 2 3 2 3 0v-6h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Fuel</span>
-                </div>
-                <div class="map-note">Fixed view · sellers and fuel are separate stops</div>
-              </div>
-              <div id="travel-map" aria-label="Interactive map of seller towns around the Olympic Peninsula"></div>
-              <div class="map-shade"></div>
-              <div id="travel-mapFallback" class="map-unavailable" hidden></div>
-              <div id="travel-travelRibbon" class="travel-ribbon" aria-live="polite">
-                <div class="travel-copy" id="travel-travelCopy">Rolling out…</div><div class="ribbon-road"></div>
-                <div class="truck" aria-hidden="true"><span class="truck-body"></span><span class="truck-cab"></span><span class="truck-wheel a"></span><span class="truck-wheel b"></span></div>
-              </div>
-            </div>
-            <div class="balance-card" aria-label="Trip balance examples">
-              <div class="balance-item"><small>Short hop</small><strong>Sequim · 34 mi RT</strong></div>
-              <div class="balance-item"><small>Mid run</small><strong>Forks · 110 mi RT</strong></div>
-              <div class="balance-item"><small>Long haul</small><strong>Neah Bay · 144 mi RT</strong></div>
-              <div class="balance-item"><small>Max run</small><strong>Tacoma · 224 mi RT</strong></div>
-            </div>
-          </div>
-    
-          <aside class="right-stack">
-            <section class="route-panel" aria-labelledby="routeTitle">
-              <h2 class="section-title" id="travel-routeTitle">Choose a stop</h2>
-              <div id="travel-townCard"></div>
-            </section>
-            <section class="log-panel" aria-labelledby="logTitle">
-              <div class="log-head"><h2 class="section-title" id="travel-logTitle">Recent drives</h2><button class="tiny-btn" id="travel-resetBtn" type="button">Start over</button></div>
-              <div class="log-list" id="travel-logList"><div class="log-empty">No road stories yet. Tap a pin, check the gas, and go see whether “ran when parked” means anything.</div></div>
-            </section>
-          </aside>
-        </section>
-    
-        <footer class="footline">
-          <span class="brand-line">Sold as-is. No warranties, no take-backs.</span>
-          <span>15-gallon tank · 16 mpg · fixed game mileage and fuel prices.</span>
-        </footer>
-      </main>
-    
-      <div class="modal-backdrop" id="travel-fuelModal" role="dialog" aria-modal="true" aria-labelledby="fuelModalTitle">
-        <div class="fuel-modal">
-          <div class="eyebrow" id="travel-fuelStationName">Fuel stop</div>
-          <h2 class="modal-title" id="travel-fuelModalTitle">Top off the truck</h2>
-          <div class="range-wrap">
-            <input id="travel-fuelSlider" type="range" min="0" max="0" step="0.1" value="0" aria-label="Gallons to purchase" />
-            <div class="fill-readout"><div><div class="eyebrow">Add</div><div class="fill-gallons"><span id="travel-fillGallons">0.0</span> gal</div></div><div><div class="eyebrow">Total</div><div class="fill-cost" id="travel-fillCost">$0.00</div></div></div>
-          </div>
-          <div class="modal-actions"><button class="btn ghost" id="travel-cancelFuel" type="button">Not now</button><button class="btn gold" id="travel-buyFuel" type="button">Pay &amp; pump</button></div>
-        </div>
-      </div>
-    
-      
-      
-      
-      </main>`;
+    '<main class="app-shell">' +
+      '<section class="hud" aria-label="Travel status">' +
+        '<div class="hud-block">' +
+          '<div class="eyebrow">Truck parked at</div>' +
+          '<div class="location-name" id="travel-locationName">Port Angeles, WA</div>' +
+          '<div class="location-sub" id="travel-locationSub">Home garage · keys on the hook</div>' +
+        '</div>' +
+        '<div class="hud-block">' +
+          '<div class="eyebrow">Gas tank · 12 mpg</div>' +
+          '<div class="fuel-row">' +
+            '<div class="fuel-stack"><div class="fuel-number"><span id="travel-fuelValue">15.0</span> / 15 gal</div><div class="fuel-bar"><div id="travel-fuelFill" class="fuel-fill"></div></div></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hud-block">' +
+          '<div class="eyebrow">Wallet</div>' +
+          '<div class="money" id="travel-walletValue">$0.00</div>' +
+          '<div class="location-sub">Fuel comes out of the flip money.</div>' +
+        '</div>' +
+      '</section>' +
+      '<section class="content-grid">' +
+        '<div class="left-stack">' +
+          '<div class="layer-bar"><div class="layer-hint">Red pins are listings · green are your deals · yellow are gas stations.</div></div>' +
+          '<div class="map-frame">' +
+            '<div id="travel-map" aria-label="Map of the Olympic Peninsula"></div>' +
+            '<div id="travel-travelRibbon" class="travel-ribbon"><div class="travel-copy" id="travel-travelCopy">Rolling out…</div><div class="ribbon-road"></div></div>' +
+          '</div>' +
+        '</div>' +
+        '<aside class="right-stack">' +
+          '<section class="route-panel">' +
+            '<h2 class="section-title">Trip planner</h2>' +
+            '<div class="trip-panel" id="travel-tripPanel">' +
+              '<div class="trip-stops" id="travel-tripStops"><span class="trip-empty">Tap green pins in the order you want to visit them (up to 3).</span></div>' +
+              '<div class="trip-math" id="travel-tripMath" hidden></div>' +
+              '<div class="trip-actions">' +
+                '<button class="btn" id="travel-tripClear" type="button">Clear</button>' +
+                '<button class="btn gold" id="travel-tripGo" type="button" disabled>Roll out</button>' +
+              '</div>' +
+            '</div>' +
+          '</section>' +
+          '<section class="log-panel">' +
+            '<div class="log-head"><h2 class="section-title">Recent drives</h2></div>' +
+            '<div class="log-list" id="travel-logList"><div class="log-empty">No road stories yet.</div></div>' +
+          '</section>' +
+        '</aside>' +
+      '</section>' +
+      '<div class="modal-backdrop" id="travel-fuelModal">' +
+        '<div class="fuel-modal">' +
+          '<div class="eyebrow" id="travel-fuelStationName">Fuel stop</div>' +
+          '<h2 class="modal-title">Top off the truck</h2>' +
+          '<div class="range-wrap">' +
+            '<input id="travel-fuelSlider" type="range" min="0" max="0" step="0.1" value="0" />' +
+            '<div class="fill-readout"><div><div class="eyebrow">Add</div><div class="fill-gallons"><span id="travel-fillGallons">0.0</span> gal</div></div><div><div class="eyebrow">Total</div><div class="fill-cost" id="travel-fillCost">$0.00</div></div></div>' +
+          '</div>' +
+          '<div class="modal-actions"><button class="btn ghost" id="travel-cancelFuel" type="button">Not now</button><button class="btn gold" id="travel-buyFuel" type="button">Pay &amp; pump</button></div>' +
+        '</div>' +
+      '</div>' +
+    '</main>';
 
   var current = null;
 
@@ -119,443 +143,33 @@ window.TravelMap = (function () {
   }
 
   function createInstance(rootEl, opts) {
-    var HOME = 'Port Angeles';
-    var CAPACITY = 15;
-    var MPG = 12;
-    var towns = [
-      ['Port Angeles',0,48.11892,-123.43112],['Agnew',8,48.10524,-123.24794],['Carlsborg',12,48.0897,-123.17287],['Joyce',15,48.13635,-123.73438],['Sequim',17,48.07965,-123.10367],['Blyn',20,48.02157,-123.00063],['Diamond Point',25,48.08489,-122.95169],['Chimacum',28,48.01182,-122.77328],['Port Hadlock',30,48.02571,-122.75858],['Gardiner',32,48.05021,-122.9254],['Port Townsend',35,48.1212,-122.77263],['Nordland',36,48.05105,-122.69107],['Beaver',40,48.05431,-124.33152],['Marrowstone',41,48.07226,-122.70206],['Sappho',45,48.06878,-124.2919],['Quilcene',46,47.82642,-122.8775],['Clallam Bay',50,48.25379,-124.26015],['Forks',55,47.95014,-124.38543],['Brinnon',57,47.69838,-122.89646],['Sekiu',62,48.25978,-124.30041],['Poulsbo',63,47.73689,-122.64681],['Silverdale',66,47.65171,-122.69275],['La Push',70,47.9082,-124.63663],['Neah Bay',72,48.36786,-124.62755],['Bremerton',75,47.565,-122.62749],['Hoodsport',78,47.40639,-123.14135],['Port Orchard',82,47.54103,-122.63847],['Shelton',90,47.21253,-123.10616],['Olympia',108,47.03954,-122.89165],['Tacoma',112,47.25517,-122.44164]
-    ].map(function(t){ return {name:t[0], miles:t[1], lat:t[2], lng:t[3], label:t[0]+', WA', locality:t[0], region:'WA'}; });
-    var stations = {
-      'Port Angeles':{name:'Strait View Fuel',price:2.50,lat:48.11892,lng:-123.43112},
-      'Sequim':{name:'Rainshadow Fuel',price:2.50,lat:48.07965,lng:-123.10367},
-      'Beaver':{name:'Beaver Junction',price:2.50,lat:48.05431,lng:-124.33152},
-      'Forks':{name:'Forks Fuel & Timber',price:2.50,lat:47.95014,lng:-124.38543},
-      'Neah Bay':{name:'Makah Bay Trading Post',price:2.50,lat:48.36786,lng:-124.62755},
-      'Clallam Bay':{name:'Strait Side Gas',price:2.50,lat:48.25379,lng:-124.26015},
-      'Port Townsend':{name:'Victorian Petrol',price:2.50,lat:48.1212,lng:-122.77263},
-      'Quilcene':{name:'Quilcene Quick Stop',price:2.50,lat:47.82642,lng:-122.8775},
-      'Hoodsport':{name:'Canal-side Gas',price:2.50,lat:47.40639,lng:-123.14135},
-      'Shelton':{name:'Shelton Speedway',price:2.50,lat:47.21253,lng:-123.10616},
-      'Olympia':{name:'Capital Fill-Up',price:2.50,lat:47.03954,lng:-122.89165},
-      'Bremerton':{name:'Shipyard Fuel',price:2.50,lat:47.565,lng:-122.62749},
-      'Poulsbo':{name:'Viking Pump',price:2.50,lat:47.73689,lng:-122.64681}
-    };
-    var byName = {}; towns.forEach(function(t){ byName[t.name]=t; });
-    var routeNames = {
-      'Port Angeles':['Port Angeles'],
-      'Agnew':['Port Angeles','Agnew'], 'Carlsborg':['Port Angeles','Agnew','Carlsborg'], 'Sequim':['Port Angeles','Agnew','Carlsborg','Sequim'],
-      'Blyn':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn'], 'Gardiner':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner'],
-      'Diamond Point':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Diamond Point'],
-      'Chimacum':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Chimacum'],
-      'Port Hadlock':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Chimacum','Port Hadlock'],
-      'Port Townsend':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Chimacum','Port Hadlock','Port Townsend'],
-      'Nordland':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Chimacum','Port Hadlock','Nordland'],
-      'Marrowstone':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Chimacum','Port Hadlock','Marrowstone'],
-      'Quilcene':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene'],
-      'Brinnon':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Brinnon'],
-      'Hoodsport':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Brinnon','Hoodsport'],
-      'Shelton':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Brinnon','Hoodsport','Shelton'],
-      'Olympia':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Brinnon','Hoodsport','Shelton','Olympia'],
-      'Tacoma':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Brinnon','Hoodsport','Shelton','Olympia','Tacoma'],
-      'Poulsbo':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Poulsbo'],
-      'Silverdale':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Poulsbo','Silverdale'],
-      'Bremerton':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Poulsbo','Silverdale','Bremerton'],
-      'Port Orchard':['Port Angeles','Agnew','Carlsborg','Sequim','Blyn','Gardiner','Quilcene','Poulsbo','Silverdale','Bremerton','Port Orchard'],
-      'Joyce':['Port Angeles','Joyce'], 'Beaver':['Port Angeles','Joyce','Beaver'], 'Sappho':['Port Angeles','Joyce','Beaver','Sappho'],
-      'Forks':['Port Angeles','Joyce','Beaver','Sappho','Forks'], 'La Push':['Port Angeles','Joyce','Beaver','Sappho','Forks','La Push'],
-      'Clallam Bay':['Port Angeles','Joyce','Clallam Bay'], 'Sekiu':['Port Angeles','Joyce','Clallam Bay','Sekiu'], 'Neah Bay':['Port Angeles','Joyce','Clallam Bay','Sekiu','Neah Bay']
+    // Simple state — everything the trip needs, nothing more
+    var state = {
+      fuel: (opts.fuel != null ? opts.fuel : 15),
+      currentTown: HOME,
+      tripStops: [],     // array of deal listingIds in visit order
+      driving: false,
+      logs: []
     };
 
-    var destinations = [{id:'home',kind:'home',town:HOME,name:'Port Angeles home garage',lat:byName[HOME].lat,lng:byName[HOME].lng}];
-    (opts.listings||[]).forEach(function(l){
-          var t=byName[l.town];
-          if(!t) return;
-          destinations.push({id:'listing:'+l.id,kind:'seller',town:l.town,name:l.bike||(l.town+' seller'),lat:t.lat,lng:t.lng,price:l.price,seller:l.seller,listingId:l.id});
-        });
-    Object.keys(stations).forEach(function(town){
-      var station=stations[town];
-      destinations.push({id:'gas:'+town,kind:'gas',town:town,name:station.name,lat:station.lat,lng:station.lng,price:station.price});
-    });
-    var byId={}; destinations.forEach(function(d){byId[d.id]=d;});
+    function money(v) { return '$' + v.toFixed(2); }
 
-    var firstListing=(opts.listings||[])[0];
-        var initFuel=(opts.fuel!=null?opts.fuel:3), initWallet=(opts.wallet!=null?opts.wallet:140);
-        var initSelectedId=firstListing?('listing:'+firstListing.id):'home';
-        var state={fuel:initFuel,wallet:initWallet,currentId:HOME,selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
-    var mapHandle=null;
-    var selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
-    var resizeTimer=null;
-
-    function money(v){return '$'+v.toFixed(2);}
-    function gallonsFor(miles){return miles/MPG;}
-    function routeForTown(name){return routeNames[name]||[HOME,name];}
-    function townPath(fromTown,toTown){
-      if(fromTown===toTown) return [fromTown];
-      var a=routeForTown(fromTown),b=routeForTown(toTown),i=0;
-      while(i<a.length&&i<b.length&&a[i]===b[i]) i++;
-      var common=Math.max(0,i-1);
-      return a.slice(common).reverse().concat(b.slice(common+1));
-    }
-    function milesBetween(a,b){
-      if(a.id===b.id) return 0;
-      if(a.town===b.town) return 1;
-      var pa=routeForTown(a.town),pb=routeForTown(b.town),i=0;
-      while(i<pa.length&&i<pb.length&&pa[i]===pb[i]) i++;
-      var common=pa[Math.max(0,i-1)]||HOME;
-      return Math.max(1,byName[a.town].miles+byName[b.town].miles-(2*byName[common].miles));
-    }
-    function milesHomeFrom(d){return d.kind==='home'?0:byName[d.town].miles+(d.kind==='gas'?1:0);}
-
-    function project(lat,lng,zoom){
-      var size=256*Math.pow(2,zoom),sin=Math.sin(lat*Math.PI/180);
-      return {x:(lng+180)/360*size,y:(.5-Math.log((1+sin)/(1-sin))/(4*Math.PI))*size};
-    }
-    function unproject(x,y,zoom){
-      var size=256*Math.pow(2,zoom),n=Math.PI-2*Math.PI*y/size;
-      return {lng:x/size*360-180,lat:180/Math.PI*Math.atan(.5*(Math.exp(n)-Math.exp(-n)))};
-    }
-    var expandedClusterId=null;
-    var CLUSTER_RADIUS=31;
-    var MIN_PIN_SEPARATION=24;
-    function distance(a,b){var dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);}
-    function inlandAngle(d){
-      /* Screen-space degrees: 0 east, 90 south. Every coastal nudge points inland. */
-      if(d.lat>48.16) return 90;
-      if(d.lng<-124.08) return 0;
-      if(d.lat>48.0&&d.lng>-123.55) return 90;
-      if(d.lng>-122.98) return 180;
-      if(d.lat<47.52) return 270;
-      if(d.lat<47.90&&d.lng>-123.2) return 180;
-      return 90;
-    }
-    function candidateOffsets(d,forceSpread){
-      var out=forceSpread?[]:[[0,0]],preferred=inlandAngle(d),angles=[0,24,-24,48,-48,76,-76,105,-105,138,-138,180];
-      [24,32,42,54,68,82].forEach(function(r){
-        angles.forEach(function(delta){
-          var rad=(preferred+delta)*Math.PI/180;
-          out.push([Math.cos(rad)*r,Math.sin(rad)*r]);
-        });
-      });
-      return out;
-    }
-    function medoid(items,zoom){
-      var projected=items.map(function(item){return {item:item,point:project(item.lat,item.lng,zoom)};});
-      var best=projected[0],bestScore=Infinity;
-      projected.forEach(function(candidate){
-        var score=0; projected.forEach(function(other){score+=distance(candidate.point,other.point);});
-        if(score<bestScore){best=candidate;bestScore=score;}
-      });
-      return best.item;
-    }
-    function sellerGroups(zoom){
-      var pending=destinations.filter(function(d){return d.kind==='seller';}).map(function(d){return {destination:d,point:project(d.lat,d.lng,zoom)};});
-      var groups=[];
-      while(pending.length){
-        var seed=pending.shift(),members=[seed],rest=[];
-        pending.forEach(function(candidate){
-          if(distance(seed.point,candidate.point)<CLUSTER_RADIUS) members.push(candidate); else rest.push(candidate);
-        });
-        pending=rest;
-        groups.push(members.map(function(member){return member.destination;}));
-      }
-      return groups;
-    }
-    function displayItem(d,extra){
-      var item={id:d.id,kind:d.kind,town:d.town,name:d.name,price:d.price,lat:d.lat,lng:d.lng,trueLat:d.lat,trueLng:d.lng,markerDx:0,markerDy:0,label:d.name,locality:d.town,region:'WA',destinationId:d.id,destinationIndex:destinations.findIndex(function(x){return x.id===d.id;})};
-      if(extra) Object.keys(extra).forEach(function(key){item[key]=extra[key];});
-      return item;
-    }
-    function selectDestination(index){
-      if(state.driving||index<0) return;
-      selectedIndex=index;
-      state.selectedId=destinations[index].id;
-      renderCard();
-      mountMap();
-    }
-    function updateLayerControls(){
-      // Layers are always on now — no toggles. Hint is static in HTML.
-    }
-    function tripMath(destination){
-      var current=byId[state.currentId];
-      var miles=milesBetween(current,destination);
-      var driveFuel=gallonsFor(miles);
-      var homeFuel=gallonsFor(milesHomeFrom(destination));
-      var fullNeed=driveFuel+homeFuel;
-      var tankAfter=state.fuel-driveFuel;
-      var coversLeg=state.fuel+1e-6>=driveFuel;
-      var coversHome=state.fuel+1e-6>=fullNeed;
-      var reason,status;
-      if(destination.id===current.id){reason='The truck is already here.';status='safe';}
-      else if(coversHome){reason='Tank covers this drive and the trip home, with '+(state.fuel-fullNeed).toFixed(1)+' gal in reserve.';status='safe';}
-      else if(coversLeg){reason='You can reach this stop, but you are '+(fullNeed-state.fuel).toFixed(1)+' gal short of getting home. Driving stays your call.';status='warn';}
-      else{reason='Tank is '+(driveFuel-state.fuel).toFixed(1)+' gal short for this leg. The map will warn you, not stop you.';status='danger';}
-      return {miles:miles,driveFuel:driveFuel,homeFuel:homeFuel,fullNeed:fullNeed,tankAfter:tankAfter,coversLeg:coversLeg,coversHome:coversHome,reason:reason,status:status};
-    }
-    function destinationTitle(d){return d.kind==='gas'?d.name:d.kind==='home'?'Port Angeles home garage':(d.name||d.town+' seller');}
-    function renderCard(){
-      var d=byId[state.selectedId],math=tripMath(d),atDestination=state.currentId===d.id;
-      var arrival=math.tankAfter>=0?math.tankAfter.toFixed(1)+' gal':(Math.abs(math.tankAfter).toFixed(1)+' gal short');
-      var eyebrow=d.kind==='gas'?'Fuel stop · '+d.town+', WA':d.kind==='seller'?'Seller meetup · '+d.town+', WA':'Home base';
-      var listingHTML=d.kind==='seller'?'<div class="station-strip"><div class="station-title">'+(d.bike||d.name)+'</div><div class="station-price">'+money(d.price)+'</div><div class="location-sub">'+(d.seller?('Seller: '+d.seller):'')+'</div></div>':'';
-      var stationHTML=d.kind==='gas'?'<div class="station-strip"><div class="station-title">'+d.name+'</div><div class="station-price">'+money(d.price)+' / gal</div><div class="location-sub">'+(atDestination?'Pump is ready.':'Drive here independently from the seller pin.')+'</div></div>':'';
-      var fuelButton=d.kind==='gas'&&atDestination?'<button class="btn gold" type="button" id="travel-fuelBtn">Buy gas</button>':'';
-      var driveLabel=!math.coversLeg?'Drive anyway':'Drive to '+(d.kind==='gas'?d.name:d.kind==='home'?'home':d.town);
-      document.getElementById('travel-routeTitle').textContent='Trip details';
-      document.getElementById('travel-townCard').innerHTML='<article class="town-card"><div class="town-card-head"><div><div class="eyebrow">'+eyebrow+'</div><div class="town-name">'+destinationTitle(d)+'</div></div><div class="town-tag">'+math.miles+' mi</div></div><div class="trip-summary"><div class="summary-row"><span>Drive from here</span><strong>'+math.miles+' mi · '+math.driveFuel.toFixed(1)+' gal</strong></div><div class="summary-row"><span>Tank now</span><strong>'+state.fuel.toFixed(1)+' gal</strong></div><div class="summary-row"><span>Tank on arrival</span><strong>'+arrival+'</strong></div><div class="summary-row"><span>Fuel needed from there to home</span><strong>'+math.homeFuel.toFixed(1)+' gal</strong></div><div class="summary-row"><span>Whole plan</span><strong>'+math.fullNeed.toFixed(1)+' gal</strong></div></div>'+stationHTML+listingHTML+'<div class="trip-status '+math.status+'">'+math.reason+'</div><div class="actions"><button class="btn primary" type="button" id="travel-driveBtn" '+(atDestination||state.driving?'disabled':'')+'>'+driveLabel+'</button>'+fuelButton+'</div></article>';
-      var driveBtn=document.getElementById('travel-driveBtn'); if(driveBtn) driveBtn.addEventListener('click',drive);
-      var fuelBtn=document.getElementById('travel-fuelBtn'); if(fuelBtn) fuelBtn.addEventListener('click',openFuel);
-    }
-    function drive(){
-      if(state.driving||state.currentId===state.selectedId) return;
-      var from=byId[state.currentId],to=byId[state.selectedId];
-      var miles=milesBetween(from,to),used=gallonsFor(miles),shortfall=Math.max(0,used-state.fuel);
-      state.driving=true;
-      var ribbon=document.getElementById('travel-travelRibbon');
-      document.getElementById('travel-travelCopy').textContent='Rolling '+miles+' miles · '+from.town+' → '+to.town;
-      ribbon.classList.add('active');
-      setTimeout(function(){
-        state.fuel=Math.max(0,state.fuel-used);
-        state.currentId=to.id;
-        state.driving=false;
-        state.logs.unshift({type:'trip',title:destinationTitle(to),meta:miles+' mi · '+used.toFixed(1)+' gal'+(shortfall>0?' · '+shortfall.toFixed(1)+' gal short':''),cost:'~'+money(used*state.lastPrice)});
-        ribbon.classList.remove('active');
-        renderAll();
-        mountMap();
-      },2250);
-    }
-    function currentStation(){
-      var d=byId[state.currentId];
-      if (d && d.kind==='gas') return d;
-      // Check by town name (trip legs use town names)
-      return stations[state.currentId] || null;
-    }
-    function openFuelFor(station){
-      var max=Math.max(0,Math.min(CAPACITY-state.fuel,State.cash/station.price));
-      var slider=document.getElementById('travel-fuelSlider');
-      slider.max=max.toFixed(1); slider.value=max.toFixed(1);
-      document.getElementById('travel-fuelStationName').textContent=station.name+' · '+money(station.price)+'/gal';
-      // Temporarily override currentStation for the modal
-      state._fuelStation=station;
-      updateFillReadout(); document.getElementById('travel-fuelModal').classList.add('open');
-    }
-    function openFuel(){
-      var station=currentStation(); if(!station) return;
-      var max=Math.max(0,Math.min(CAPACITY-state.fuel,State.cash/station.price));
-      var slider=document.getElementById('travel-fuelSlider');
-      slider.max=max.toFixed(1); slider.value=max.toFixed(1);
-      document.getElementById('travel-fuelStationName').textContent=station.name+' · '+money(station.price)+'/gal';
-      updateFillReadout(); document.getElementById('travel-fuelModal').classList.add('open');
-    }
-    function updateFillReadout(){
-      var gallons=+document.getElementById('travel-fuelSlider').value;
-      var station=state._fuelStation||currentStation(),cost=station?gallons*station.price:0;
-      document.getElementById('travel-fillGallons').textContent=gallons.toFixed(1);
-      document.getElementById('travel-fillCost').textContent=money(cost);
-      document.getElementById('travel-buyFuel').disabled=gallons<=0||cost>State.cash+1e-6;
-    }
-    function buyFuel(){
-      var station=state._fuelStation||currentStation(); if(!station) return;
-      var gallons=+document.getElementById('travel-fuelSlider').value,cost=gallons*station.price;
-      if(gallons<=0||cost>State.cash+1e-6) return;
-      state.fuel=Math.min(CAPACITY,state.fuel+gallons); State.cash-=cost; state.lastPrice=station.price; if(typeof UI!=="undefined"&&UI.refreshCash)UI.refreshCash();
-      state.logs.unshift({type:'fuel',title:station.name,meta:gallons.toFixed(1)+' gal @ '+money(station.price),cost:'-'+money(cost)});
-      closeFuel(); renderAll();
-      state._fuelStation=null;
-      if(state._pausedTrip){
-        var pt=state._pausedTrip; state._pausedTrip=null;
-        setTimeout(pt.resume, 500);
-      }
-    }
-    function closeFuel(){document.getElementById('travel-fuelModal').classList.remove('open');}
-    function renderHUD(){
-      var current=byId[state.currentId];
-      var townName, subText;
-      if (current) {
-        townName = current.kind==='gas'?current.name:current.town+', WA';
-        subText = current.kind==='home'?'Home garage · keys on the hook':current.kind==='gas'?'Fuel stop · '+current.town+', WA':'Seller meetup · choose any next stop';
-      } else {
-        // Town name directly (from trip legs)
-        townName = state.currentId + ', WA';
-        subText = state.currentId === HOME ? 'Home garage · keys on the hook' : 'On the road · ' + state.currentId;
-      }
-      document.getElementById('travel-locationName').textContent=townName;
-      document.getElementById('travel-locationSub').textContent=subText;
-      document.getElementById('travel-fuelValue').textContent=state.fuel.toFixed(1);
-      var fill=document.getElementById('travel-fuelFill'); fill.style.width=(state.fuel/CAPACITY*100)+'%'; fill.classList.toggle('low',state.fuel<4);
-      document.getElementById('travel-walletValue').textContent=money(State.cash);
-    }
-    function renderLog(){
-      var box=document.getElementById('travel-logList');
-      if(!state.logs.length){box.innerHTML='<div class="log-empty">No road stories yet. Tap a seller or fuel pin, check the math, and make the call.</div>';return;}
-      box.innerHTML=state.logs.slice(0,6).map(function(l){return '<div class="log-item"><div class="log-icon">'+(l.type==='fuel'?'GAS':'TRIP')+'</div><div class="log-main"><strong>'+l.title+'</strong><div class="log-meta">'+l.meta+'</div></div><div class="log-cost">'+l.cost+'</div></div>';}).join('');
-    }
-    function renderAll(){renderHUD();renderCard();renderLog();}
-    function reset(){
-      state={fuel:initFuel,wallet:initWallet,currentId:HOME,selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
-      expandedClusterId=null;
-      selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
-      updateLayerControls();renderAll();mountMap();
+    function milesBetweenTowns(a, b) {
+      if (a === b) return 0;
+      var ta = byName[a], tb = byName[b];
+      if (!ta || !tb) return 10;
+      return Math.abs(ta.miles - tb.miles) || 5;
     }
 
-    document.getElementById('travel-fuelSlider').addEventListener('input',updateFillReadout);
-    document.getElementById('travel-cancelFuel').addEventListener('click',closeFuel);
-    document.getElementById('travel-buyFuel').addEventListener('click',buyFuel);
-    document.getElementById('travel-fuelModal').addEventListener('click',function(e){if(e.target===this) closeFuel();});
-    document.getElementById('travel-resetBtn').addEventListener('click',reset);
-    var planBtn = document.getElementById('travel-planTripBtn');
-    if (planBtn) planBtn.addEventListener('click', startPlanning);
-    var clearBtn = document.getElementById('travel-tripClear');
-    if (clearBtn) clearBtn.addEventListener('click', clearTrip);
-    var goBtn = document.getElementById('travel-tripGo');
-    if (goBtn) goBtn.addEventListener('click', executeTrip);
-    function onKeyDown(e){if(e.key==='Escape') closeFuel();}
-        document.addEventListener('keydown',onKeyDown);
-    function onResize(){clearTimeout(resizeTimer);resizeTimer=setTimeout(function(){expandedClusterId=null;updateLayerControls();mountMap();},180);}
-        window.addEventListener('resize',onResize);
-    var PIN_POS = {
-      "Agnew": [43.0, 22.3],
-      "Beaver": [20.0, 28.3],
-      "Blyn": [55.5, 22.3],
-      "Bremerton": [74.2, 64.6],
-      "Brinnon": [66.8, 59.3],
-      "Carlsborg": [46.8, 23.2],
-      "Chimacum": [65.5, 32.0],
-      "Clallam Bay": [18.5, 19.0],
-      "Diamond Point": [59.5, 21.8],
-      "Forks": [19.0, 40.0],
-      "Gardiner": [61.2, 25.5],
-      "Hoodsport": [65.5, 71.0],
-      "Joyce": [28.0, 21.4],
-      "La Push": [11.5, 43.5],
-      "Marrowstone": [69.8, 34.2],
-      "Neah Bay": [5.5, 13.1],
-      "Nordland": [69.2, 29.7],
-      "Olympia": [63.0, 93.8],
-      "Port Angeles": [38.0, 22.8],
-      "Port Hadlock": [66.8, 26.9],
-      "Port Orchard": [75.2, 68.7],
-      "Port Townsend": [64.2, 22.3],
-      "Poulsbo": [75.0, 52.4],
-      "Quilcene": [67.2, 48.3],
-      "Sappho": [23.5, 29.7],
-      "Sekiu": [15.0, 17.9],
-      "Sequim": [51.0, 23.5],
-      "Shelton": [60.0, 82.8],
-      "Silverdale": [74.5, 57.9],
-      "Tacoma": [73.0, 89.7]
-    };
-    function mountMap(){
-      var el = rootEl.querySelector('#travel-map');
-      if (!el) return;
-      // Build the static map with pin overlays
-      var html = '<div class="static-map"><img src="img/olympic-map.png" alt="Hand-drawn map of the Olympic Peninsula" draggable="false">';
-      // Red pins: one per listing, fanned out when sharing a town (1:1 with marketplace)
-      var townGroups = {};
-      destinations.forEach(function(d){
-        if (d.kind !== 'seller') return;
-        (townGroups[d.town] = townGroups[d.town] || []).push(d);
-      });
-      Object.keys(townGroups).forEach(function(town){
-        var pos = PIN_POS[town];
-        if (!pos) return;
-        var group = townGroups[town];
-        group.forEach(function(d, i){
-          // Fan out: offset in a small circle around the town position
-          var angle = (i / Math.max(group.length, 1)) * Math.PI * 2 - Math.PI/2;
-          var spread = group.length > 1 ? 1.6 : 0;
-          var px = pos[0] + Math.cos(angle) * spread;
-          var py = pos[1] + Math.sin(angle) * spread;
-          var isSel = state.selectedId === d.id;
-          html += '<button class="map-pin seller' + (isSel ? ' selected' : '') + '" data-dest="' + d.id + '" style="left:' + px + '%;top:' + py + '%" aria-label="' + d.name + ' in ' + town + '"><span class="pin-dot"></span></button>';
-        });
-      });
-      // Green pins: struck deals waiting for pickup (from State.travel.deals)
-      (opts.deals || []).forEach(function(deal){
-        var pos = PIN_POS[deal.town];
-        if (!pos) return;
-        var stopNum = tripStops.indexOf(deal.listingId);
-        var orderBadge = stopNum >= 0 ? '<span class="pin-order">' + (stopNum + 1) + '</span>' : '<span class="pin-check">✓</span>';
-        var selClass = stopNum >= 0 ? ' in-trip' : '';
-        html += '<button class="map-pin deal' + selClass + '" data-deal="' + deal.listingId + '" style="left:' + pos[0] + '%;top:' + (pos[1] - 2.2) + '%" aria-label="Your ' + (deal.bike.brand || '') + ' ' + (deal.bike.model || '') + ' in ' + deal.town + ' — ready for pickup">' + orderBadge + '</button>';
-      });
-      // Draw planned route as SVG overlay
-      if (tripStops.length > 0) {
-        var routePts = [PIN_POS[HOME]];
-        tripDeals().forEach(function(d){
-          var pp = PIN_POS[d.town];
-          if (pp) routePts.push(pp);
-        });
-        routePts.push(PIN_POS[HOME]);
-        routePts = routePts.filter(Boolean);
-        if (routePts.length >= 2) {
-          var pathD = routePts.map(function(pt, i){ return (i === 0 ? 'M' : 'L') + pt[0] + ' ' + pt[1]; }).join(' ');
-          html += '<svg class="route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="' + pathD + '" fill="none" stroke="#febc2e" stroke-width="0.8" stroke-dasharray="2 1.2" stroke-linecap="round" opacity="0.9"/></svg>';
-        }
-      }
-      // Home pin (always)
-      var homePos = PIN_POS[HOME];
-      if (homePos) {
-        var isHomeSel = state.selectedId === 'home';
-        html += '<button class="map-pin home' + (isHomeSel ? ' selected' : '') + '" data-town="__home__" style="left:' + homePos[0] + '%;top:' + homePos[1] + '%" aria-label="Home garage"><span class="pin-dot"></span></button>';
-      }
-      // Gas pins (always shown)
-      {
-        Object.keys(stations).forEach(function(town){
-          var pos = PIN_POS[town];
-          if (!pos) return;
-          var isSel = state.selectedId === 'gas:' + town;
-          // Offset gas pins slightly so they don't cover seller pins
-          html += '<button class="map-pin gas' + (isSel ? ' selected' : '') + '" data-gas="' + town.replace(/"/g,'') + '" style="left:' + (pos[0]+1.2) + '%;top:' + (pos[1]+1.8) + '%" aria-label="' + stations[town].name + '"><span class="pin-pump">G</span></button>';
-        });
-      }
-      html += '</div>';
-      el.innerHTML = html;
-      // Wire clicks
-      // Red pins are reference only — no action
-      el.querySelectorAll('.map-pin.seller').forEach(function(btn){
-        btn.addEventListener('click', function(){ /* reference only */ });
-      });
-      // Home pin: reference only
-      // Green pins: tap to add to trip (when planning)
-      el.querySelectorAll('.map-pin.deal').forEach(function(btn){
-        btn.addEventListener('click', function(){
-          if (state.driving) return;
-          var dealId = +btn.getAttribute('data-deal');
-          if (!state.planning) { startPlanning(); }
-          var idx = tripStops.indexOf(dealId);
-          if (idx >= 0) {
-            tripStops.splice(idx, 1);  // tap again to remove
-          } else if (tripStops.length < 3) {
-            tripStops.push(dealId);
-          }
-          renderTripPanel();
-          mountMap();
-        });
-      });
-      el.querySelectorAll('.map-pin.gas').forEach(function(btn){
-        btn.addEventListener('click', function(){
-          if (state.driving) return;
-          var town = btn.getAttribute('data-gas');
-          var station = stations[town];
-          if (station) openFuelFor(station);
-        });
-      });
-      // Hide the fallback
-      var fb = rootEl.querySelector('#travel-mapFallback');
-      if (fb) fb.hidden = true;
-    }
-
-    // Trip planner: pick up to 3 green pins in order, see fuel math, roll out
-    var tripStops = [];  // array of deal listingIds in visit order
-    var TOW_RATE = 3.50;  // $ per mile for tow fee
-
+    // Get deal objects for the planned stops, in order
     function tripDeals() {
       return (opts.deals || []).filter(function(d){
-        return tripStops.indexOf(d.listingId) >= 0;
+        return state.tripStops.indexOf(d.listingId) >= 0;
       }).sort(function(a, b){
-        return tripStops.indexOf(a.listingId) - tripStops.indexOf(b.listingId);
+        return state.tripStops.indexOf(a.listingId) - state.tripStops.indexOf(b.listingId);
       });
     }
+
     function tripMiles() {
       var stops = tripDeals();
       if (!stops.length) return 0;
@@ -564,38 +178,51 @@ window.TravelMap = (function () {
         miles += milesBetweenTowns(from, d.town);
         from = d.town;
       });
-      miles += milesBetweenTowns(from, HOME);  // return home
+      miles += milesBetweenTowns(from, HOME);
       return miles;
     }
-    function milesBetweenTowns(a, b) {
-      if (a === b) return 0;
-      var ta = byName[a], tb = byName[b];
-      if (!ta || !tb) return 10;
-      return Math.abs(ta.miles - tb.miles) || 5;
+
+    // --- Rendering ---
+
+    function renderHUD() {
+      document.getElementById('travel-locationName').textContent = state.currentTown + ', WA';
+      document.getElementById('travel-locationSub').textContent =
+        state.currentTown === HOME ? 'Home garage · keys on the hook' : 'On the road · ' + state.currentTown;
+      document.getElementById('travel-fuelValue').textContent = state.fuel.toFixed(1);
+      var fill = document.getElementById('travel-fuelFill');
+      fill.style.width = (state.fuel / CAPACITY * 100) + '%';
+      fill.classList.toggle('low', state.fuel < 4);
+      document.getElementById('travel-walletValue').textContent = money(State.cash);
     }
-    function tripGallons() { return tripMiles() / MPG; }
+
+    function renderLog() {
+      var box = document.getElementById('travel-logList');
+      if (!state.logs.length) {
+        box.innerHTML = '<div class="log-empty">No road stories yet.</div>';
+        return;
+      }
+      box.innerHTML = state.logs.slice(0, 6).map(function(l){
+        return '<div class="log-item"><div class="log-main"><strong>' + l.title + '</strong><div class="log-meta">' + l.meta + '</div></div></div>';
+      }).join('');
+    }
 
     function renderTripPanel() {
-      var panel = rootEl.querySelector('#travel-tripPanel');
-      var launchBtn = rootEl.querySelector('#travel-planTripBtn');
-      var deals = opts.deals || [];
-      if (!panel || !launchBtn) return;
-      // Show launch button if there are green pins and not planning
-      if (deals.length && !tripStops.length && !state.driving) {
-        launchBtn.hidden = false;
-        panel.hidden = true;
-      } else if (tripStops.length || state.planning) {
-        launchBtn.hidden = true;
-        panel.hidden = false;
-      } else {
-        launchBtn.hidden = true;
-        panel.hidden = true;
-      }
       var stopsEl = rootEl.querySelector('#travel-tripStops');
       var mathEl = rootEl.querySelector('#travel-tripMath');
       var goBtn = rootEl.querySelector('#travel-tripGo');
+      var clearBtn = rootEl.querySelector('#travel-tripClear');
       if (!stopsEl || !mathEl || !goBtn) return;
-      if (!tripStops.length) {
+
+      if (state.driving) {
+        stopsEl.innerHTML = '<span class="trip-empty">On the road…</span>';
+        mathEl.hidden = true;
+        goBtn.disabled = true;
+        if (clearBtn) clearBtn.disabled = true;
+        return;
+      }
+      if (clearBtn) clearBtn.disabled = false;
+
+      if (!state.tripStops.length) {
         stopsEl.innerHTML = '<span class="trip-empty">Tap green pins in the order you want to visit them (up to 3).</span>';
         mathEl.hidden = true;
         goBtn.disabled = true;
@@ -604,140 +231,308 @@ window.TravelMap = (function () {
         stopsEl.innerHTML = stops.map(function(d, i){
           return '<span class="trip-stop">' + (i+1) + '. ' + d.town + ' — ' + (d.bike.brand || '') + ' ' + (d.bike.model || '') + '</span>';
         }).join('');
-        var miles = tripMiles(), gals = tripGallons();
-        var firstLegMiles = milesBetweenTowns(HOME, stops[0].town);
-        var firstLegGals = firstLegMiles / MPG;
+        var miles = tripMiles();
+        var gals = miles / MPG;
+        var firstLegGals = milesBetweenTowns(HOME, stops[0].town) / MPG;
         var canStart = state.fuel >= firstLegGals;
         var enoughForAll = state.fuel >= gals;
         mathEl.hidden = false;
-        mathEl.innerHTML = '<div class="trip-math-row"><span>Route</span><strong>' + HOME + ' → ' + stops.map(function(d){return d.town;}).join(' → ') + ' → ' + HOME + '</strong></div>' +
+        mathEl.innerHTML =
+          '<div class="trip-math-row"><span>Route</span><strong>' + HOME + ' → ' + stops.map(function(d){return d.town;}).join(' → ') + ' → ' + HOME + '</strong></div>' +
           '<div class="trip-math-row"><span>Distance</span><strong>' + miles + ' mi</strong></div>' +
-          '<div class="trip-math-row"><span>Fuel needed</span><strong>' + gals.toFixed(1) + ' gal' + (enoughForAll ? '' : ' <em class="trip-warn">(you have ' + state.fuel.toFixed(1) + ' — plan gas stops)</em>') + '</strong></div>';
-        goBtn.disabled = !canStart || state.driving;
+          '<div class="trip-math-row"><span>Fuel needed</span><strong>' + gals.toFixed(1) + ' gal</strong></div>';
+        goBtn.disabled = !canStart;
         if (!canStart) {
-          mathEl.innerHTML += '<div class="trip-warn">Not enough fuel for the first leg. Fill up first.</div>';
+          mathEl.innerHTML += '<div class="trip-warn">Not enough fuel for the first leg (' + firstLegGals.toFixed(1) + ' gal). Fill up first.</div>';
         } else if (!enoughForAll) {
-          mathEl.innerHTML += '<div class="trip-warn">You\'ll need gas stations along the way. Yellow pins mark them.</div>';
+          mathEl.innerHTML += '<div class="trip-warn">You\'ll need gas stations along the way — yellow pins mark them.</div>';
         }
       }
     }
+
+    function mountMap() {
+      var el = rootEl.querySelector('#travel-map');
+      if (!el) return;
+      var html = '<div class="static-map"><img src="img/olympic-map.png" alt="Olympic Peninsula map" />';
+
+      // Red pins: listings (reference only)
+      var listings = opts.listings || [];
+      // Fan out same-town listings
+      var byTown = {};
+      listings.forEach(function(l){
+        if (!byTown[l.town]) byTown[l.town] = [];
+        byTown[l.town].push(l);
+      });
+      Object.keys(byTown).forEach(function(town){
+        var pos = PIN_POS[town];
+        if (!pos) return;
+        byTown[town].forEach(function(l, i){
+          var angle = (i / Math.max(byTown[town].length, 1)) * Math.PI * 2 - Math.PI/2;
+          var spread = byTown[town].length > 1 ? 1.6 : 0;
+          var px = pos[0] + Math.cos(angle) * spread;
+          var py = pos[1] + Math.sin(angle) * spread;
+          html += '<button class="map-pin seller" style="left:' + px + '%;top:' + py + '%" aria-label="Listing in ' + town + '"><span class="pin-dot"></span></button>';
+        });
+      });
+
+      // Green pins: deals (tap to add to trip)
+      (opts.deals || []).forEach(function(deal){
+        var pos = PIN_POS[deal.town];
+        if (!pos) return;
+        var stopNum = state.tripStops.indexOf(deal.listingId);
+        var badge = stopNum >= 0 ? '<span class="pin-order">' + (stopNum + 1) + '</span>' : '<span class="pin-check">✓</span>';
+        var selClass = stopNum >= 0 ? ' in-trip' : '';
+        html += '<button class="map-pin deal' + selClass + '" data-deal="' + deal.listingId + '" style="left:' + pos[0] + '%;top:' + (pos[1] - 2.2) + '%" aria-label="Your deal in ' + deal.town + '">' + badge + '</button>';
+      });
+
+      // Route line
+      if (state.tripStops.length > 0) {
+        var pts = [PIN_POS[HOME]];
+        tripDeals().forEach(function(d){
+          var p = PIN_POS[d.town];
+          if (p) pts.push(p);
+        });
+        pts.push(PIN_POS[HOME]);
+        pts = pts.filter(Boolean);
+        if (pts.length >= 2) {
+          var d = pts.map(function(p, i){ return (i === 0 ? 'M' : 'L') + p[0] + ' ' + p[1]; }).join(' ');
+          html += '<svg class="route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="' + d + '" fill="none" stroke="#febc2e" stroke-width="0.8" stroke-dasharray="2 1.2" stroke-linecap="round" opacity="0.9"/></svg>';
+        }
+      }
+
+      // Home pin
+      var hp = PIN_POS[HOME];
+      if (hp) html += '<button class="map-pin home" style="left:' + hp[0] + '%;top:' + hp[1] + '%" aria-label="Home"><span class="pin-dot"></span></button>';
+
+      // Yellow pins: gas stations (tap for fuel)
+      Object.keys(stations).forEach(function(town){
+        var pos = PIN_POS[town];
+        if (!pos) return;
+        html += '<button class="map-pin gas" data-gas="' + town + '" style="left:' + (pos[0]+1.2) + '%;top:' + (pos[1]+1.8) + '%" aria-label="' + stations[town].name + '"><span class="pin-pump">G</span></button>';
+      });
+
+      html += '</div>';
+      el.innerHTML = html;
+
+      // Green pins: toggle trip stops
+      el.querySelectorAll('.map-pin.deal').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (state.driving) return;
+          var dealId = +btn.getAttribute('data-deal');
+          var idx = state.tripStops.indexOf(dealId);
+          if (idx >= 0) {
+            state.tripStops.splice(idx, 1);
+          } else if (state.tripStops.length < MAX_STOPS) {
+            state.tripStops.push(dealId);
+          }
+          renderTripPanel();
+          mountMap();
+        });
+      });
+
+      // Yellow pins: open fuel
+      el.querySelectorAll('.map-pin.gas').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (state.driving) return;
+          var town = btn.getAttribute('data-gas');
+          var stn = stations[town];
+          if (stn) openFuel(stn);
+        });
+      });
+    }
+
+    // --- Fuel ---
+
+    var fuelStation = null;
+    var pausedTrip = null;
+
+    function openFuel(station) {
+      fuelStation = station;
+      var max = Math.max(0, Math.min(CAPACITY - state.fuel, State.cash / station.price));
+      var slider = document.getElementById('travel-fuelSlider');
+      slider.max = max.toFixed(1);
+      slider.value = max.toFixed(1);
+      document.getElementById('travel-fuelStationName').textContent = station.name + ' · $' + station.price.toFixed(2) + '/gal';
+      updateFillReadout();
+      document.getElementById('travel-fuelModal').classList.add('open');
+    }
+
+    function updateFillReadout() {
+      var gallons = +document.getElementById('travel-fuelSlider').value;
+      var cost = fuelStation ? gallons * fuelStation.price : 0;
+      document.getElementById('travel-fillGallons').textContent = gallons.toFixed(1);
+      document.getElementById('travel-fillCost').textContent = money(cost);
+      document.getElementById('travel-buyFuel').disabled = gallons <= 0 || cost > State.cash + 1e-6;
+    }
+
+    function buyFuel() {
+      if (!fuelStation) return;
+      var gallons = +document.getElementById('travel-fuelSlider').value;
+      var cost = gallons * fuelStation.price;
+      if (gallons <= 0 || cost > State.cash + 1e-6) return;
+      state.fuel = Math.min(CAPACITY, state.fuel + gallons);
+      State.cash -= cost;
+      state.logs.unshift({ title: fuelStation.name, meta: gallons.toFixed(1) + ' gal @ $' + fuelStation.price.toFixed(2) });
+      closeFuel();
+      renderHUD();
+      renderLog();
+      if (typeof UI !== "undefined" && UI.refreshCash) UI.refreshCash();
+      // Resume paused trip if there is one
+      if (pausedTrip) {
+        var resume = pausedTrip;
+        pausedTrip = null;
+        fuelStation = null;
+        setTimeout(resume, 500);
+      }
+      fuelStation = null;
+    }
+
+    function closeFuel() {
+      document.getElementById('travel-fuelModal').classList.remove('open');
+    }
+
+    // --- Trip execution ---
 
     function executeTrip() {
       var stops = tripDeals();
       if (!stops.length || state.driving) return;
       var firstLegGals = milesBetweenTowns(HOME, stops[0].town) / MPG;
-      if (state.fuel < firstLegGals) return;  // shouldn't happen (button disabled)
+      if (state.fuel < firstLegGals) return;
+
       state.driving = true;
-      state.planning = false;
       renderTripPanel();
-      // Build the leg sequence: home -> stop1 -> stop2 -> stop3 -> home
+
+      // Build legs: home -> stop1 -> stop2 -> stop3 -> home
       var legs = [];
       var from = HOME;
-      stops.forEach(function(d){ legs.push({ from: from, to: d.town, deal: d }); from = d.town; });
+      stops.forEach(function(d){
+        legs.push({ from: from, to: d.town, deal: d });
+        from = d.town;
+      });
       legs.push({ from: from, to: HOME, deal: null });
+
       var legIdx = 0;
       var pickedUp = [];
 
+      // Show progress ribbon
+      var ribbon = rootEl.querySelector('#travel-travelRibbon');
+      var copy = rootEl.querySelector('#travel-travelCopy');
+      if (ribbon && copy) {
+        copy.textContent = 'Rolling: ' + stops.map(function(d){ return d.town; }).join(' → ') + ' → home';
+        ribbon.classList.add('active');
+      }
+
       function runLeg() {
-        if (legIdx >= legs.length) { finishTrip(pickedUp, false); return; }
+        if (legIdx >= legs.length) {
+          finishTrip(pickedUp, null);
+          return;
+        }
         var leg = legs[legIdx];
         var miles = milesBetweenTowns(leg.from, leg.to);
         var need = miles / MPG;
+
+        // Ran dry?
         if (state.fuel < need) {
-          // Ran dry: tow fee scaled by distance from home
           var towMiles = milesBetweenTowns(leg.from, HOME);
           var fee = Math.round(towMiles * TOW_RATE);
           finishTrip(pickedUp, { fee: fee, from: leg.from });
           return;
         }
+
         state.fuel -= need;
-        // Update location (use town name so renderHUD can display it)
-        state.currentId = leg.to;
+        state.currentTown = leg.to;
         renderHUD();
-        // If this leg ends at a deal, pick up the bike
+
+        // Pick up bike at this stop
         if (leg.deal) {
           pickedUp.push(leg.deal);
-          // Remove from State.travel.deals
+          // Remove from persistent deals
           var ts = State.travel;
           if (ts && ts.deals) {
             ts.deals = ts.deals.filter(function(d){ return d.listingId !== leg.deal.listingId; });
             opts.deals = ts.deals;
           }
-          state.logs.unshift({ type: 'trip', title: 'Picked up ' + (leg.deal.bike.brand || '') + ' ' + (leg.deal.bike.model || ''), meta: leg.deal.town + ' · ' + miles + ' mi', cost: '' });
+          state.logs.unshift({
+            title: 'Picked up ' + (leg.deal.bike.brand || '') + ' ' + (leg.deal.bike.model || ''),
+            meta: leg.deal.town + ' · ' + miles + ' mi'
+          });
           renderLog();
         }
+
         legIdx++;
-        // Mid-trip gas stop: station here + fuel low + more legs to go = pause for fuel
+
+        // Gas stop opportunity: station here, fuel low, more legs to go
         var stn = stations[leg.to];
         if (stn && state.fuel < CAPACITY * 0.5 && legIdx < legs.length) {
-          state._pausedTrip = { resume: runLeg };
-          openFuelFor(stn);
-          renderHUD();
+          pausedTrip = runLeg;
+          openFuel(stn);
           mountMap();
           return;
         }
+
         mountMap();
-        // Brief pause between legs for readability
         setTimeout(runLeg, 1200);
       }
-      // Show trip ribbon
-      var ribbon = rootEl.querySelector('#travel-travelRibbon');
-      var copy = rootEl.querySelector('#travel-travelCopy');
-      if (ribbon && copy) {
-        copy.textContent = 'Rolling: ' + stops.map(function(d){return d.town;}).join(' → ') + ' → home';
-        ribbon.classList.add('active');
-      }
-      renderLog();
+
       runLeg();
     }
 
     function finishTrip(pickedUp, towed) {
       state.driving = false;
-      tripStops = [];
+      state.tripStops = [];
+      state.currentTown = HOME;
+
       var ribbon = rootEl.querySelector('#travel-travelRibbon');
       if (ribbon) ribbon.classList.remove('active');
+
       if (towed) {
-        // Tow fee: bikes still come home
         State.cash = Math.max(0, State.cash - towed.fee);
-        state.logs.unshift({ type: 'trip', title: 'Ran dry near ' + towed.from + ' — towed home', meta: 'Tow fee', cost: '-$' + towed.fee });
+        state.logs.unshift({ title: 'Ran dry near ' + towed.from + ' — towed home', meta: 'Tow fee: $' + towed.fee });
       }
-      // Bikes enter the garage (travel pickup + return is the only way)
+
+      // Bikes enter the garage
       pickedUp.forEach(function(deal){
         var bike = deal.bike;
         bike.bornCond = bike.condition || null;
         bike.missingParts = Object.keys(bike.partStates || {}).filter(function(k){ return bike.partStates[k] === "missing"; });
         State.garage.push(bike);
       });
+
       if (typeof Save !== "undefined") Save.save();
-      state.currentId = HOME;
-      renderAll();
+      renderHUD();
+      renderLog();
       renderTripPanel();
       mountMap();
       if (typeof UI !== "undefined" && UI.refreshCash) UI.refreshCash();
     }
 
-    function startPlanning() {
-      state.planning = true;
-      tripStops = [];
-      renderTripPanel();
-    }
     function clearTrip() {
-      state.planning = false;
-      tripStops = [];
+      state.tripStops = [];
       renderTripPanel();
       mountMap();
     }
 
-    updateLayerControls();renderAll();mountMap();renderTripPanel();
+    // --- Wire up ---
+
+    document.getElementById('travel-fuelSlider').addEventListener('input', updateFillReadout);
+    document.getElementById('travel-cancelFuel').addEventListener('click', closeFuel);
+    document.getElementById('travel-buyFuel').addEventListener('click', buyFuel);
+    document.getElementById('travel-fuelModal').addEventListener('click', function(e){ if (e.target === this) closeFuel(); });
+    var goBtn = document.getElementById('travel-tripGo');
+    if (goBtn) goBtn.addEventListener('click', executeTrip);
+    var clearBtn = document.getElementById('travel-tripClear');
+    if (clearBtn) clearBtn.addEventListener('click', clearTrip);
+
+    // Initial render
+    renderHUD();
+    renderLog();
+    renderTripPanel();
+    mountMap();
 
     return {
       rootEl: rootEl,
-      getState: function () { return { fuel: state.fuel, wallet: state.wallet }; },
-      destroy: function () {
-        document.removeEventListener('keydown', onKeyDown);
-        window.removeEventListener('resize', onResize);
-        rootEl.innerHTML = '';
-      }
+      getState: function () { return { fuel: state.fuel, wallet: 0 }; },
+      destroy: function () { rootEl.innerHTML = ''; }
     };
   }
 

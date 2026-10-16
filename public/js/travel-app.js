@@ -600,14 +600,19 @@ window.TravelMap = (function () {
           return '<span class="trip-stop">' + (i+1) + '. ' + d.town + ' — ' + (d.bike.brand || '') + ' ' + (d.bike.model || '') + '</span>';
         }).join('');
         var miles = tripMiles(), gals = tripGallons();
-        var enoughFuel = state.fuel >= gals;
+        var firstLegMiles = milesBetweenTowns(HOME, stops[0].town);
+        var firstLegGals = firstLegMiles / MPG;
+        var canStart = state.fuel >= firstLegGals;
+        var enoughForAll = state.fuel >= gals;
         mathEl.hidden = false;
         mathEl.innerHTML = '<div class="trip-math-row"><span>Route</span><strong>' + HOME + ' → ' + stops.map(function(d){return d.town;}).join(' → ') + ' → ' + HOME + '</strong></div>' +
           '<div class="trip-math-row"><span>Distance</span><strong>' + miles + ' mi</strong></div>' +
-          '<div class="trip-math-row"><span>Fuel needed</span><strong>' + gals.toFixed(1) + ' gal' + (enoughFuel ? '' : ' <em class="trip-warn">(you have ' + state.fuel.toFixed(1) + ')</em>') + '</strong></div>';
-        goBtn.disabled = !enoughFuel || state.driving;
-        if (!enoughFuel) {
-          mathEl.innerHTML += '<div class="trip-warn">Not enough fuel. Fill up or pick a shorter route.</div>';
+          '<div class="trip-math-row"><span>Fuel needed</span><strong>' + gals.toFixed(1) + ' gal' + (enoughForAll ? '' : ' <em class="trip-warn">(you have ' + state.fuel.toFixed(1) + ' — plan gas stops)</em>') + '</strong></div>';
+        goBtn.disabled = !canStart || state.driving;
+        if (!canStart) {
+          mathEl.innerHTML += '<div class="trip-warn">Not enough fuel for the first leg. Fill up first.</div>';
+        } else if (!enoughForAll) {
+          mathEl.innerHTML += '<div class="trip-warn">You\'ll need gas stations along the way. Yellow pins mark them.</div>';
         }
       }
     }
@@ -615,8 +620,8 @@ window.TravelMap = (function () {
     function executeTrip() {
       var stops = tripDeals();
       if (!stops.length || state.driving) return;
-      var gals = tripGallons();
-      if (state.fuel < gals) return;  // shouldn't happen (button disabled)
+      var firstLegGals = milesBetweenTowns(HOME, stops[0].town) / MPG;
+      if (state.fuel < firstLegGals) return;  // shouldn't happen (button disabled)
       state.driving = true;
       state.planning = false;
       renderTripPanel();

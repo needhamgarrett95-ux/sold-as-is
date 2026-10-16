@@ -84,8 +84,8 @@ body:not(.dark-mode).pc-mode #pc-desktop [data-appicon="travel"] svg circle { fi
   display: flex; flex-direction: column;
   background: var(--bg, #f5f2ea); }
 #pc-window.hidden { display: none; }
-#pc-titlebar { height: 44px; flex: 0 0 44px; display: flex; align-items: center;
-  padding: 0 8px 0 18px; gap: 8px;
+#pc-titlebar { height: 44px; min-height: 44px; flex: 0 0 44px; display: flex; align-items: center;
+  padding: 0 8px 0 18px; gap: 8px; position: relative; z-index: 1;
   background: rgba(0,0,0,.04); border-bottom: 1px solid rgba(0,0,0,.08); }
 body.dark-mode.pc-mode #pc-titlebar { background: rgba(255,255,255,.04);
   border-bottom: 1px solid rgba(255,255,255,.09); }
@@ -93,7 +93,7 @@ body.dark-mode.pc-mode #pc-titlebar { background: rgba(255,255,255,.04);
 #pc-close { margin-left: auto; width: 36px; height: 32px; border: none; border-radius: 8px;
   background: transparent; cursor: pointer; font-size: 14px; color: inherit; }
 #pc-close:hover { background: #e04536; color: #fff; }
-#pc-window-body { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+#pc-window-body { flex: 1 1 auto; min-height: 0; overflow: hidden; position: relative; }
 #pc-window-body #browser { position: absolute; inset: 0; max-width: none; }
 
 /* ---------- taskbar ---------- */

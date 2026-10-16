@@ -83,7 +83,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg);
 #site { flex: 1; background: var(--paper); display: flex; flex-direction: column;
   overflow: hidden; border-radius: 0 0 0 0; position: relative; }
 #site-header { background: var(--card); border-bottom: 2px solid var(--line);
-  padding: 12px 14px; display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+  padding: 12px 14px; display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+  position: relative; z-index: 600; }
 .logo { font-weight: 800; font-size: 1.25rem; color: var(--ink); letter-spacing: -.5px; white-space: nowrap; flex-shrink: 0; }
 .logo span { color: var(--blue); }
 .logo-boneyard span { color: #b5651d; }

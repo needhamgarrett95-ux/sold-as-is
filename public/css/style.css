@@ -1726,3 +1726,7 @@ body.app-mode #feed, body.app-mode .pane { padding-bottom: 92px; }
 body:not(.dark-mode) .menu-popup { background: #fff; border-color: #e0d5c8; }
 body:not(.dark-mode) .menu-popup .settings-head { border-color: #e0d5c8; }
 body:not(.dark-mode) .menu-search select { background: #f5f5f5; color: #000; border-color: #ddd; }
+.popup-close { background: transparent; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 4px 8px; float: right; }
+.popup-close:hover { color: #fff; }
+body:not(.dark-mode) .popup-close:hover { color: #000; }
+.settings-head { display: flex; justify-content: space-between; align-items: center; }

@@ -185,6 +185,8 @@ document.addEventListener("DOMContentLoaded", () => {
         menuPopup.classList.add("hidden");
       }
     });
+    const menuClose = document.getElementById("menu-close");
+    if (menuClose) menuClose.addEventListener("click", () => menuPopup.classList.add("hidden"));
   }
   // Audio: music player + SFX
   if (typeof AudioEngine !== "undefined") {

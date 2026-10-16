@@ -489,8 +489,25 @@ window.TravelMap = (function () {
       (opts.deals || []).forEach(function(deal){
         var pos = PIN_POS[deal.town];
         if (!pos) return;
-        html += '<button class="map-pin deal" data-deal="' + deal.listingId + '" style="left:' + pos[0] + '%;top:' + (pos[1] - 2.2) + '%" aria-label="Your ' + (deal.bike.brand || '') + ' ' + (deal.bike.model || '') + ' in ' + deal.town + ' — ready for pickup"><span class="pin-check">✓</span></button>';
+        var stopNum = tripStops.indexOf(deal.listingId);
+        var orderBadge = stopNum >= 0 ? '<span class="pin-order">' + (stopNum + 1) + '</span>' : '<span class="pin-check">✓</span>';
+        var selClass = stopNum >= 0 ? ' in-trip' : '';
+        html += '<button class="map-pin deal' + selClass + '" data-deal="' + deal.listingId + '" style="left:' + pos[0] + '%;top:' + (pos[1] - 2.2) + '%" aria-label="Your ' + (deal.bike.brand || '') + ' ' + (deal.bike.model || '') + ' in ' + deal.town + ' — ready for pickup">' + orderBadge + '</button>';
       });
+      // Draw planned route as SVG overlay
+      if (tripStops.length > 0) {
+        var routePts = [PIN_POS[HOME]];
+        tripDeals().forEach(function(d){
+          var pp = PIN_POS[d.town];
+          if (pp) routePts.push(pp);
+        });
+        routePts.push(PIN_POS[HOME]);
+        routePts = routePts.filter(Boolean);
+        if (routePts.length >= 2) {
+          var pathD = routePts.map(function(pt, i){ return (i === 0 ? 'M' : 'L') + pt[0] + ' ' + pt[1]; }).join(' ');
+          html += '<svg class="route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="' + pathD + '" fill="none" stroke="#febc2e" stroke-width="0.8" stroke-dasharray="2 1.2" stroke-linecap="round" opacity="0.9"/></svg>';
+        }
+      }
       // Home pin (always)
       var homePos = PIN_POS[HOME];
       if (homePos) {
@@ -657,14 +674,6 @@ window.TravelMap = (function () {
         // Update location
         state.currentId = leg.deal ? 'deal:' + leg.deal.listingId : 'home';
         renderHUD();
-        // Mid-trip gas stop: station here + fuel low + more legs to go = pause for fuel
-        var stn = stations[leg.to];
-        if (stn && state.fuel < CAPACITY * 0.5 && legIdx < legs.length - 1) {
-          state._pausedTrip = { resume: runLeg };
-          openFuelFor(stn);
-          renderHUD();
-          return;
-        }
         // If this leg ends at a deal, pick up the bike
         if (leg.deal) {
           pickedUp.push(leg.deal);
@@ -675,8 +684,19 @@ window.TravelMap = (function () {
             opts.deals = ts.deals;
           }
           state.logs.unshift({ type: 'trip', title: 'Picked up ' + (leg.deal.bike.brand || '') + ' ' + (leg.deal.bike.model || ''), meta: leg.deal.town + ' · ' + miles + ' mi', cost: '' });
+          renderLog();
         }
         legIdx++;
+        // Mid-trip gas stop: station here + fuel low + more legs to go = pause for fuel
+        var stn = stations[leg.to];
+        if (stn && state.fuel < CAPACITY * 0.5 && legIdx < legs.length) {
+          state._pausedTrip = { resume: runLeg };
+          openFuelFor(stn);
+          renderHUD();
+          mountMap();
+          return;
+        }
+        mountMap();
         // Brief pause between legs for readability
         setTimeout(runLeg, 1200);
       }

@@ -181,7 +181,7 @@ window.TravelMap = (function () {
     var firstListing=(opts.listings||[])[0];
         var initFuel=(opts.fuel!=null?opts.fuel:3), initWallet=(opts.wallet!=null?opts.wallet:140);
         var initSelectedId=firstListing?('listing:'+firstListing.id):'home';
-        var state={fuel:initFuel,wallet:initWallet,currentId:'home',selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
+        var state={fuel:initFuel,wallet:initWallet,currentId:HOME,selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
     var mapHandle=null;
     var selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
     var resizeTimer=null;
@@ -323,7 +323,12 @@ window.TravelMap = (function () {
         mountMap();
       },2250);
     }
-    function currentStation(){var d=byId[state.currentId]; return d.kind==='gas'?d:null;}
+    function currentStation(){
+      var d=byId[state.currentId];
+      if (d && d.kind==='gas') return d;
+      // Check by town name (trip legs use town names)
+      return stations[state.currentId] || null;
+    }
     function openFuelFor(station){
       var max=Math.max(0,Math.min(CAPACITY-state.fuel,State.cash/station.price));
       var slider=document.getElementById('travel-fuelSlider');
@@ -364,8 +369,17 @@ window.TravelMap = (function () {
     function closeFuel(){document.getElementById('travel-fuelModal').classList.remove('open');}
     function renderHUD(){
       var current=byId[state.currentId];
-      document.getElementById('travel-locationName').textContent=current.kind==='gas'?current.name:current.town+', WA';
-      document.getElementById('travel-locationSub').textContent=current.kind==='home'?'Home garage · keys on the hook':current.kind==='gas'?'Fuel stop · '+current.town+', WA':'Seller meetup · choose any next stop';
+      var townName, subText;
+      if (current) {
+        townName = current.kind==='gas'?current.name:current.town+', WA';
+        subText = current.kind==='home'?'Home garage · keys on the hook':current.kind==='gas'?'Fuel stop · '+current.town+', WA':'Seller meetup · choose any next stop';
+      } else {
+        // Town name directly (from trip legs)
+        townName = state.currentId + ', WA';
+        subText = state.currentId === HOME ? 'Home garage · keys on the hook' : 'On the road · ' + state.currentId;
+      }
+      document.getElementById('travel-locationName').textContent=townName;
+      document.getElementById('travel-locationSub').textContent=subText;
       document.getElementById('travel-fuelValue').textContent=state.fuel.toFixed(1);
       var fill=document.getElementById('travel-fuelFill'); fill.style.width=(state.fuel/CAPACITY*100)+'%'; fill.classList.toggle('low',state.fuel<4);
       document.getElementById('travel-walletValue').textContent=money(State.cash);
@@ -377,7 +391,7 @@ window.TravelMap = (function () {
     }
     function renderAll(){renderHUD();renderCard();renderLog();}
     function reset(){
-      state={fuel:initFuel,wallet:initWallet,currentId:'home',selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
+      state={fuel:initFuel,wallet:initWallet,currentId:HOME,selectedId:initSelectedId,lastPrice:4.15,driving:false,logs:[]};
       expandedClusterId=null;
       selectedIndex=destinations.findIndex(function(d){return d.id===state.selectedId;});
       updateLayerControls();renderAll();mountMap();
@@ -497,20 +511,11 @@ window.TravelMap = (function () {
       html += '</div>';
       el.innerHTML = html;
       // Wire clicks
+      // Red pins are reference only — no action
       el.querySelectorAll('.map-pin.seller').forEach(function(btn){
-        btn.addEventListener('click', function(){
-          if (state.driving) return;
-          var destId = btn.getAttribute('data-dest');
-          var idx = destinations.findIndex(function(d){ return d.id === destId; });
-          if (idx >= 0) selectDestination(idx);
-        });
+        btn.addEventListener('click', function(){ /* reference only */ });
       });
-      var homeBtn = el.querySelector('.map-pin.home');
-      if (homeBtn) homeBtn.addEventListener('click', function(){
-        if (state.driving) return;
-        var idx = destinations.findIndex(function(d){ return d.id === 'home'; });
-        if (idx >= 0) selectDestination(idx);
-      });
+      // Home pin: reference only
       // Green pins: tap to add to trip (when planning)
       el.querySelectorAll('.map-pin.deal').forEach(function(btn){
         btn.addEventListener('click', function(){
@@ -531,8 +536,8 @@ window.TravelMap = (function () {
         btn.addEventListener('click', function(){
           if (state.driving) return;
           var town = btn.getAttribute('data-gas');
-          var idx = destinations.findIndex(function(d){ return d.id === 'gas:' + town; });
-          if (idx >= 0) selectDestination(idx);
+          var station = stations[town];
+          if (station) openFuelFor(station);
         });
       });
       // Hide the fallback
@@ -646,8 +651,8 @@ window.TravelMap = (function () {
           return;
         }
         state.fuel -= need;
-        // Update location
-        state.currentId = leg.deal ? 'deal:' + leg.deal.listingId : 'home';
+        // Update location (use town name so renderHUD can display it)
+        state.currentId = leg.to;
         renderHUD();
         // If this leg ends at a deal, pick up the bike
         if (leg.deal) {
@@ -704,7 +709,7 @@ window.TravelMap = (function () {
         State.garage.push(bike);
       });
       if (typeof Save !== "undefined") Save.save();
-      state.currentId = 'home';
+      state.currentId = HOME;
       renderAll();
       renderTripPanel();
       mountMap();

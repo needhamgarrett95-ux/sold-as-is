@@ -819,7 +819,7 @@ button:focus { outline: none !important; box-shadow: none !important; }
 .eby-blurb { font-size: .78rem; color: #7a6a5f; font-style: italic; margin: 2px 0 6px; line-height: 1.3; }
 
 /* Settings */
-.settings-menu { position: absolute; top: 48px; right: 10px; z-index: 200; background: #fff; border: 1px solid #e0d5c8; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 220px; overflow: hidden; }
+.settings-menu { position: absolute; top: 48px; right: 10px; z-index: 700; background: #fff; border: 1px solid #e0d5c8; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 220px; overflow: hidden; }
 .settings-menu.hidden { display: none; }
 .settings-head { padding: 10px 14px; font-weight: 800; font-size: .85rem; border-bottom: 1px solid #f0ebe4; background: #faf6f1; }
 .settings-item { display: block; width: 100%; text-align: left; padding: 12px 14px; background: none; border: none; border-bottom: 1px solid #f0ebe4; font-size: .85rem; font-weight: 600; cursor: pointer; color: #333; }
@@ -831,7 +831,7 @@ button.settings-item:active { background: #faf6f1; }
 
 
 /* Music popup player */
-.music-popup { position: absolute; top: 48px; right: 10px; z-index: 200; background: #fff; border: 1px solid #e0d5c8; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 230px; overflow: hidden; }
+.music-popup { position: absolute; top: 48px; right: 10px; z-index: 700; background: #fff; border: 1px solid #e0d5c8; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 230px; overflow: hidden; }
 .music-popup.hidden { display: none; }
 .music-popup-track { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #f0ebe4; }
 .music-popup-track .music-note { color: #febc2e; }

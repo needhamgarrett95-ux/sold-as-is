@@ -175,7 +175,7 @@
     #travel-root .balance-item strong { display:block; font-family:"Barlow Condensed",sans-serif; font-size:19px; margin-top:3px; }
     #travel-root .footline { display:flex; justify-content:space-between; gap:15px; color:var(--travel-dim); font-size:9px; line-height:1.5; padding:18px 2px 0; }
     #travel-root .brand-line { color:var(--travel-ink); font-weight:700; }
-    #travel-root .modal-backdrop { position:fixed; inset:0; z-index:100; display:none; place-items:end center; background:rgba(10,12,14,.72); padding:14px; }
+    #travel-root .modal-backdrop { position:fixed; inset:0; z-index:100; display:none; place-items:center; background:rgba(10,12,14,.72); padding:14px; }
     #travel-root .modal-backdrop.open { display:grid; }
     #travel-root .fuel-modal { width:min(520px,100%); background:var(--travel-panel); border:3px solid var(--travel-ink); box-shadow:0 2px 12px rgba(0,0,0,0.18); padding:16px; }
     #travel-root .modal-title { font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; font-size:28px; line-height:1; margin:0; }
